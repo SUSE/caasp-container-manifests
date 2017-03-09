@@ -52,22 +52,22 @@ spec:
   volumes:
     - name: salt-master-config
       hostPath:
-        path: $TODO_PREFIX/config/salt/master.d # FIXME: prefix for this package (config folder)
+        path: /usr/share/caasp-container-manifests/config/salt/master.d
     - name: salt-master
       hostPath:
-        path: $TODO_SALT_STATES # FIXME: where are salt states installed in microos?
+        path: /usr/share/salt/kubernetes/salt
     - name: salt-pillar
       hostPath:
-        path: $TODO_SALT_PILLAR # FIXME: where is salt pillar installed in microos?
+        path: /usr/share/salt/kubernetes/pillar
     - name: salt-sock-dir
       hostPath:
-        path: $TODO_SALT_MASTER_SOCK_DIR # FIXME: where is the salt master sock dir located in microos?
+        path: /var/run/salt/master
     - name: salt-minion-ca-grains
       hostPath:
-        path: $TODO_PREFIX/config/salt/grains/ca # FIXME: prefix for this package (config folder)
+        path: /usr/share/caasp-container-manifests/config/salt/grains/ca
     - name: salt-minion-ca-config
       hostPath:
-        path: $TODO_PREFIX/config/salt/minion.d-ca/minion.conf # FIXME: prefix for this package (config folder)
+        path: /usr/share/caasp-container-manifests/config/salt/minion.d-ca/minion.conf
     - name: salt-minion-ca-signing-policies
       hostPath:
-        path: $TODO_PREFIX/config/salt/minion.d-ca/signing_policies.conf # FIXME: prefix for this package (config folder)
+        path: /usr/share/caasp-container-manifests/config/salt/minion.d-ca/signing_policies.conf
