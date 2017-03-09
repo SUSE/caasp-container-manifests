@@ -32,7 +32,7 @@ spec:
     - name: VELUM_DB_PORT
       value: "3306"
     - name: VELUM_DB_USERNAME
-      value: "root" # FIXME: do not use root user
+      value: "root"
     - name: VELUM_DB_PASSWORD
       value: "salt"
     - name: VELUM_SALT_HOST
@@ -40,9 +40,9 @@ spec:
     - name: VELUM_SALT_PORT
       value: "8000"
     - name: VELUM_SALT_USER
-      value: saltapi # FIXME? -> https://github.com/openSUSE/docker-containers/blob/master/derived_images/salt/salt-master/Dockerfile#L9
+      value: saltapi
     - name: VELUM_SALT_PASSWORD
-      value: saltapi # FIXME? -> https://github.com/openSUSE/docker-containers/blob/master/derived_images/salt/salt-master/Dockerfile#L9
+      value: saltapi
     command: ["/bin/sh","-c"]
     args: ["bundle exec rails s -b 0.0.0.0 -p 3000 --pid /tmp/puma.pid Puma"]
   - name: velum-event-processor
@@ -59,22 +59,24 @@ spec:
     - name: VELUM_DB_PORT
       value: "3306"
     - name: VELUM_DB_USERNAME
-      value: "root" # FIXME: do not use root user
+      value: "root"
     - name: VELUM_DB_PASSWORD
       value: "salt"
     - name: VELUM_SALT_HOST
-      value:
+      value: "127.0.0.1"
     - name: VELUM_SALT_PORT
-      value:
+      value: "8000"
     - name: VELUM_SALT_USER
-      value:
+      value: saltapi
     command: ["/bin/sh","-c"]
     args: ["bundle exec bin/rake salt:process"]
-  - name: velum-mariadb # FIXME: being on the same pod (with hostNetwork: true) also exposes mysql (if it listens on 0.0.0.0).
+  - name: velum-mariadb
     image: sles12/mariadb:10.0
     env:
-    - name: MYSQL_ROOT_PASSWORD # FIXME: do not set root password, create user/password
-      value: "salt"             # FIXME
+    - name: MYSQL_ROOT_PASSWORD # Should match VELUM_DB_PASSWORD above
+      value: "salt"
+    - name: MYSQL_DISABLE_REMOTE_ROOT
+      value: "false"
     volumeMounts:
       - mountPath: /var/lib/mysql
         name: velum-mariadb-data
