@@ -51,17 +51,17 @@ Manifest file templates will instruct kubelet service to bring up salt
 and velum containers on a controller node.
 
 %prep
-%setup -q
+%setup -q -n ${NAME}-master
 
 %build
 
 %install
 for file in salt.yaml velum.yaml; do
-  install -D -m 0644 $file %{buildroot}/%{_datadir}/%{name}/$file
+  install -D -m 0644 \$file %{buildroot}/%{_datadir}/%{name}/\$file
 done
 for dir in grains master.d minion.d-ca; do
-  install -d %{buildroot}/%{_datadir}/%{name}/config/salt/$dir
-  install config/salt/$dir/* %{buildroot}/%{_datadir}/%{name}/config/salt/$dir
+  install -d %{buildroot}/%{_datadir}/%{name}/config/salt/\$dir
+  install config/salt/\$dir/* %{buildroot}/%{_datadir}/%{name}/config/salt/\$dir
 done
 
 
