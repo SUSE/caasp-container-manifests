@@ -58,7 +58,7 @@ spec:
     command: ["/bin/sh","-c"]
     args: ["bundle exec bin/rake salt:process"]
   - name: velum-mariadb # FIXME: being on the same pod (with hostNetwork: true) also exposes mysql (if it listens on 0.0.0.0).
-    image: library/mariadb:10.0.29 # FIXME: own mariadb image
+    image: sles12/mariadb:10.0
     env:
     - name: MYSQL_ROOT_PASSWORD # FIXME: do not set root password, create user/password
       value: "salt"             # FIXME
