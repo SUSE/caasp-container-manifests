@@ -75,3 +75,10 @@ spec:
     env:
     - name: MYSQL_ROOT_PASSWORD # FIXME: do not set root password, create user/password
       value: "salt"             # FIXME
+    volumeMounts:
+      - mountPath: /var/lib/mysql
+        name: velum-mariadb-data
+  volumes:
+    - name: velum-mariadb-data
+      hostPath:
+        path: /var/lib/mysql
