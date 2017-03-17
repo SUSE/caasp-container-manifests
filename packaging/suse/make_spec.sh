@@ -56,7 +56,7 @@ and velum containers on a controller node.
 %build
 
 %install
-for file in salt.yaml velum.yaml; do
+for file in salt.yaml velum.yaml activate.sh; do
   install -D -m 0644 \$file %{buildroot}/%{_datadir}/%{name}/\$file
 done
 for dir in grains master.d minion.d-ca; do
