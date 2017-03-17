@@ -1,0 +1,25 @@
+#!/bin/sh
+kube_dir=/etc/kubernetes/manifests
+manifest_dir=/usr/share/caasp-container-manifests
+if [ ! -d $kube_dir ]; then
+    echo "$kube_dir does not exist"
+    echo "make sure kubernetes is installed"
+    exit -1
+fi
+if [ ! -d $manifest_dir ]; then
+    echo "$manifest_dir does not exist"
+    echo "manifest files are expected to be there"
+    exit -2
+fi
+if [ ! -f $manifest_dir/salt.yaml ]; then
+    echo "salt.yaml is not in $manifest_dir"
+    exit -3
+fi
+if [ ! -f $manifest_dir/velum.yaml ]; then
+    echo "velum.yaml is not in $manifest_dir"
+    exit -3
+fi
+cp -v $manifest_dir/salt.yaml $kube_dir
+cp -v $manifest_dir/velum.yaml $kube_dir
+
+
