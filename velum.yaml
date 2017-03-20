@@ -79,6 +79,7 @@ spec:
       - mountPath: /var/lib/mysql
         name: velum-mariadb-data
   volumes:
+    # Assume that database container sticks to the host that started it the very first time.
     - name: velum-mariadb-data
       hostPath:
         path: /var/lib/mysql
