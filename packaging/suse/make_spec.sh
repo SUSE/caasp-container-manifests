@@ -43,6 +43,14 @@ Url:            https://github.com/kubic-project/caasp-container-manifests
 Group:          System/Management
 Source:         master.tar.gz
 Requires:       container-feeder
+# Require all the docker images
+Requires:       sles12-pause-1.0.0-docker-image >= 1.0.0
+Requires:       sles12-mariadb-10.0-docker-image >= 1.0.0
+Requires:       sles12-pv-recycler-node-1.0.0-docker-image >= 1.0.0
+Requires:       sles12-salt-api-2015.8.12-docker-image >= 1.0.0
+Requires:       sles12-salt-master-2015.8.12-docker-image >= 1.0.0
+Requires:       sles12-salt-minion-2015.8.12-docker-image >= 1.0.0
+Requires:       sles12-velum-1.0.0-docker-image >= 1.0.0
 BuildArch:      noarch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
