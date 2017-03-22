@@ -22,7 +22,15 @@ fi
 cp -v $manifest_dir/salt.yaml $kube_dir
 cp -v $manifest_dir/velum.yaml $kube_dir
 
-# enable specific services to ControllerNode
-systemctl enable docker
-systemctl enable kubelet
+if [ "$YAST_IS_RUNNING" = instsys ]; then
+    # YaST is configuring controller node
+    # enable specific services to ControllerNode
+    systemctl enable docker
+    systemctl enable kubelet
+else
+    # cloud-init is configuring controller node
+    # enable and start specific services to ControllerNode
+    systemctl enable --now docker
+    systemctl enable --now kubelet
+fi
 
