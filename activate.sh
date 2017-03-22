@@ -26,7 +26,3 @@ cp -v $manifest_dir/velum.yaml $kube_dir
 systemctl enable docker
 systemctl enable kubelet
 
-# disable services that should not be running in ControllerNode
-systemctl disable salt-minion
-
-
