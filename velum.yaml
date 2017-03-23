@@ -21,7 +21,7 @@ spec:
   hostNetwork: true
   containers:
   - name: velum-dashboard
-    image: opensuse/velum:development
+    image: sles12/velum:0.0
     env:
     - name: RAILS_ENV
       value: production
@@ -46,7 +46,7 @@ spec:
     command: ["/bin/sh","-c"]
     args: ["bundle exec rails s -b 0.0.0.0 -p 3000 --pid /tmp/puma.pid Puma"]
   - name: velum-event-processor
-    image: opensuse/velum:development
+    image: sles12/velum:0.0
     env:
     - name: WORKER_ID
       value: worker1

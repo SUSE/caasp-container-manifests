@@ -50,7 +50,7 @@ Requires:       sles12-pv-recycler-node-1.0.0-docker-image >= 1.0.0
 Requires:       sles12-salt-api-2015.8.12-docker-image >= 1.0.0
 Requires:       sles12-salt-master-2015.8.12-docker-image >= 1.0.0
 Requires:       sles12-salt-minion-2015.8.12-docker-image >= 1.0.0
-Requires:       sles12-velum-0.1-docker-image >= 1.0.0
+Requires:       sles12-velum-0.0-docker-image >= 1.0.0
 BuildArch:      noarch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
