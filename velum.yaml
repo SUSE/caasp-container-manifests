@@ -44,7 +44,7 @@ spec:
     - name: VELUM_SALT_PASSWORD
       value: saltapi
     command: ["/bin/sh","-c"]
-    args: ["bundle exec rails s -b 0.0.0.0 -p 80 --pid /tmp/puma.pid Puma"]
+    args: ["init"]
   - name: velum-event-processor
     image: sles12/velum:0.0
     env:
