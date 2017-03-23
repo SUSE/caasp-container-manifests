@@ -69,7 +69,7 @@ spec:
     - name: VELUM_SALT_USER
       value:
     command: ["/bin/sh","-c"]
-    args: ["$BUNDLER_BIN exec bin/rake salt:process"]
+    args: ["bundle exec bin/rake salt:process"]
   - name: velum-mariadb # FIXME: being on the same pod (with hostNetwork: true) also exposes mysql (if it listens on 0.0.0.0).
     image: sles12/mariadb:10.0
     env:
