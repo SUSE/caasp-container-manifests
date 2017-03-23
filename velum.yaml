@@ -44,7 +44,7 @@ spec:
     - name: VELUM_SALT_PASSWORD
       value: saltapi # FIXME? -> https://github.com/openSUSE/docker-containers/blob/master/derived_images/salt/salt-master/Dockerfile#L9
     command: ["/bin/sh","-c"]
-    args: ["bundle exec rails s -b 0.0.0.0 -p 80 --pid /tmp/puma.pid Puma"]
+    args: ["init"]
   - name: velum-event-processor
     image: sles12/velum:0.0
     env:
@@ -69,7 +69,7 @@ spec:
     - name: VELUM_SALT_USER
       value:
     command: ["/bin/sh","-c"]
-    args: ["bundle exec bin/rake salt:process"]
+    args: ["$BUNDLER_BIN exec bin/rake salt:process"]
   - name: velum-mariadb # FIXME: being on the same pod (with hostNetwork: true) also exposes mysql (if it listens on 0.0.0.0).
     image: sles12/mariadb:10.0
     env:
