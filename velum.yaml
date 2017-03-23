@@ -44,7 +44,7 @@ spec:
     - name: VELUM_SALT_PASSWORD
       value: saltapi
     command: ["/bin/sh","-c"]
-    args: ["init"]
+    args: ["bin/init"]
   - name: velum-event-processor
     image: sles12/velum:0.0
     env:
