@@ -44,7 +44,7 @@ spec:
     - name: VELUM_SALT_PASSWORD
       value: saltapi # FIXME? -> https://github.com/openSUSE/docker-containers/blob/master/derived_images/salt/salt-master/Dockerfile#L9
     command: ["/bin/sh","-c"]
-    args: ["bundle exec rails s -b 0.0.0.0 -p 3000 --pid /tmp/puma.pid Puma"]
+    args: ["bundle exec rails s -b 0.0.0.0 -p 80 --pid /tmp/puma.pid Puma"]
   - name: velum-event-processor
     image: sles12/velum:0.0
     env:
