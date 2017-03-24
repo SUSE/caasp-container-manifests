@@ -29,8 +29,6 @@ spec:
       name: salt-master
     - mountPath: /srv/pillar
       name: salt-pillar
-    - mountPath: /srv/pillar/vars.sls
-      name: salt-pillar-vars
     - mountPath: /var/run/salt/master
       name: salt-sock-dir
   - name: salt-api
