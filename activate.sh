@@ -22,6 +22,10 @@ fi
 cp -v $manifest_dir/salt.yaml $kube_dir
 cp -v $manifest_dir/velum.yaml $kube_dir
 
+# Make sure that the controller node looks for the local pause image
+# TODO: remove this as soon as possible. As an idea, we could use a systemd drop-in unit.
+sed -i 's|--config=/etc/kubernetes/manifests|--config=/etc/kubernetes/manifests --pod-infra-container-image=sles12/pause:1.0.0|g' /etc/kubernetes/kubelet
+
 if [ "$YAST_IS_RUNNING" = instsys ]; then
     # YaST is configuring controller node
     # enable specific services to ControllerNode
@@ -33,4 +37,3 @@ else
     systemctl enable --now docker
     systemctl enable --now kubelet
 fi
-
