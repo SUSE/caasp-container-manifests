@@ -25,6 +25,8 @@ spec:
     volumeMounts:
     - mountPath: /etc/salt/master.d
       name: salt-master-config
+    - mountPath: /etc/salt/pki/master
+      name: salt-master-pki
     - mountPath: /srv/salt
       name: salt-master
     - mountPath: /srv/pillar
@@ -41,16 +43,23 @@ spec:
   - name: salt-minion-ca
     image: sles12/salt-minion:2015.8.12
     volumeMounts:
+    - mountPath: /etc/pki
+      name: salt-minion-ca-certificates
     - mountPath: /etc/salt/minion.d/minion.conf
       name: salt-minion-ca-config
     - mountPath: /etc/salt/minion.d/signing_policies.conf
       name: salt-minion-ca-signing-policies
     - mountPath: /etc/salt/grains
       name: salt-minion-ca-grains
+    - mountPath: /etc/salt/pki/minion
+      name: salt-minion-pki
   volumes:
     - name: salt-master-config
       hostPath:
         path: /usr/share/caasp-container-manifests/config/salt/master.d
+    - name: salt-master-pki
+      hostPath:
+        path: /etc/salt/pki/master
     - name: salt-master
       hostPath:
         path: /usr/share/salt/kubernetes/salt
@@ -60,6 +69,9 @@ spec:
     - name: salt-sock-dir
       hostPath:
         path: /var/run/salt/master/sock-dir
+    - name: salt-minion-ca-certificates
+      hostPath:
+        path: /etc/pki
     - name: salt-minion-ca-grains
       hostPath:
         path: /usr/share/caasp-container-manifests/config/salt/grains/ca
@@ -69,3 +81,6 @@ spec:
     - name: salt-minion-ca-signing-policies
       hostPath:
         path: /usr/share/caasp-container-manifests/config/salt/minion.d-ca/signing_policies.conf
+    - name: salt-minion-pki
+      hostPath:
+        path: /etc/salt/pki/minion-ca
