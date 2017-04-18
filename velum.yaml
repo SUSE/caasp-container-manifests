@@ -68,6 +68,8 @@ spec:
       value: "8000"
     - name: VELUM_SALT_USER
       value: saltapi
+    - name: VELUM_SALT_PASSWORD
+      value: saltapi
     command: ["/bin/sh","-c"]
     args: ["bundle exec bin/rake salt:process"]
   - name: velum-mariadb
