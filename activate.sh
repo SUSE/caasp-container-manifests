@@ -11,16 +11,16 @@ if [ ! -d $manifest_dir ]; then
     echo "manifest files are expected to be there" >&2
     exit -2
 fi
-if [ ! -f $manifest_dir/salt.yaml ]; then
-    echo "salt.yaml is not in $manifest_dir" >&2
+if [ ! -f $manifest_dir/public.yaml ]; then
+    echo "public.yaml is not in $manifest_dir" >&2
     exit -3
 fi
-if [ ! -f $manifest_dir/velum.yaml ]; then
-    echo "velum.yaml is not in $manifest_dir" >&2
+if [ ! -f $manifest_dir/private.yaml ]; then
+    echo "private.yaml is not in $manifest_dir" >&2
     exit -3
 fi
-cp -v $manifest_dir/salt.yaml $kube_dir
-cp -v $manifest_dir/velum.yaml $kube_dir
+cp -v $manifest_dir/public.yaml $kube_dir
+cp -v $manifest_dir/private.yaml $kube_dir
 
 # Make sure that the controller node looks for the local pause image
 # TODO: remove this as soon as possible. As an idea, we could use a systemd drop-in unit.

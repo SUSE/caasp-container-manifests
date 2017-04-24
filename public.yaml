@@ -14,14 +14,17 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: salt
+  name: velum-public
   labels:
-    name: salt
+    name: velum-public
 spec:
   hostNetwork: true
   containers:
   - name: salt-master
     image: sles12/salt-master:2015.8.12
+    env:
+    - name: MYSQL_UNIX_PORT
+      value: /var/run/mysqld/mysqld.sock
     volumeMounts:
     - mountPath: /etc/salt/master.d
       name: salt-master-config
@@ -33,6 +36,8 @@ spec:
       name: salt-pillar
     - mountPath: /var/run/salt/master
       name: salt-sock-dir
+    - mountPath: /var/run/mysqld
+      name: mariadb-unix-socket
   - name: salt-api
     image: sles12/salt-api:2015.8.12
     volumeMounts:
@@ -53,7 +58,77 @@ spec:
       name: salt-minion-ca-grains
     - mountPath: /etc/salt/pki/minion
       name: salt-minion-pki
+  - name: velum-dashboard
+    image: sles12/velum:0.0
+    env:
+    - name: RAILS_ENV
+      value: production
+    - name: VELUM_SECRETS_DIR
+      value: /var/lib/misc/velum-secrets
+    - name: VELUM_PORT
+      value: "80"
+    - name: VELUM_DB_HOST
+      value:
+    - name: VELUM_DB_USERNAME
+      value: "root"
+    - name: VELUM_DB_PASSWORD
+      value: "salt"
+    - name: VELUM_DB_SOCKET
+      value: /var/run/mysqld/mysqld.sock
+    - name: VELUM_SALT_HOST
+      value: "127.0.0.1"
+    - name: VELUM_SALT_PORT
+      value: "8000"
+    - name: VELUM_SALT_USER
+      value: saltapi
+    - name: VELUM_SALT_PASSWORD
+      value: saltapi
+    volumeMounts:
+      - mountPath: /var/run/mysqld
+        name: mariadb-unix-socket
+      - mountPath: /var/lib/misc/velum-secrets
+        name: velum-secrets
+    command: ["/bin/sh","-c"]
+    args: ["bin/init"]
+  - name: velum-event-processor
+    image: sles12/velum:0.0
+    env:
+    - name: WORKER_ID
+      value: worker1
+    - name: RAILS_ENV
+      value: production
+    - name: VELUM_SECRETS_DIR
+      value: /var/lib/misc/velum-secrets
+    - name: VELUM_DB_HOST
+      value:
+    - name: VELUM_DB_USERNAME
+      value: "root"
+    - name: VELUM_DB_PASSWORD
+      value: "salt"
+    - name: VELUM_DB_SOCKET
+      value: /var/run/mysqld/mysqld.sock
+    - name: VELUM_SALT_HOST
+      value: "127.0.0.1"
+    - name: VELUM_SALT_PORT
+      value: "8000"
+    - name: VELUM_SALT_USER
+      value: saltapi
+    - name: VELUM_SALT_PASSWORD
+      value: saltapi
+    volumeMounts:
+      - mountPath: /var/run/mysqld
+        name: mariadb-unix-socket
+      - mountPath: /var/lib/misc/velum-secrets
+        name: velum-secrets
+    command: ["/bin/sh","-c"]
+    args: ["bundle exec bin/rake salt:process"]
   volumes:
+    - name: mariadb-unix-socket
+      hostPath:
+        path: /var/run/mysqld
+    - name: velum-secrets
+      hostPath:
+        path: /var/lib/misc/velum-secrets
     - name: salt-master-config
       hostPath:
         path: /usr/share/caasp-container-manifests/config/salt/master.d

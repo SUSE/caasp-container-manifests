@@ -64,13 +64,13 @@ and velum containers on a controller node.
 %build
 
 %install
-for file in salt.yaml velum.yaml; do
+for file in public.yaml private.yaml; do
   install -D -m 0644 \$file %{buildroot}/%{_datadir}/%{name}/\$file
 done
 install -D -m 0755 activate.sh %{buildroot}/%{_datadir}/%{name}/activate.sh
-for dir in grains master.d minion.d-ca; do
-  install -d %{buildroot}/%{_datadir}/%{name}/config/salt/\$dir
-  install config/salt/\$dir/* %{buildroot}/%{_datadir}/%{name}/config/salt/\$dir
+for dir in mysql salt/grains salt/master.d salt/minion.d-ca; do
+  install -d %{buildroot}/%{_datadir}/%{name}/config/\$dir
+  install config/\$dir/* %{buildroot}/%{_datadir}/%{name}/config/\$dir
 done
 
 
