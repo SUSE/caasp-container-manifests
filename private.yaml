@@ -28,11 +28,16 @@ spec:
     - name: MYSQL_DISABLE_REMOTE_ROOT
       value: "false"
     volumeMounts:
+      - mountPath: /var/lib/mysql
+        name: mariadb-data
       - mountPath: /var/run/mysql
         name: mariadb-unix-socket
       - mountPath: /etc/mysql/conf.d
         name: mariadb-config
   volumes:
+    - name: mariadb-data
+      hostPath:
+        path: /var/lib/mysql
     - name: mariadb-unix-socket
       hostPath:
         path: /var/run/mysql
