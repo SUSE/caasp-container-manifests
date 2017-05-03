@@ -30,10 +30,8 @@ spec:
       name: salt-master-config
     - mountPath: /etc/salt/pki/master
       name: salt-master-pki
-    - mountPath: /srv/salt
-      name: salt-master
-    - mountPath: /srv/pillar
-      name: salt-pillar
+    - mountPath: /usr/share/salt/kubernetes
+      name: salt
     - mountPath: /var/run/salt/master
       name: salt-sock-dir
     - mountPath: /var/run/mysql
@@ -135,12 +133,9 @@ spec:
     - name: salt-master-pki
       hostPath:
         path: /etc/salt/pki/master
-    - name: salt-master
+    - name: salt
       hostPath:
-        path: /usr/share/salt/kubernetes/salt
-    - name: salt-pillar
-      hostPath:
-        path: /usr/share/salt/kubernetes/pillar
+        path: /usr/share/salt/kubernetes
     - name: salt-sock-dir
       hostPath:
         path: /var/run/salt/master/sock-dir
