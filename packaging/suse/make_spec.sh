@@ -51,6 +51,8 @@ Requires:       sles12-salt-api-2015.8.12-docker-image >= 1.0.0
 Requires:       sles12-salt-master-2015.8.12-docker-image >= 1.0.0
 Requires:       sles12-salt-minion-2015.8.12-docker-image >= 1.0.0
 Requires:       sles12-velum-0.0-docker-image >= 1.0.0
+# Require all  the things we mount from the host from the kubernetes-salt package
+Requires:       kubernetes-salt
 BuildArch:      noarch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
@@ -68,7 +70,7 @@ for file in public.yaml private.yaml; do
   install -D -m 0644 \$file %{buildroot}/%{_datadir}/%{name}/\$file
 done
 install -D -m 0755 activate.sh %{buildroot}/%{_datadir}/%{name}/activate.sh
-for dir in mysql salt/grains salt/master.d salt/minion.d-ca; do
+for dir in mysql salt/grains salt/minion.d-ca; do
   install -d %{buildroot}/%{_datadir}/%{name}/config/\$dir
   install config/\$dir/* %{buildroot}/%{_datadir}/%{name}/config/\$dir
 done

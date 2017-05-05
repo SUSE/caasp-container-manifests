@@ -129,7 +129,7 @@ spec:
         path: /var/lib/misc/velum-secrets
     - name: salt-master-config
       hostPath:
-        path: /usr/share/caasp-container-manifests/config/salt/master.d
+        path: /usr/share/salt/kubernetes/config/master.d
     - name: salt-master-pki
       hostPath:
         path: /etc/salt/pki/master
