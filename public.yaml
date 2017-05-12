@@ -86,6 +86,8 @@ spec:
         name: mariadb-unix-socket
       - mountPath: /var/lib/misc/velum-secrets
         name: velum-secrets
+      - mountPath: /var/lib/misc/ssh-public-key
+        name: ssh-public-key
     command: ["/bin/sh","-c"]
     args: ["bin/init"]
   - name: velum-event-processor
@@ -154,3 +156,6 @@ spec:
     - name: salt-minion-pki
       hostPath:
         path: /etc/salt/pki/minion-ca
+    - name: ssh-public-key
+      hostPath:
+        path: /var/lib/misc/ssh-public-key

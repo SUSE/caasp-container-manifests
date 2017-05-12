@@ -36,3 +36,11 @@ You can manage your cluster by opening the web application running on
 port 80 of this node from your browser.
 
 EOF
+
+# Generate root ssh key and share it with velum
+# https://bugzilla.suse.com/show_bug.cgi?id=1030876
+if ! [ -f /root/.ssh/id_rsa ]; then
+  ssh-keygen -b 4096 -f /root/.ssh/id_rsa -t rsa -N ""
+fi
+[ -d /var/lib/misc/ssh-public-key  ] || mkdir -p /var/lib/misc/ssh-public-key
+cp /root/.ssh/id_rsa.pub /var/lib/misc/ssh-public-key
