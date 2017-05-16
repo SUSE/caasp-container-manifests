@@ -32,8 +32,8 @@ spec:
         name: mariadb-data
       - mountPath: /var/run/mysql
         name: mariadb-unix-socket
-      - mountPath: /etc/mysql/conf.d
-        name: mariadb-config
+      - mountPath: /etc/my.cnf.d/skip-networking.cnf
+        name: mariadb-config-skip-networking
   volumes:
     - name: mariadb-data
       hostPath:
@@ -41,6 +41,6 @@ spec:
     - name: mariadb-unix-socket
       hostPath:
         path: /var/run/mysql
-    - name: mariadb-config
+    - name: mariadb-config-skip-networking
       hostPath:
-        path: /usr/share/caasp-container-manifests/config/mysql
+        path: /usr/share/caasp-container-manifests/config/mysql/skip-networking.cnf
