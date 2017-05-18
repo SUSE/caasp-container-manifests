@@ -32,8 +32,9 @@ sed -i 's@#\?ETCD_LISTEN_CLIENT_URLS.*@ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:23
 
 # https://bugzilla.suse.com/show_bug.cgi?id=1031682
 cat <<EOF > /etc/issue.d/100-velum.conf
-You can manage your cluster by opening the web application running on
-port 80 of this node from your browser.
+Velum, the SUSE CaaS Platform dashboard is being started - point your browser to
+this node to acccess it. Please note, if you are bootstrapping it for the first
+time, it may take a while for Velum to be reachable.
 
 EOF
 
