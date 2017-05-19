@@ -24,7 +24,7 @@ cp -v $manifest_dir/private.yaml $kube_dir
 
 # Make sure that the controller node looks for the local pause image
 # TODO: remove this as soon as possible. As an idea, we could use a systemd drop-in unit.
-sed -i 's|--config=/etc/kubernetes/manifests|--config=/etc/kubernetes/manifests --pod-infra-container-image=sles12/pause:1.0.0|g' /etc/kubernetes/kubelet
+sed -i 's|^KUBELET_ARGS="--pod-manifest-path=/etc/kubernetes/manifests|KUBELET_ARGS="--pod-infra-container-image=sles12/pause:1.0.0 --pod-manifest-path=/etc/kubernetes/manifests|' /etc/kubernetes/kubelet
 
 # Make sure etcd listens on 0.0.0.0
 sed -i 's@#\?ETCD_LISTEN_PEER_URLS.*@ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380@' /etc/sysconfig/etcd
