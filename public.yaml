@@ -17,6 +17,73 @@ metadata:
   name: velum-public
   labels:
     name: velum-public
+  annotations:
+    pod.beta.kubernetes.io/init-containers: '[
+      {
+        "name": "mariadb-user-secrets",
+        "image": "sles12/mariadb:10.0",
+        "command": ["/setup-mysql.sh"],
+        "env": [
+          {
+            "name": "ENV",
+            "value": "production"
+          }
+        ],
+        "volumeMounts": [
+          {
+            "mountPath": "/infra-secrets",
+            "name": "infra-secrets"
+          },
+          {
+            "mountPath": "/var/run/mysql",
+            "name": "mariadb-unix-socket"
+          },
+          {
+            "mountPath": "/setup-mysql.sh",
+            "name": "setup-mysql",
+            "readOnly": true
+          }
+        ]
+      },
+      {
+        "name": "saltapi-secrets",
+        "image": "sles12/velum:0.0",
+        "command": ["sh", "-c", "umask 377;
+                                 if [ ! -f /infra-secrets/saltapi-password ]; then
+                                   head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/saltapi-password;
+                                 fi;
+                                 exit 0"],
+        "volumeMounts": [
+          {
+            "mountPath": "/infra-secrets",
+            "name": "infra-secrets"
+          }
+        ]
+      },
+      {
+        "name": "salt-master-config",
+        "image": "sles12/velum:0.0",
+        "command": ["sh", "-c", "umask 377;
+                                 rmdir /salt-master-credentials/returner-credentials.conf;
+                                 if [ ! -f /salt-master-credentials/returner-credentials.conf ]; then
+                                   echo \"mysql:\" > /salt-master-credentials/returner-credentials.conf;
+                                   echo -n \"  pass: \" >> /salt-master-credentials/returner-credentials.conf;
+                                   cat /infra-secrets/mariadb-salt-password >> /salt-master-credentials/returner-credentials.conf;
+                                 fi;
+                                 exit 0"],
+        "volumeMounts": [
+          {
+            "mountPath": "/infra-secrets",
+            "name": "infra-secrets",
+            "readOnly": true
+          },
+          {
+            "mountPath": "/salt-master-credentials",
+            "name": "salt-master-credentials"
+          }
+        ]
+      }
+    ]'
 spec:
   hostNetwork: true
   containers:
@@ -25,9 +92,14 @@ spec:
     env:
     - name: MYSQL_UNIX_PORT
       value: /var/run/mysql/mysql.sock
+    - name: SALTAPI_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/saltapi-password
     volumeMounts:
     - mountPath: /etc/salt/master.d
       name: salt-master-config
+    - mountPath: /etc/salt/master.d/returner-credentials.conf
+      name: salt-master-returner-credentials
+      readOnly: True
     - mountPath: /etc/salt/pki/master
       name: salt-master-pki
     - mountPath: /usr/share/salt/kubernetes
@@ -37,11 +109,17 @@ spec:
       name: salt-sock-dir
     - mountPath: /var/run/mysql
       name: mariadb-unix-socket
+    - mountPath: /var/lib/misc/infra-secrets
+      name: infra-secrets
+      readOnly: True
   - name: salt-api
     image: sles12/salt-api:2016.11.4
     volumeMounts:
     - mountPath: /etc/salt/master.d
       name: salt-master-config
+      readOnly: True
+    - mountPath: /etc/salt/master.d/returner-credentials.conf
+      name: salt-master-returner-credentials
       readOnly: True
     - mountPath: /var/run/salt/master
       name: salt-sock-dir
@@ -73,9 +151,9 @@ spec:
     - name: VELUM_DB_HOST
       value:
     - name: VELUM_DB_USERNAME
-      value: "root"
-    - name: VELUM_DB_PASSWORD
-      value: "salt"
+      value: "velum"
+    - name: VELUM_DB_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/mariadb-velum-password
     - name: VELUM_DB_SOCKET
       value: /var/run/mysql/mysql.sock
     - name: VELUM_SALT_HOST
@@ -84,8 +162,8 @@ spec:
       value: "8000"
     - name: VELUM_SALT_USER
       value: saltapi
-    - name: VELUM_SALT_PASSWORD
-      value: saltapi
+    - name: VELUM_SALT_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/saltapi-password
     volumeMounts:
       - mountPath: /var/run/mysql
         name: mariadb-unix-socket
@@ -94,7 +172,9 @@ spec:
       - mountPath: /var/lib/misc/ssh-public-key
         name: ssh-public-key
         readOnly: True
-    command: ["/bin/sh","-c"]
+      - mountPath: /var/lib/misc/infra-secrets
+        name: infra-secrets
+        readOnly: True
     args: ["bin/init"]
   - name: velum-event-processor
     image: sles12/velum:0.0
@@ -108,9 +188,9 @@ spec:
     - name: VELUM_DB_HOST
       value:
     - name: VELUM_DB_USERNAME
-      value: "root"
-    - name: VELUM_DB_PASSWORD
-      value: "salt"
+      value: "velum"
+    - name: VELUM_DB_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/mariadb-velum-password
     - name: VELUM_DB_SOCKET
       value: /var/run/mysql/mysql.sock
     - name: VELUM_SALT_HOST
@@ -119,15 +199,17 @@ spec:
       value: "8000"
     - name: VELUM_SALT_USER
       value: saltapi
-    - name: VELUM_SALT_PASSWORD
-      value: saltapi
+    - name: VELUM_SALT_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/saltapi-password
     volumeMounts:
       - mountPath: /var/run/mysql
         name: mariadb-unix-socket
       - mountPath: /var/lib/misc/velum-secrets
         name: velum-secrets
-    command: ["/bin/sh","-c"]
-    args: ["bundle exec bin/rake salt:process"]
+      - mountPath: /var/lib/misc/infra-secrets
+        name: infra-secrets
+        readOnly: True
+    args: ["bundle", "exec", "bin/rake", "salt:process"]
   volumes:
     - name: mariadb-unix-socket
       hostPath:
@@ -138,6 +220,12 @@ spec:
     - name: salt-master-config
       hostPath:
         path: /usr/share/salt/kubernetes/config/master.d
+    - name: salt-master-credentials
+      hostPath:
+        path: /var/lib/misc/salt-master-credentials
+    - name: salt-master-returner-credentials
+      hostPath:
+        path: /var/lib/misc/salt-master-credentials/returner-credentials.conf
     - name: salt-master-pki
       hostPath:
         path: /etc/salt/pki/master
@@ -159,9 +247,15 @@ spec:
     - name: salt-minion-ca-signing-policies
       hostPath:
         path: /usr/share/caasp-container-manifests/config/salt/minion.d-ca/signing_policies.conf
+    - name: setup-mysql
+      hostPath:
+        path: /usr/share/caasp-container-manifests/setup/mysql/setup-mysql.sh
     - name: salt-minion-pki
       hostPath:
         path: /etc/salt/pki/minion-ca
     - name: ssh-public-key
       hostPath:
         path: /var/lib/misc/ssh-public-key
+    - name: infra-secrets
+      hostPath:
+        path: /var/lib/misc/infra-secrets

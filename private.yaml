@@ -17,16 +17,34 @@ metadata:
   name: velum-private
   labels:
     name: velum-private
+  annotations:
+    pod.beta.kubernetes.io/init-containers: '[
+      {
+        "name": "mariadb-secrets",
+        "image": "sles12/velum:0.0",
+        "command": ["sh", "-c", "umask 377;
+                                 if [ ! -f /infra-secrets/mariadb-root-password ]; then
+                                   head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/mariadb-root-password;
+                                 fi;
+                                 exit 0"],
+        "volumeMounts": [
+          {
+            "mountPath": "/infra-secrets",
+            "name": "infra-secrets"
+          }
+        ]
+      }
+    ]'
 spec:
   hostNetwork: false
   containers:
   - name: velum-mariadb
     image: sles12/mariadb:10.0
     env:
-    - name: MYSQL_ROOT_PASSWORD
-      value: "salt"
     - name: MYSQL_DISABLE_REMOTE_ROOT
-      value: "false"
+      value: "true"
+    - name: MYSQL_ROOT_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/mariadb-root-password
     volumeMounts:
       - mountPath: /var/lib/mysql
         name: mariadb-data
@@ -34,6 +52,9 @@ spec:
         name: mariadb-unix-socket
       - mountPath: /etc/my.cnf.d/skip-networking.cnf
         name: mariadb-config-skip-networking
+        readOnly: True
+      - mountPath: /var/lib/misc/infra-secrets
+        name: infra-secrets
         readOnly: True
   volumes:
     - name: mariadb-data
@@ -45,3 +66,6 @@ spec:
     - name: mariadb-config-skip-networking
       hostPath:
         path: /usr/share/caasp-container-manifests/config/mysql/skip-networking.cnf
+    - name: infra-secrets
+      hostPath:
+        path: /var/lib/misc/infra-secrets
