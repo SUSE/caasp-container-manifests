@@ -20,7 +20,7 @@ cat <<EOF > ${NAME}.spec
 #
 # spec file for package $NAME
 #
-# Copyright (c) $YEAR SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) $YEAR SUSE LINUX GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -81,4 +81,5 @@ done
 %doc LICENSE README.md
 %dir %{_datadir}/%{name}
 %{_datadir}/%{name}/*
+%changelog
 EOF
