@@ -34,6 +34,7 @@ spec:
         name: mariadb-unix-socket
       - mountPath: /etc/my.cnf.d/skip-networking.cnf
         name: mariadb-config-skip-networking
+        readOnly: True
   volumes:
     - name: mariadb-data
       hostPath:
