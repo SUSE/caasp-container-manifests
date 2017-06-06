@@ -21,7 +21,7 @@ spec:
   hostNetwork: true
   containers:
   - name: salt-master
-    image: sles12/salt-master:2015.8.12
+    image: sles12/salt-master:2016.11.4
     env:
     - name: MYSQL_UNIX_PORT
       value: /var/run/mysql/mysql.sock
@@ -38,7 +38,7 @@ spec:
     - mountPath: /var/run/mysql
       name: mariadb-unix-socket
   - name: salt-api
-    image: sles12/salt-api:2015.8.12
+    image: sles12/salt-api:2016.11.4
     volumeMounts:
     - mountPath: /etc/salt/master.d
       name: salt-master-config
@@ -46,7 +46,7 @@ spec:
     - mountPath: /var/run/salt/master
       name: salt-sock-dir
   - name: salt-minion-ca
-    image: sles12/salt-minion:2015.8.12
+    image: sles12/salt-minion:2016.11.4
     volumeMounts:
     - mountPath: /etc/pki
       name: salt-minion-ca-certificates
