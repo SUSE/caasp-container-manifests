@@ -47,6 +47,10 @@ fi
 [ -d /var/lib/misc/ssh-public-key  ] || mkdir -p /var/lib/misc/ssh-public-key
 cp /root/.ssh/id_rsa.pub /var/lib/misc/ssh-public-key
 
+# Create MariaDB system user, bsc#1034885
+groupadd -g 331 mysql
+useradd -r -u 60 -g mysql -c "MySQL database admin" -d /var/lib/mysql -s /bin/false mysql
+
 # Connect the salt-minion running in the administration controller node to the local salt-master
 # instance that is running in a container
 cat <<EOF > /etc/salt/grains
