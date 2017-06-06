@@ -32,6 +32,7 @@ spec:
       name: salt-master-pki
     - mountPath: /usr/share/salt/kubernetes
       name: salt
+      readOnly: True
     - mountPath: /var/run/salt/master
       name: salt-sock-dir
     - mountPath: /var/run/mysql
@@ -41,6 +42,7 @@ spec:
     volumeMounts:
     - mountPath: /etc/salt/master.d
       name: salt-master-config
+      readOnly: True
     - mountPath: /var/run/salt/master
       name: salt-sock-dir
   - name: salt-minion-ca
@@ -50,10 +52,13 @@ spec:
       name: salt-minion-ca-certificates
     - mountPath: /etc/salt/minion.d/minion.conf
       name: salt-minion-ca-config
+      readOnly: True
     - mountPath: /etc/salt/minion.d/signing_policies.conf
       name: salt-minion-ca-signing-policies
+      readOnly: True
     - mountPath: /etc/salt/grains
       name: salt-minion-ca-grains
+      readOnly: True
     - mountPath: /etc/salt/pki/minion
       name: salt-minion-pki
   - name: velum-dashboard
@@ -88,6 +93,7 @@ spec:
         name: velum-secrets
       - mountPath: /var/lib/misc/ssh-public-key
         name: ssh-public-key
+        readOnly: True
     command: ["/bin/sh","-c"]
     args: ["bin/init"]
   - name: velum-event-processor
