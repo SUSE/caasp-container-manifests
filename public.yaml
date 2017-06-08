@@ -99,7 +99,6 @@ spec:
       name: salt-master-config
     - mountPath: /etc/salt/master.d/returner-credentials.conf
       name: salt-master-returner-credentials
-      readOnly: True
     - mountPath: /etc/salt/pki/master
       name: salt-master-pki
     - mountPath: /usr/share/salt/kubernetes
@@ -117,10 +116,8 @@ spec:
     volumeMounts:
     - mountPath: /etc/salt/master.d
       name: salt-master-config
-      readOnly: True
     - mountPath: /etc/salt/master.d/returner-credentials.conf
       name: salt-master-returner-credentials
-      readOnly: True
     - mountPath: /var/run/salt/master
       name: salt-sock-dir
   - name: salt-minion-ca
