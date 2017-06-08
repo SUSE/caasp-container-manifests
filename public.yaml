@@ -95,10 +95,24 @@ spec:
     - name: SALTAPI_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/saltapi-password
     volumeMounts:
-    - mountPath: /etc/salt/master.d
-      name: salt-master-config
+    - mountPath: /etc/salt/master.d/master.conf
+      name: salt-master-config-master-conf
+      readOnly: True
+    - mountPath: /etc/salt/master.d/api.conf
+      name: salt-master-config-api-conf
+      readOnly: True
+    - mountPath: /etc/salt/master.d/peer.conf
+      name: salt-master-config-peer-conf
+      readOnly: True
+    - mountPath: /etc/salt/master.d/reactor.conf
+      name: salt-master-config-reactor-conf
+      readOnly: True
+    - mountPath: /etc/salt/master.d/returner.conf
+      name: salt-master-config-returner-conf
+      readOnly: True
     - mountPath: /etc/salt/master.d/returner-credentials.conf
-      name: salt-master-returner-credentials
+      name: salt-master-config-returner-credentials-conf
+      readOnly: True
     - mountPath: /etc/salt/pki/master
       name: salt-master-pki
     - mountPath: /usr/share/salt/kubernetes
@@ -114,10 +128,24 @@ spec:
   - name: salt-api
     image: sles12/salt-api:2016.11.4
     volumeMounts:
-    - mountPath: /etc/salt/master.d
-      name: salt-master-config
+    - mountPath: /etc/salt/master.d/master.conf
+      name: salt-master-config-master-conf
+      readOnly: True
+    - mountPath: /etc/salt/master.d/api.conf
+      name: salt-master-config-api-conf
+      readOnly: True
+    - mountPath: /etc/salt/master.d/peer.conf
+      name: salt-master-config-peer-conf
+      readOnly: True
+    - mountPath: /etc/salt/master.d/reactor.conf
+      name: salt-master-config-reactor-conf
+      readOnly: True
+    - mountPath: /etc/salt/master.d/returner.conf
+      name: salt-master-config-returner-conf
+      readOnly: True
     - mountPath: /etc/salt/master.d/returner-credentials.conf
-      name: salt-master-returner-credentials
+      name: salt-master-config-returner-credentials-conf
+      readOnly: True
     - mountPath: /var/run/salt/master
       name: salt-sock-dir
   - name: salt-minion-ca
@@ -214,13 +242,25 @@ spec:
     - name: velum-secrets
       hostPath:
         path: /var/lib/misc/velum-secrets
-    - name: salt-master-config
-      hostPath:
-        path: /usr/share/salt/kubernetes/config/master.d
     - name: salt-master-credentials
       hostPath:
         path: /var/lib/misc/salt-master-credentials
-    - name: salt-master-returner-credentials
+    - name: salt-master-config-master-conf
+      hostPath:
+        path: /usr/share/salt/kubernetes/config/master.d/master.conf
+    - name: salt-master-config-api-conf
+      hostPath:
+        path: /usr/share/salt/kubernetes/config/master.d/api.conf
+    - name: salt-master-config-peer-conf
+      hostPath:
+        path: /usr/share/salt/kubernetes/config/master.d/peer.conf
+    - name: salt-master-config-reactor-conf
+      hostPath:
+        path: /usr/share/salt/kubernetes/config/master.d/reactor.conf
+    - name: salt-master-config-returner-conf
+      hostPath:
+        path: /usr/share/salt/kubernetes/config/master.d/returner.conf
+    - name: salt-master-config-returner-credentials-conf
       hostPath:
         path: /var/lib/misc/salt-master-credentials/returner-credentials.conf
     - name: salt-master-pki
