@@ -75,7 +75,7 @@ for dir in mysql salt/grains salt/minion.d-ca; do
   install -d %{buildroot}/%{_datadir}/%{name}/config/\$dir
   install config/\$dir/* %{buildroot}/%{_datadir}/%{name}/config/\$dir
 done
-install -d %{buildroot}/%{_datadir}/%{name}/setup
+cp -R setup %{buildroot}/%{_datadir}/%{name}
 
 
 %files
