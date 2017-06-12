@@ -164,6 +164,21 @@ spec:
       readOnly: True
     - mountPath: /etc/salt/pki/minion
       name: salt-minion-pki
+  - name: salt-minion-admin
+    image: sles12/salt-minion:2016.11.4
+    volumeMounts:
+    - mountPath: /etc/pki
+      name: salt-minion-admin-certificates
+    - mountPath: /etc/salt/minion.d/minion.conf
+      name: salt-minion-admin-config
+      readOnly: True
+    - mountPath: /etc/salt/minion.d/signing_policies.conf
+      name: salt-minion-admin-signing-policies
+      readOnly: True
+    - mountPath: /etc/salt/grains
+      name: salt-minion-admin-grains
+    - mountPath: /etc/salt/pki/minion
+      name: salt-minion-pki
   - name: velum-dashboard
     image: sles12/velum:0.0
     env:
@@ -296,3 +311,15 @@ spec:
     - name: infra-secrets
       hostPath:
         path: /var/lib/misc/infra-secrets
+    - name: salt-minion-admin-certificates
+      hostPath:
+        path: /etc/pki
+    - name: salt-minion-admin-grains
+      hostPath:
+        path: /usr/share/caasp-container-manifests/config/salt/grains/admin
+    - name: salt-minion-admin-config
+      hostPath:
+        path: /usr/share/caasp-container-manifests/config/salt/minion.d-admin/minion.conf
+    - name: salt-minion-admin-signing-policies
+      hostPath:
+        path: /usr/share/caasp-container-manifests/config/salt/minion.d-admin/signing_policies.conf
