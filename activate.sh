@@ -46,3 +46,14 @@ if ! [ -f /root/.ssh/id_rsa ]; then
 fi
 [ -d /var/lib/misc/ssh-public-key  ] || mkdir -p /var/lib/misc/ssh-public-key
 cp /root/.ssh/id_rsa.pub /var/lib/misc/ssh-public-key
+
+# Connect the salt-minion running in the administration controller node to the local salt-master
+# instance that is running in a container
+cat <<EOF > /etc/salt/grains
+roles:
+- admin
+EOF
+echo "master: localhost" > /etc/salt/minion.d/minion.conf
+echo "id: admin" > /etc/salt/minion.d/minion_id.conf
+
+systemctl enable salt-minion
