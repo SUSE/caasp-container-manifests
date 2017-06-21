@@ -113,6 +113,8 @@ spec:
     - mountPath: /etc/salt/master.d/returner-credentials.conf
       name: salt-master-config-returner-credentials-conf
       readOnly: True
+    - mountPath: /var/cache/salt
+      name: salt-master-cache
     - mountPath: /etc/salt/pki/master
       name: salt-master-pki
     - mountPath: /usr/share/salt/kubernetes
@@ -146,6 +148,8 @@ spec:
     - mountPath: /etc/salt/master.d/returner-credentials.conf
       name: salt-master-config-returner-credentials-conf
       readOnly: True
+    - mountPath: /var/cache/salt
+      name: salt-master-cache
     - mountPath: /var/run/salt/master
       name: salt-sock-dir
   - name: salt-minion-ca
@@ -153,6 +157,8 @@ spec:
     volumeMounts:
     - mountPath: /etc/pki
       name: salt-minion-ca-certificates
+    - mountPath: /var/cache/salt
+      name: salt-minion-ca-cache
     - mountPath: /etc/salt/minion.d/minion.conf
       name: salt-minion-ca-config
       readOnly: True
@@ -242,6 +248,9 @@ spec:
     - name: velum-secrets
       hostPath:
         path: /var/lib/misc/velum-secrets
+    - name: salt-master-cache
+      hostPath:
+        path: /var/lib/misc/salt/cache/salt-master
     - name: salt-master-credentials
       hostPath:
         path: /var/lib/misc/salt-master-credentials
@@ -272,6 +281,9 @@ spec:
     - name: salt-sock-dir
       hostPath:
         path: /var/run/salt/master/sock-dir
+    - name: salt-minion-ca-cache
+      hostPath:
+        path: /var/lib/misc/salt/cache/salt-minion-ca
     - name: salt-minion-ca-certificates
       hostPath:
         path: /etc/pki
