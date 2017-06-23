@@ -1,0 +1,11 @@
+[Unit]
+Description=Setup admin node on every reboot
+Before=kubelet.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=__ADMIN_NODE_SETUP_PATH__/admin-node-setup.sh
+
+[Install]
+WantedBy=multi-user.target

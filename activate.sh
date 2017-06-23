@@ -36,3 +36,4 @@ echo "id: admin" > /etc/salt/minion.d/minion_id.conf
 echo "grains_refresh_every: 10" > /etc/salt/minion.d/grains_refresh.conf
 
 systemctl enable salt-minion
+systemctl enable admin-node-setup
