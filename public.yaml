@@ -63,23 +63,7 @@ metadata:
       {
         "name": "salt-minion-key-generation",
         "image": "sles12/salt-master:2016.11.4",
-        "command": ["sh", "-c", "umask 377;
-                                 mkdir /salt-master-pki/minions/;
-                                 temp_dir=`mktemp -d`;
-                                 if [ ! -f /salt-admin-minion-pki/minion.pub ] || [ ! -f /salt-admin-minion-pki/minion.pem ]; then
-                                   salt-key -u root --gen-keys=admin --gen-keys-dir $temp_dir;
-                                   cp $temp_dir/admin.pub /salt-master-pki/minions/admin;
-                                   mv $temp_dir/admin.pub /salt-admin-minion-pki/minion.pub;
-                                   mv $temp_dir/admin.pem /salt-admin-minion-pki/minion.pem;
-                                 fi;
-                                 if [ ! -f /salt-ca-minion-pki/minion.pub ] || [ ! -f /tmp/ca.pem /salt-ca-minion-pki/minion.pem ]; then
-                                   salt-key -u root --gen-keys=ca --gen-keys-dir $temp_dir;
-                                   cp $temp_dir/ca.pub /salt-master-pki/minions/ca;
-                                   mv $temp_dir/ca.pub /salt-ca-minion-pki/minion.pub;
-                                   mv $temp_dir/ca.pem /salt-ca-minion-pki/minion.pem;
-                                 fi;
-                                 rm -rf $temp_dir;
-                                 exit 0"],
+        "command": ["/init-salt-keys.sh"],
         "volumeMounts": [
           {
             "mountPath": "/salt-master-pki",
@@ -92,6 +76,19 @@ metadata:
           {
             "mountPath": "/salt-admin-minion-pki",
             "name": "salt-admin-minion-pki"
+          },
+          {
+            "mountPath": "/salt-init-certs-minion-pki",
+            "name": "salt-init-certs-minion-pki"
+          },
+          {
+            "mountPath": "/etc/pki",
+            "name": "salt-minion-ca-certificates"
+          },
+          {
+            "mountPath": "/init-salt-keys.sh",
+            "name": "init-salt-keys",
+            "readOnly": true
           }
         ]
       },
@@ -130,6 +127,9 @@ spec:
     - name: SALTAPI_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/saltapi-password
     volumeMounts:
+    - mountPath: /etc/pki
+      name: salt-minion-ca-certificates
+      readOnly: True
     - mountPath: /etc/salt/master.d/master.conf
       name: salt-master-config-master-conf
       readOnly: True
@@ -165,6 +165,9 @@ spec:
   - name: salt-api
     image: sles12/salt-api:2016.11.4
     volumeMounts:
+    - mountPath: /etc/pki
+      name: salt-minion-ca-certificates
+      readOnly: True
     - mountPath: /etc/salt/master.d/master.conf
       name: salt-master-config-master-conf
       readOnly: True
@@ -213,7 +216,7 @@ spec:
     - name: VELUM_SECRETS_DIR
       value: /var/lib/misc/velum-secrets
     - name: VELUM_PORT
-      value: "80"
+      value: "443"
     - name: VELUM_DB_HOST
       value:
     - name: VELUM_DB_USERNAME
@@ -231,6 +234,8 @@ spec:
     - name: VELUM_SALT_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/saltapi-password
     volumeMounts:
+      - mountPath: /etc/pki
+        name: salt-minion-ca-certificates
       - mountPath: /var/run/mysql
         name: mariadb-unix-socket
       - mountPath: /var/lib/misc/velum-secrets
@@ -242,6 +247,37 @@ spec:
         name: infra-secrets
         readOnly: True
     args: ["bin/init"]
+  - name: velum-dashboard-autoyast
+    image: sles12/velum:0.0
+    env:
+    - name: RAILS_ENV
+      value: production
+    - name: VELUM_SECRETS_DIR
+      value: /var/lib/misc/velum-secrets
+    - name: VELUM_PORT
+      value: "80"
+    - name: VELUM_DB_HOST
+      value:
+    - name: VELUM_DB_USERNAME
+      value: "velum"
+    - name: VELUM_DB_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/mariadb-velum-password
+    - name: VELUM_DB_SOCKET
+      value: /var/run/mysql/mysql.sock
+    volumeMounts:
+      - mountPath: /etc/pki
+        name: salt-minion-ca-certificates
+      - mountPath: /var/run/mysql
+        name: mariadb-unix-socket
+      - mountPath: /var/lib/misc/velum-secrets
+        name: velum-secrets
+      - mountPath: /var/lib/misc/ssh-public-key
+        name: ssh-public-key
+        readOnly: True
+      - mountPath: /var/lib/misc/infra-secrets
+        name: infra-secrets
+        readOnly: True
+    args: ["puma", "-C", "config/puma.rb"]
   - name: velum-event-processor
     image: sles12/velum:0.0
     env:
@@ -268,6 +304,8 @@ spec:
     - name: VELUM_SALT_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/saltapi-password
     volumeMounts:
+      - mountPath: /etc/pki
+        name: salt-minion-ca-certificates
       - mountPath: /var/run/mysql
         name: mariadb-unix-socket
       - mountPath: /var/lib/misc/velum-secrets
@@ -322,6 +360,9 @@ spec:
     - name: salt-minion-ca-certificates
       hostPath:
         path: /etc/pki
+    - name: infra-certificates
+      hostPath:
+        path: /var/lib/misc/infra-certificates
     - name: salt-minion-ca-grains
       hostPath:
         path: /usr/share/caasp-container-manifests/config/salt/grains/ca
@@ -334,12 +375,18 @@ spec:
     - name: setup-mysql
       hostPath:
         path: /usr/share/caasp-container-manifests/setup/mysql/setup-mysql.sh
+    - name: init-salt-keys
+      hostPath:
+        path: /usr/share/caasp-container-manifests/setup/salt-keys/init-salt-keys.sh
     - name: salt-ca-minion-pki
       hostPath:
         path: /etc/salt/pki/minion-ca
     - name: salt-admin-minion-pki
       hostPath:
         path: /etc/salt/pki/minion
+    - name: salt-init-certs-minion-pki
+      hostPath:
+        path: /etc/salt/pki/minion-init-certs
     - name: ssh-public-key
       hostPath:
         path: /var/lib/misc/ssh-public-key

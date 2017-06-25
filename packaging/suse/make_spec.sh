@@ -67,7 +67,7 @@ and velum containers on a controller node.
 %build
 
 %install
-for file in public.yaml private.yaml; do
+for file in public.yaml private.yaml cert-init.yaml; do
   install -D -m 0644 \$file %{buildroot}/%{_datadir}/%{name}/\$file
 done
 install -D -m 0755 activate.sh %{buildroot}/%{_datadir}/%{name}/activate.sh

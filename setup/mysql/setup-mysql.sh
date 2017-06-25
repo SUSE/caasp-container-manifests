@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-umask 377;
+
+umask 377
 
 while [ ! -f /infra-secrets/mariadb-root-password ]; do
     sleep 1
