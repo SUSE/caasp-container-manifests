@@ -61,6 +61,39 @@ metadata:
         ]
       },
       {
+        "name": "salt-minion-key-generation",
+        "image": "sles12/salt-master:2016.11.4",
+        "command": ["sh", "-c", "umask 377;
+                                 mkdir /salt-master-pki/minions/;
+                                 if [ ! -f /salt-admin-minion-pki/minion.pub ] || [ ! -f /salt-admin-minion-pki/minion.pem ]; then
+                                   salt-key --gen-keys=admin --gen-keys-dir /tmp;
+                                   cp /tmp/admin.pub /salt-master-pki/minions/admin;
+                                   mv /tmp/admin.pub /salt-admin-minion-pki/minion.pub;
+                                   mv /tmp/admin.pem /salt-admin-minion-pki/minion.pem;
+                                 fi;
+                                 if [ ! -f /salt-ca-minion-pki/minion.pub ] || [ ! -f /tmp/ca.pem /salt-ca-minion-pki/minion.pem ]; then
+                                   salt-key --gen-keys=ca --gen-keys-dir /tmp;
+                                   cp /tmp/ca.pub /salt-master-pki/minions/ca;
+                                   mv /tmp/ca.pub /salt-ca-minion-pki/minion.pub;
+                                   mv /tmp/ca.pem /salt-ca-minion-pki/minion.pem;
+                                 fi;
+                                 exit 0"],
+        "volumeMounts": [
+          {
+            "mountPath": "/salt-master-pki",
+            "name": "salt-master-pki"
+          },
+          {
+            "mountPath": "/salt-ca-minion-pki",
+            "name": "salt-ca-minion-pki"
+          },
+          {
+            "mountPath": "/salt-admin-minion-pki",
+            "name": "salt-admin-minion-pki"
+          }
+        ]
+      },
+      {
         "name": "salt-master-config",
         "image": "sles12/velum:0.0",
         "command": ["sh", "-c", "umask 377;
@@ -169,7 +202,7 @@ spec:
       name: salt-minion-ca-grains
       readOnly: True
     - mountPath: /etc/salt/pki/minion
-      name: salt-minion-pki
+      name: salt-ca-minion-pki
   - name: velum-dashboard
     image: sles12/velum:0.0
     env:
@@ -299,9 +332,12 @@ spec:
     - name: setup-mysql
       hostPath:
         path: /usr/share/caasp-container-manifests/setup/mysql/setup-mysql.sh
-    - name: salt-minion-pki
+    - name: salt-ca-minion-pki
       hostPath:
         path: /etc/salt/pki/minion-ca
+    - name: salt-admin-minion-pki
+      hostPath:
+        path: /etc/salt/pki/minion
     - name: ssh-public-key
       hostPath:
         path: /var/lib/misc/ssh-public-key
