@@ -77,11 +77,32 @@ for dir in mysql salt/grains salt/minion.d-ca; do
 done
 cp -R setup %{buildroot}/%{_datadir}/%{name}
 
+# Install service
+install -D -m 0755 admin-node-setup.sh %{buildroot}/%{_datadir}/%{name}/admin-node-setup.sh
+mkdir -p %{buildroot}/%{_unitdir}
+install -D -m 0644 admin-node-setup.service %{buildroot}/%{_unitdir}/
+sed -e "s#__ADMIN_NODE_SETUP_PATH__#%{_datadir}/%{name}#" -i %{buildroot}/%{_unitdir}/admin-node-setup.service
+mkdir -p %{buildroot}/%{_sbindir}
+ln -s %{_sbindir}/service %{buildroot}/%{_sbindir}/rcadmin-node-setup
+
+%pre
+%service_add_pre admin-node-setup.service
+
+%post
+%service_add_post admin-node-setup.service
+
+%preun
+%service_del_preun admin-node-setup.service
+
+%postun
+%service_del_postun admin-node-setup.service
 
 %files
 %defattr(-,root,root)
 %doc LICENSE README.md
 %dir %{_datadir}/%{name}
+%{_sbindir}/rcadmin-node-setup
+%{_unitdir}/admin-node-setup.service
 %{_datadir}/%{name}/*
 %changelog
 EOF
