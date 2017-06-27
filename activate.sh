@@ -11,10 +11,10 @@ sed -i 's@#\?ETCD_LISTEN_PEER_URLS.*@ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380@'
 sed -i 's@#\?ETCD_LISTEN_CLIENT_URLS.*@ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379@' /etc/sysconfig/etcd
 
 # https://bugzilla.suse.com/show_bug.cgi?id=1031682
-cat <<EOF > /etc/issue.d/100-velum.conf
+cat <<EOF > /etc/issue.d/90-velum.conf
+
 You can manage your cluster by opening the web application running on
 port 80 of this node from your browser.
-
 EOF
 
 # Generate root ssh key and share it with velum
