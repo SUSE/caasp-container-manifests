@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cert-init
+  labels:
+    name: cert-init
+spec:
+  hostNetwork: true
+  restartPolicy: OnFailure
+  containers:
+    - name: cert-init
+      image: sles12/salt-minion:2016.11.4
+      command: ["/init-certs.sh"]
+      volumeMounts:
+        - mountPath: /init-certs.sh
+          name: init-certs
+          readOnly: True
+        - mountPath: /etc/salt/minion.d/minion.conf
+          name: salt-minion-cert-init-config
+          readOnly: True
+        - mountPath: /etc/pki
+          name: salt-minion-ca-certificates
+          readOnly: True
+        - mountPath: /salt-init-certs-minion-pki
+          name: salt-init-certs-minion-pki
+          readOnly: True
+  volumes:
+    - name: init-certs
+      hostPath:
+        path: /usr/share/caasp-container-manifests/setup/certs/init-certs.sh
+    - name: salt-init-certs-minion-pki
+      hostPath:
+        path: /etc/salt/pki/minion-init-certs
+    - name: salt-minion-cert-init-config
+      hostPath:
+        path: /usr/share/caasp-container-manifests/config/salt/minion.d-cert-init/minion.conf
+    - name: salt-minion-ca-certificates
+      hostPath:
+        path: /etc/pki
