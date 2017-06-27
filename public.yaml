@@ -65,18 +65,20 @@ metadata:
         "image": "sles12/salt-master:2016.11.4",
         "command": ["sh", "-c", "umask 377;
                                  mkdir /salt-master-pki/minions/;
+                                 temp_dir=`mktemp -d`;
                                  if [ ! -f /salt-admin-minion-pki/minion.pub ] || [ ! -f /salt-admin-minion-pki/minion.pem ]; then
-                                   salt-key --gen-keys=admin --gen-keys-dir /tmp;
-                                   cp /tmp/admin.pub /salt-master-pki/minions/admin;
-                                   mv /tmp/admin.pub /salt-admin-minion-pki/minion.pub;
-                                   mv /tmp/admin.pem /salt-admin-minion-pki/minion.pem;
+                                   salt-key -u root --gen-keys=admin --gen-keys-dir $temp_dir;
+                                   cp $temp_dir/admin.pub /salt-master-pki/minions/admin;
+                                   mv $temp_dir/admin.pub /salt-admin-minion-pki/minion.pub;
+                                   mv $temp_dir/admin.pem /salt-admin-minion-pki/minion.pem;
                                  fi;
                                  if [ ! -f /salt-ca-minion-pki/minion.pub ] || [ ! -f /tmp/ca.pem /salt-ca-minion-pki/minion.pem ]; then
-                                   salt-key --gen-keys=ca --gen-keys-dir /tmp;
-                                   cp /tmp/ca.pub /salt-master-pki/minions/ca;
-                                   mv /tmp/ca.pub /salt-ca-minion-pki/minion.pub;
-                                   mv /tmp/ca.pem /salt-ca-minion-pki/minion.pem;
+                                   salt-key -u root --gen-keys=ca --gen-keys-dir $temp_dir;
+                                   cp $temp_dir/ca.pub /salt-master-pki/minions/ca;
+                                   mv $temp_dir/ca.pub /salt-ca-minion-pki/minion.pub;
+                                   mv $temp_dir/ca.pem /salt-ca-minion-pki/minion.pem;
                                  fi;
+                                 rm -rf $temp_dir;
                                  exit 0"],
         "volumeMounts": [
           {
