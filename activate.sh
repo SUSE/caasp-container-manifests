@@ -16,7 +16,7 @@ sed -i 's@#\?ETCD_LISTEN_CLIENT_URLS.*@ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:23
 cat <<EOF > /etc/issue.d/90-velum.conf
 
 You can manage your cluster by opening the web application running on
-port 80 of this node from your browser.
+port 443 of this node from your browser.
 EOF
 
 # Generate root ssh key and share it with velum
@@ -35,3 +35,5 @@ roles:
 EOF
 echo "master: localhost" > /etc/salt/minion.d/minion.conf
 echo "id: admin" > /etc/salt/minion.d/minion_id.conf
+
+/usr/share/caasp-container-manifests/gen-certs.sh

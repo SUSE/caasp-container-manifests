@@ -171,6 +171,15 @@ spec:
   - name: salt-api
     image: sles12/salt-api:2016.11.4
     volumeMounts:
+    - mountPath: /etc/pki/salt-api.crt
+      name: salt-api-certificate
+      readOnly: True
+    - mountPath: /etc/pki/salt-api.key
+      name: salt-api-certificate-key
+      readOnly: True
+    - mountPath: /etc/pki/ca.crt
+      name: ca-certificate
+      readOnly: True
     - mountPath: /etc/salt/master.d/master.conf
       name: salt-master-config-master-conf
       readOnly: True
@@ -219,7 +228,7 @@ spec:
     - name: VELUM_SECRETS_DIR
       value: /var/lib/misc/velum-secrets
     - name: VELUM_PORT
-      value: "80"
+      value: "443"
     - name: VELUM_DB_HOST
       value:
     - name: VELUM_DB_USERNAME
@@ -237,6 +246,15 @@ spec:
     - name: VELUM_SALT_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/saltapi-password
     volumeMounts:
+      - mountPath: /etc/pki/velum.crt
+        name: velum-certificate
+        readOnly: True
+      - mountPath: /etc/pki/velum.key
+        name: velum-certificate-key
+        readOnly: True
+      - mountPath: /etc/pki/ca.crt
+        name: ca-certificate
+        readOnly: True
       - mountPath: /var/run/mysql
         name: mariadb-unix-socket
       - mountPath: /var/lib/misc/velum-secrets
@@ -248,6 +266,35 @@ spec:
         name: infra-secrets
         readOnly: True
     args: ["bin/init"]
+  - name: velum-dashboard-autoyast
+    image: sles12/velum:0.0
+    env:
+    - name: RAILS_ENV
+      value: production
+    - name: VELUM_SECRETS_DIR
+      value: /var/lib/misc/velum-secrets
+    - name: VELUM_PORT
+      value: "80"
+    - name: VELUM_DB_HOST
+      value:
+    - name: VELUM_DB_USERNAME
+      value: "velum"
+    - name: VELUM_DB_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/mariadb-velum-password
+    - name: VELUM_DB_SOCKET
+      value: /var/run/mysql/mysql.sock
+    volumeMounts:
+      - mountPath: /var/run/mysql
+        name: mariadb-unix-socket
+      - mountPath: /var/lib/misc/velum-secrets
+        name: velum-secrets
+      - mountPath: /var/lib/misc/ssh-public-key
+        name: ssh-public-key
+        readOnly: True
+      - mountPath: /var/lib/misc/infra-secrets
+        name: infra-secrets
+        readOnly: True
+    args: ["bundle", "exec", "puma", "-C", "config/puma.rb"]
   - name: velum-event-processor
     image: sles12/velum:0.0
     env:
@@ -274,6 +321,9 @@ spec:
     - name: VELUM_SALT_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/saltapi-password
     volumeMounts:
+      - mountPath: /etc/pki/ca.crt
+        name: ca-certificate
+        readOnly: True
       - mountPath: /var/run/mysql
         name: mariadb-unix-socket
       - mountPath: /var/lib/misc/velum-secrets
@@ -328,6 +378,21 @@ spec:
     - name: salt-minion-ca-certificates
       hostPath:
         path: /etc/pki
+    - name: velum-certificate
+      hostPath:
+        path: /etc/pki/velum.crt
+    - name: velum-certificate-key
+      hostPath:
+        path: /etc/pki/private/velum.key
+    - name: salt-api-certificate
+      hostPath:
+        path: /etc/pki/salt-api.crt
+    - name: salt-api-certificate-key
+      hostPath:
+        path: /etc/pki/private/salt-api.key
+    - name: ca-certificate
+      hostPath:
+        path: /etc/pki/ca.crt
     - name: salt-minion-ca-grains
       hostPath:
         path: /usr/share/caasp-container-manifests/config/salt/grains/ca
