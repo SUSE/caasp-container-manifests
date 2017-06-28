@@ -1,4 +1,6 @@
 #!/bin/sh
+# activate the dashboard
+# this script WILL BE RUN ONLY ONCE, after the installation
 
 # Make sure that the controller node looks for the local pause image
 # TODO: remove this as soon as possible. As an idea, we could use a systemd drop-in unit.
