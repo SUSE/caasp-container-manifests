@@ -1,6 +1,6 @@
 [Unit]
 Description=Setup admin node on every reboot
-Before=kubelet.service
+Before=kubelet.service salt-minion.service
 
 [Service]
 Type=oneshot
