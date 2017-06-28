@@ -1,4 +1,6 @@
 #!/bin/sh
+# this script WILL BE RUN ON EVERY REBOOT
+
 # Update manifest files
 kube_dir=/etc/kubernetes/manifests
 manifest_dir=/usr/share/caasp-container-manifests
