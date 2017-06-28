@@ -66,11 +66,17 @@ metadata:
         "command": ["sh", "-c", "umask 377;
                                  mkdir /salt-master-pki/minions/;
                                  temp_dir=`mktemp -d`;
+                                 if [ -f /salt-admin-minion-pki/minion.pub ] && [ -f /salt-admin-minion-pki/minion.pem ] && [ ! -f /salt-master-pki/minions/admin ]; then
+                                   cp /salt-admin-minion-pki/minion.pub /salt-master-pki/minions/admin;
+                                 fi;
                                  if [ ! -f /salt-admin-minion-pki/minion.pub ] || [ ! -f /salt-admin-minion-pki/minion.pem ]; then
                                    salt-key -u root --gen-keys=admin --gen-keys-dir $temp_dir;
                                    cp $temp_dir/admin.pub /salt-master-pki/minions/admin;
                                    mv $temp_dir/admin.pub /salt-admin-minion-pki/minion.pub;
                                    mv $temp_dir/admin.pem /salt-admin-minion-pki/minion.pem;
+                                 fi;
+                                 if [ -f /salt-ca-minion-pki/minion.pub ] && [ -f /salt-ca-minion-pki/minion.pem ] && [ ! -f /salt-master-pki/minions/ca ]; then
+                                   cp /salt-ca-minion-pki/minion.pub /salt-master-pki/minions/ca;
                                  fi;
                                  if [ ! -f /salt-ca-minion-pki/minion.pub ] || [ ! -f /tmp/ca.pem /salt-ca-minion-pki/minion.pem ]; then
                                    salt-key -u root --gen-keys=ca --gen-keys-dir $temp_dir;
