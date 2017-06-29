@@ -45,13 +45,13 @@ Group:          System/Management
 Source:         master.tar.gz
 Requires:       container-feeder
 # Require all the docker images
-Requires:       sles12-pause-1.0.0-docker-image >= 1.0.0
-Requires:       sles12-mariadb-10.0-docker-image >= 1.0.0
-Requires:       sles12-pv-recycler-node-1.0.0-docker-image >= 1.0.0
-Requires:       sles12-salt-api-2016.11.4-docker-image >= 1.0.0
-Requires:       sles12-salt-master-2016.11.4-docker-image >= 1.0.0
-Requires:       sles12-salt-minion-2016.11.4-docker-image >= 1.0.0
-Requires:       sles12-velum-0.0-docker-image >= 1.0.0
+Requires:       sles12-pause-docker-image >= 1.0.0
+Requires:       sles12-mariadb-docker-image >= 1.0.0
+Requires:       sles12-pv-recycler-node-docker-image >= 1.0.0
+Requires:       sles12-salt-api-docker-image >= 1.0.0
+Requires:       sles12-salt-master-docker-image >= 1.0.0
+Requires:       sles12-salt-minion-docker-image >= 1.0.0
+Requires:       sles12-velum-docker-image >= 1.0.0
 # Require all  the things we mount from the host from the kubernetes-salt package
 Requires:       kubernetes-salt
 BuildArch:      noarch
