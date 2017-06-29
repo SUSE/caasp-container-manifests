@@ -71,6 +71,7 @@ for file in public.yaml private.yaml; do
   install -D -m 0644 \$file %{buildroot}/%{_datadir}/%{name}/\$file
 done
 install -D -m 0755 activate.sh %{buildroot}/%{_datadir}/%{name}/activate.sh
+install -D -m 0755 gen-certs.sh %{buildroot}/%{_datadir}/%{name}/gen-certs.sh
 for dir in mysql salt/grains salt/minion.d-ca; do
   install -d %{buildroot}/%{_datadir}/%{name}/config/\$dir
   install config/\$dir/* %{buildroot}/%{_datadir}/%{name}/config/\$dir
