@@ -9,47 +9,36 @@ CITY=${CITY:-Nuremberg}
 STATE=${STATE:-Bavaria}
 COUNTRY=${COUNTRY:-DE}
 
-dir() {
-    echo "/etc/pki"
-}
-
-certs() {
-    echo "$(dir)/_certs"
-}
-
-privatedir() {
-    echo "/etc/pki/private"
-}
-
-work() {
-    echo "$(dir)/_work"
-}
+DIR="/etc/pki"
+CERTS="$DIR/_certs"
+PRIVATEDIR="$DIR/private"
+WORK="$DIR/_work"
 
 genca() {
-    [ -f $(privatedir)/ca.key ] && [ -f $(dir)/ca.crt ] && return
+    [ -f $PRIVATEDIR/ca.key ] && [ -f $DIR/ca.crt ] && return
 
     echo "Generating CA Certificate"
 
-    mkdir -p $(work)
-    mkdir -p $(certs)
-    mkdir -p -m 700 $(privatedir)
+    mkdir -p $WORK
+    mkdir -p $CERTS
+    mkdir -p -m 700 $PRIVATEDIR
 
     # generate the CA _work key
-    (umask 377 && openssl genrsa -out $(privatedir)/ca.key 4096)
+    (umask 377 && openssl genrsa -out $PRIVATEDIR/ca.key 4096)
 
-    cat > $(work)/ca.cfg <<EOF
+    cat > $WORK/ca.cfg <<EOF
 [ca]
 default_ca = CA_default
 
 [CA_default]
-dir = $(dir)
+dir = $DIR
 certs	= \$dir
-database = $(work)/index.txt
-new_certs_dir	= $(certs)
+database = $WORK/index.txt
+new_certs_dir	= $CERTS
 
 certificate	= \$dir/ca.crt
-serial = $(work)/serial
-private_key	= $(privatedir)/ca.key
+serial = $WORK/serial
+private_key	= $PRIVATEDIR/ca.key
 RANDFILE = \$dir/.rand
 
 default_days = 365
@@ -96,22 +85,22 @@ basicConstraints = critical, CA:FALSE
 keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
 EOF
 
-    rm -f $(work)/index.txt $(work)/index.txt.attr
-    touch $(work)/index.txt $(work)/index.txt.attr
-    echo 1000 > $(work)/serial
+    rm -f $WORK/index.txt $WORK/index.txt.attr
+    touch $WORK/index.txt $WORK/index.txt.attr
+    echo 1000 > $WORK/serial
 
-    openssl req -batch -config $(work)/ca.cfg -sha256 -new -x509 -days 3650 -extensions v3_ca -key $(privatedir)/ca.key -out $(dir)/ca.crt
+    openssl req -batch -config $WORK/ca.cfg -sha256 -new -x509 -days 3650 -extensions v3_ca -key $PRIVATEDIR/ca.key -out $DIR/ca.crt
 }
 
 gencert() {
-    [ -f $(privatedir)/$1.key ] && [ -f $(dir)/$1.crt ] && return
+    [ -f $PRIVATEDIR/$1.key ] && [ -f $DIR/$1.crt ] && return
 
     echo "Generating $1 Certificate"
 
     # generate the server cert
-    (umask 377 && openssl genrsa -out $(privatedir)/$1.key 2048)
+    (umask 377 && openssl genrsa -out $PRIVATEDIR/$1.key 2048)
 
-    cat > $(work)/$1.cfg <<EOF
+    cat > $WORK/$1.cfg <<EOF
 [req]
 distinguished_name = req_distinguished_name
 req_extensions = v3_req
@@ -139,26 +128,26 @@ EOF
     for dnsalt in $3
     do
         count=$((count + 1))
-        echo "DNS.${count} = ${dnsalt}" >> $(work)/$1.cfg
+        echo "DNS.${count} = ${dnsalt}" >> $WORK/$1.cfg
     done
 
     count=0
     for ipalt in $4
     do
         count=$((count + 1))
-        echo "IP.${count} = ${ipalt}" >> $(work)/$1.cfg
+        echo "IP.${count} = ${ipalt}" >> $WORK/$1.cfg
     done
 
     # generate the server csr
-    openssl req -batch -config $(work)/$1.cfg -new -sha256 -nodes -extensions v3_req -key $(privatedir)/$1.key -out $(work)/$1.csr
+    openssl req -batch -config $WORK/$1.cfg -new -sha256 -nodes -extensions v3_req -key $PRIVATEDIR/$1.key -out $WORK/$1.csr
 
     # sign the server cert
-    openssl ca -batch -config $(work)/ca.cfg -extensions v3_req -notext -in $(work)/$1.csr -out $(dir)/$1.crt
+    openssl ca -batch -config $WORK/ca.cfg -extensions v3_req -notext -in $WORK/$1.csr -out $DIR/$1.crt
 
     # final verification
-    openssl verify -CAfile $(dir)/ca.crt $(dir)/$1.crt
+    openssl verify -CAfile $DIR/ca.crt $DIR/$1.crt
 
-    cat $(dir)/$1.crt $(privatedir)/$1.key > $(privatedir)/$1-bundle.pem
+    cat $DIR/$1.crt $PRIVATEDIR/$1.key > $PRIVATEDIR/$1-bundle.pem
 }
 
 ip_addresses() {
