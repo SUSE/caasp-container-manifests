@@ -28,6 +28,8 @@ work() {
 genca() {
     [ -f $(privatedir)/ca.key ] && [ -f $(dir)/ca.crt ] && return
 
+    echo "Generating CA Certificate"
+
     mkdir -p $(work)
     mkdir -p $(certs)
     mkdir -p -m 700 $(privatedir)
@@ -67,7 +69,7 @@ emailAddress            = optional
 
 [req]
 distinguished_name = req_distinguished_name
-req_extensions = v3_req
+x509_extensions = v3_req
 prompt = no
 
 [req_distinguished_name]
@@ -80,8 +82,10 @@ CN = $CACN
 
 [v3_req]
 # Extensions to add to a certificate request
-basicConstraints = CA:TRUE
-keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:TRUE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment, keyCertSign
 EOF
 
     rm -f $(work)/index.txt $(work)/index.txt.attr
@@ -92,9 +96,9 @@ EOF
 }
 
 gencert() {
-    genca
-
     [ -f $(privatedir)/$1.key ] && [ -f $(dir)/$1.crt ] && return
+
+    echo "Generating $1 Certificate"
 
     # generate the server cert
     (umask 377 && openssl genrsa -out $(privatedir)/$1.key 2048)
@@ -102,7 +106,7 @@ gencert() {
     cat > $(work)/$1.cfg <<EOF
 [req]
 distinguished_name = req_distinguished_name
-req_extensions = v3_req
+x509_extensions = v3_req
 prompt = no
 
 [req_distinguished_name]
@@ -114,9 +118,11 @@ OU = $ORGUNIT
 CN = $2
 
 [v3_req]
-# Extensions to add to a certificate request
 basicConstraints = CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = clientAuth
 subjectAltName = @alt_names
 
 [alt_names]
@@ -153,5 +159,6 @@ ip_addresses() {
 all_hostnames=$(echo "$(hostname) $(hostname --fqdn) $(hostnamectl --transient) $(hostnamectl --static) \
                       $(cat /etc/hostname)" | tr ' ' '\n' | sort -u | tr '\n' ' ')
 
+genca
 gencert "velum" "$(hostname)" "$all_hostnames" "$(ip_addresses)"
 gencert "salt-api" "salt-api.infra.caasp.local" "" "127.0.0.1"
