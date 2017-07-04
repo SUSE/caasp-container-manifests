@@ -70,6 +70,7 @@ emailAddress            = optional
 [req]
 distinguished_name = req_distinguished_name
 req_extensions = v3_req
+x509_extensions = v3_req
 prompt = no
 
 [req_distinguished_name]
@@ -82,11 +83,15 @@ CN = $CACN
 
 [v3_ca]
 # Extensions to add to a CA certificate request
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid
 basicConstraints = critical, CA:TRUE
 keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment, keyCertSign
 
 [v3_req]
 # Extensions to add to a server certificate request
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid
 basicConstraints = CA:FALSE
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment
 EOF
@@ -110,6 +115,7 @@ gencert() {
 [req]
 distinguished_name = req_distinguished_name
 req_extensions = v3_req
+x509_extensions = v3_req
 prompt = no
 
 [req_distinguished_name]
