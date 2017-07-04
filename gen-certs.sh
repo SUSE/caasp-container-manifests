@@ -28,6 +28,8 @@ work() {
 genca() {
     [ -f $(privatedir)/ca.key ] && [ -f $(dir)/ca.crt ] && return
 
+    echo "Generating CA Certificate"
+
     mkdir -p $(work)
     mkdir -p $(certs)
     mkdir -p -m 700 $(privatedir)
@@ -67,7 +69,7 @@ emailAddress            = optional
 
 [req]
 distinguished_name = req_distinguished_name
-req_extensions = v3_req
+x509_extensions = v3_req
 prompt = no
 
 [req_distinguished_name]
@@ -78,23 +80,33 @@ O = $ORG
 OU = $ORGUNIT
 CN = $CACN
 
+[v3_ca]
+# Extensions to add to a CA certificate request
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:TRUE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment, keyCertSign
+
 [v3_req]
 # Extensions to add to a certificate request
-basicConstraints = CA:TRUE
-keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment, keyCertSign
+extendedKeyUsage = clientAuth
 EOF
 
     rm -f $(work)/index.txt $(work)/index.txt.attr
     touch $(work)/index.txt $(work)/index.txt.attr
     echo 1000 > $(work)/serial
 
-    openssl req -batch -config $(work)/ca.cfg -sha256 -new -x509 -days 3650 -key $(privatedir)/ca.key -out $(dir)/ca.crt
+    openssl req -batch -config $(work)/ca.cfg -sha256 -new -x509 -days 3650 -extensions v3_ca -key $(privatedir)/ca.key -out $(dir)/ca.crt
 }
 
 gencert() {
-    genca
-
     [ -f $(privatedir)/$1.key ] && [ -f $(dir)/$1.crt ] && return
+
+    echo "Generating $1 Certificate"
 
     # generate the server cert
     (umask 377 && openssl genrsa -out $(privatedir)/$1.key 2048)
@@ -102,7 +114,7 @@ gencert() {
     cat > $(work)/$1.cfg <<EOF
 [req]
 distinguished_name = req_distinguished_name
-req_extensions = v3_req
+x509_extensions = v3_req
 prompt = no
 
 [req_distinguished_name]
@@ -114,9 +126,11 @@ OU = $ORGUNIT
 CN = $2
 
 [v3_req]
-# Extensions to add to a certificate request
 basicConstraints = CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = clientAuth
 subjectAltName = @alt_names
 
 [alt_names]
@@ -153,5 +167,6 @@ ip_addresses() {
 all_hostnames=$(echo "$(hostname) $(hostname --fqdn) $(hostnamectl --transient) $(hostnamectl --static) \
                       $(cat /etc/hostname)" | tr ' ' '\n' | sort -u | tr '\n' ' ')
 
+genca
 gencert "velum" "$(hostname)" "$all_hostnames" "$(ip_addresses)"
 gencert "salt-api" "salt-api.infra.caasp.local" "" "127.0.0.1"
