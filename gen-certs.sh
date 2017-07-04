@@ -80,9 +80,14 @@ O = $ORG
 OU = $ORGUNIT
 CN = $CACN
 
+[v3_ca]
+# Extensions to add to a CA certificate request
+basicConstraints = critical, CA:TRUE
+keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment, keyCertSign
+
 [v3_req]
-# Extensions to add to a certificate request
-basicConstraints = CA:TRUE
+# Extensions to add to a server certificate request
+basicConstraints = CA:FALSE
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment
 EOF
 
@@ -90,7 +95,7 @@ EOF
     touch $(work)/index.txt $(work)/index.txt.attr
     echo 1000 > $(work)/serial
 
-    openssl req -batch -config $(work)/ca.cfg -sha256 -new -x509 -days 3650 -key $(privatedir)/ca.key -out $(dir)/ca.crt
+    openssl req -batch -config $(work)/ca.cfg -sha256 -new -x509 -days 3650 -extensions v3_ca -key $(privatedir)/ca.key -out $(dir)/ca.crt
 }
 
 gencert() {
