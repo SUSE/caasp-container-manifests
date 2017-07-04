@@ -28,6 +28,8 @@ work() {
 genca() {
     [ -f $(privatedir)/ca.key ] && [ -f $(dir)/ca.crt ] && return
 
+    echo "Generating CA Certificate"
+
     mkdir -p $(work)
     mkdir -p $(certs)
     mkdir -p -m 700 $(privatedir)
@@ -92,9 +94,9 @@ EOF
 }
 
 gencert() {
-    genca
-
     [ -f $(privatedir)/$1.key ] && [ -f $(dir)/$1.crt ] && return
+
+    echo "Generating $1 Certificate"
 
     # generate the server cert
     (umask 377 && openssl genrsa -out $(privatedir)/$1.key 2048)
@@ -153,5 +155,6 @@ ip_addresses() {
 all_hostnames=$(echo "$(hostname) $(hostname --fqdn) $(hostnamectl --transient) $(hostnamectl --static) \
                       $(cat /etc/hostname)" | tr ' ' '\n' | sort -u | tr '\n' ' ')
 
+genca
 gencert "velum" "$(hostname)" "$all_hostnames" "$(ip_addresses)"
 gencert "salt-api" "salt-api.infra.caasp.local" "" "127.0.0.1"
