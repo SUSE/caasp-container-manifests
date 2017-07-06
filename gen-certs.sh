@@ -92,8 +92,8 @@ keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment, keyCertS
 # Extensions to add to a server certificate request
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid
-basicConstraints = CA:FALSE
-keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+basicConstraints = critical, CA:FALSE
+keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
 EOF
 
     rm -f $(work)/index.txt $(work)/index.txt.attr
