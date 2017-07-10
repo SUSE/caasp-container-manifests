@@ -17,6 +17,7 @@ COMMIT=$(git rev-parse --short HEAD)
 VERSION="${VERSION%+*}+git_r${REVISION}_${COMMIT}"
 NAME=$1
 BRANCH=${2:-master}
+SAFE_BRANCH=${BRANCH//\//-}
 
 cat <<EOF > ${NAME}.spec
 #
@@ -43,7 +44,7 @@ License:        Apache-2.0
 Summary:        Manifest file templates for containers on controller node
 Url:            https://github.com/kubic-project/caasp-container-manifests
 Group:          System/Management
-Source:         ${BRANCH}.tar.gz
+Source:         ${SAFE_BRANCH}.tar.gz
 Requires:       container-feeder
 # Require all the docker images
 Requires:       sles12-pause-docker-image >= 1.0.0
@@ -63,7 +64,7 @@ Manifest file templates will instruct kubelet service to bring up salt
 and velum containers on a controller node.
 
 %prep
-%setup -q -n ${NAME}-${BRANCH}
+%setup -q -n ${NAME}-${SAFE_BRANCH}
 
 %build
 
