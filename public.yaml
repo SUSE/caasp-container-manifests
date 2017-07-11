@@ -136,6 +136,9 @@ spec:
     - name: SALTAPI_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/saltapi-password
     volumeMounts:
+    - mountPath: /etc/hosts
+      name: etc-hosts
+      readOnly: True
     - mountPath: /etc/salt/master.d/master.conf
       name: salt-master-config-master-conf
       readOnly: True
@@ -333,6 +336,9 @@ spec:
         readOnly: True
     args: ["bundle", "exec", "bin/rake", "salt:process"]
   volumes:
+    - name: etc-hosts
+      hostPath:
+        path: /etc/hosts
     - name: mariadb-unix-socket
       hostPath:
         path: /var/run/mysql

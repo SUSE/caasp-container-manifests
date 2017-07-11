@@ -31,3 +31,10 @@ fi
 
 cp -v $manifest_dir/public.yaml $kube_dir
 cp -v $manifest_dir/private.yaml $kube_dir
+
+h=$(hostname)
+sed -i -e "/localhost/d" /etc/hosts
+cat <<EOF>>/etc/hosts
+127.0.0.1       localhost $h
+::1             localhost ipv6-localhost ipv6-loopback $h
+EOF
