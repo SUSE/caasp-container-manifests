@@ -283,6 +283,8 @@ spec:
       value: /var/lib/misc/infra-secrets/mariadb-velum-password
     - name: VELUM_DB_SOCKET
       value: /var/run/mysql/mysql.sock
+    - name: VELUM_WORKERS
+      value: "1"
     volumeMounts:
       - mountPath: /var/run/mysql
         name: mariadb-unix-socket
