@@ -12,13 +12,6 @@ fi
 sed -i 's@#\?ETCD_LISTEN_PEER_URLS.*@ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380@' /etc/sysconfig/etcd
 sed -i 's@#\?ETCD_LISTEN_CLIENT_URLS.*@ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379@' /etc/sysconfig/etcd
 
-# https://bugzilla.suse.com/show_bug.cgi?id=1031682
-cat <<EOF > /etc/issue.d/90-velum.conf
-
-You can manage your cluster by opening the web application running on
-port 443 of this node from your browser.
-EOF
-
 # Generate root ssh key and share it with velum
 # https://bugzilla.suse.com/show_bug.cgi?id=1030876
 if ! [ -f /root/.ssh/id_rsa ]; then
@@ -37,3 +30,19 @@ echo "master: localhost" > /etc/salt/minion.d/minion.conf
 echo "id: admin" > /etc/salt/minion.d/minion_id.conf
 
 /usr/share/caasp-container-manifests/gen-certs.sh
+
+VELUM_CRT_FINGERPRINT_SHA1=$(openssl x509 -noout -in /etc/pki/velum.crt -fingerprint -sha1 | cut -d= -f2)
+VELUM_CRT_FINGERPRINT_SHA256=$(openssl x509 -noout -in /etc/pki/velum.crt -fingerprint -sha256 | cut -d= -f2)
+
+# https://bugzilla.suse.com/show_bug.cgi?id=1031682
+cat <<EOF > /etc/issue.d/90-velum.conf
+
+You can manage your cluster by opening the web application running on
+port 443 of this node from your browser.
+
+You can also check that the instance you are accessing matches the
+certificate fingerprints presented to your browser:
+
+Velum SHA1 fingerprint:   $VELUM_CRT_FINGERPRINT_SHA1
+Velum SHA256 fingerprint: $VELUM_CRT_FINGERPRINT_SHA256
+EOF
