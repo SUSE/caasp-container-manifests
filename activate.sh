@@ -38,7 +38,7 @@ VELUM_CRT_FINGERPRINT_SHA256=$(openssl x509 -noout -in /etc/pki/velum.crt -finge
 cat <<EOF > /etc/issue.d/90-velum.conf
 
 You can manage your cluster by opening the web application running on
-port 443 of this node from your browser.
+port 443 of this node from your browser: https://<this-node>
 
 You can also check that the instance you are accessing matches the
 certificate fingerprints presented to your browser:
