@@ -9,7 +9,6 @@ if ! grep "pod-infra-container-image" /etc/kubernetes/kubelet &> /dev/null; then
 fi
 
 # Make sure etcd listens on 0.0.0.0
-sed -i 's@#\?ETCD_LISTEN_PEER_URLS.*@ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380@' /etc/sysconfig/etcd
 sed -i 's@#\?ETCD_LISTEN_CLIENT_URLS.*@ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379@' /etc/sysconfig/etcd
 
 # Generate root ssh key and share it with velum
