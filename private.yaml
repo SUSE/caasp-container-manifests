@@ -53,6 +53,9 @@ spec:
       - mountPath: /etc/my.cnf.d/skip-networking.cnf
         name: mariadb-config-skip-networking
         readOnly: True
+      - mountPath: /etc/my.cnf.d/max-allowed-packet.cnf
+        name: mariadb-config-max-allowed-packet
+        readOnly: True
       - mountPath: /var/lib/misc/infra-secrets
         name: infra-secrets
         readOnly: True
@@ -66,6 +69,9 @@ spec:
     - name: mariadb-config-skip-networking
       hostPath:
         path: /usr/share/caasp-container-manifests/config/mysql/skip-networking.cnf
+    - name: mariadb-config-max-allowed-packet
+      hostPath:
+        path: /usr/share/caasp-container-manifests/config/mysql/max-allowed-packet.cnf
     - name: infra-secrets
       hostPath:
         path: /var/lib/misc/infra-secrets
