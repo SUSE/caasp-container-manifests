@@ -54,6 +54,7 @@ Requires:       sles12-salt-api-docker-image >= 1.0.0
 Requires:       sles12-salt-master-docker-image >= 1.0.0
 Requires:       sles12-salt-minion-docker-image >= 1.0.0
 Requires:       sles12-velum-docker-image >= 1.0.0
+Requires:       sles12-haproxy-docker-image >= 1.0.0
 # Require all  the things we mount from the host from the kubernetes-salt package
 Requires:       kubernetes-salt
 BuildArch:      noarch
