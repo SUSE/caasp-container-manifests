@@ -9,6 +9,7 @@ fi
 # Update manifest files
 kube_dir=/etc/kubernetes/manifests
 manifest_dir=/usr/share/caasp-container-manifests
+images_dir=/usr/share/suse-docker-images/native
 
 if [ ! -d $kube_dir ]; then
     echo "$kube_dir does not exist" >&2
@@ -29,5 +30,21 @@ if [ ! -f $manifest_dir/private.yaml ]; then
     exit -3
 fi
 
-cp -v $manifest_dir/public.yaml $kube_dir
-cp -v $manifest_dir/private.yaml $kube_dir
+tmp_dir=$(mktemp -d)
+
+cp $manifest_dir/public.yaml $tmp_dir
+cp $manifest_dir/private.yaml $tmp_dir
+
+for i in $(ls $images_dir/sles*.tag);do
+    metadata_file=$(basename $i .tag).metadata
+    image_name=$(cat $images_dir/$metadata_file | grep \"name\": | cut -d":" -f2 | cut -d\" -f2)
+    tag=$(cat $i)
+    echo "$0: Setting $image_name:$tag into public and private manifests"
+    sed -i -e "s%$image_name:__TAG__%$image_name:$tag%g" $tmp_dir/public.yaml
+    sed -i -e "s%$image_name:__TAG__%$image_name:$tag%g" $tmp_dir/private.yaml
+done
+echo "$0: Replacing public and private manifests"
+cp $tmp_dir/public.yaml $kube_dir
+cp $tmp_dir/private.yaml $kube_dir
+
+rm -rf $tmp_dir

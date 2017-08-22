@@ -21,7 +21,7 @@ metadata:
     pod.beta.kubernetes.io/init-containers: '[
       {
         "name": "mariadb-secrets",
-        "image": "sles12/velum:0.0",
+        "image": "sles12/velum:__TAG__",
         "command": ["sh", "-c", "umask 377;
                                  if [ ! -f /infra-secrets/mariadb-root-password ]; then
                                    head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/mariadb-root-password;
@@ -39,7 +39,7 @@ spec:
   hostNetwork: false
   containers:
   - name: velum-mariadb
-    image: sles12/mariadb:10.0
+    image: sles12/mariadb:__TAG__
     env:
     - name: MYSQL_DISABLE_REMOTE_ROOT
       value: "true"
