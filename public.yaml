@@ -21,7 +21,7 @@ metadata:
     pod.beta.kubernetes.io/init-containers: '[
       {
         "name": "mariadb-user-secrets",
-        "image": "sles12/mariadb:10.0",
+        "image": "sles12/mariadb:__TAG__",
         "command": ["/setup-mysql.sh"],
         "env": [
           {
@@ -47,7 +47,7 @@ metadata:
       },
       {
         "name": "saltapi-secrets",
-        "image": "sles12/velum:0.0",
+        "image": "sles12/velum:__TAG__",
         "command": ["sh", "-c", "umask 377;
                                  if [ ! -f /infra-secrets/saltapi-password ]; then
                                    head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/saltapi-password;
@@ -62,7 +62,7 @@ metadata:
       },
       {
         "name": "salt-minion-key-generation",
-        "image": "sles12/salt-master:2016.11.4",
+        "image": "sles12/salt-master:__TAG__",
         "command": ["sh", "-c", "umask 377;
                                  mkdir /salt-master-pki/minions/;
                                  temp_dir=`mktemp -d`;
@@ -103,7 +103,7 @@ metadata:
       },
       {
         "name": "salt-master-config",
-        "image": "sles12/velum:0.0",
+        "image": "sles12/velum:__TAG__",
         "command": ["sh", "-c", "umask 377;
                                  rmdir /salt-master-credentials/returner-credentials.conf;
                                  if [ ! -f /salt-master-credentials/returner-credentials.conf ]; then
@@ -129,7 +129,7 @@ spec:
   hostNetwork: true
   containers:
   - name: salt-master
-    image: sles12/salt-master:2016.11.4
+    image: sles12/salt-master:__TAG__
     env:
     - name: MYSQL_UNIX_PORT
       value: /var/run/mysql/mysql.sock
@@ -169,7 +169,7 @@ spec:
       name: infra-secrets
       readOnly: True
   - name: salt-api
-    image: sles12/salt-api:2016.11.4
+    image: sles12/salt-api:__TAG__
     volumeMounts:
     - mountPath: /etc/pki/salt-api.crt
       name: salt-api-certificate
@@ -203,7 +203,7 @@ spec:
     - mountPath: /var/run/salt/master
       name: salt-sock-dir
   - name: salt-minion-ca
-    image: sles12/salt-minion:2016.11.4
+    image: sles12/salt-minion:__TAG__
     volumeMounts:
     - mountPath: /etc/pki
       name: salt-minion-ca-certificates
@@ -221,7 +221,7 @@ spec:
     - mountPath: /etc/salt/pki/minion
       name: salt-ca-minion-pki
   - name: velum-dashboard
-    image: sles12/velum:0.0
+    image: sles12/velum:__TAG__
     env:
     - name: RAILS_ENV
       value: production
@@ -267,7 +267,7 @@ spec:
         readOnly: True
     args: ["bin/init"]
   - name: velum-autoyast
-    image: sles12/velum:0.0
+    image: sles12/velum:__TAG__
     env:
     - name: RAILS_ENV
       value: production
@@ -296,7 +296,7 @@ spec:
         readOnly: True
     args: ["bundle", "exec", "puma", "-C", "config/puma.rb"]
   - name: velum-event-processor
-    image: sles12/velum:0.0
+    image: sles12/velum:__TAG__
     env:
     - name: WORKER_ID
       value: worker1
