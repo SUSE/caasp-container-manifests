@@ -166,6 +166,8 @@ ip_addresses() {
 all_hostnames=$(echo "$(hostname) $(hostname --fqdn) $(hostnamectl --transient) $(hostnamectl --static) \
                       $(cat /etc/hostname)" | tr ' ' '\n' | sort -u | tr '\n' ' ')
 
+set -e
 genca
-gencert "velum" "$(hostname)" "$all_hostnames" "$(ip_addresses)"
+gencert "velum" "Velum" "$all_hostnames" "$(ip_addresses)"
 gencert "salt-api" "salt-api.infra.caasp.local" "" "127.0.0.1"
+gencert "ldap" "OpenLDAP" "$all_hostnames" "$(ip_addresses)"
