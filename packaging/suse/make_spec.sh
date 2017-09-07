@@ -55,7 +55,6 @@ Requires:       sles12-salt-master-docker-image >= 1.1.0
 Requires:       sles12-salt-minion-docker-image >= 1.1.0
 Requires:       sles12-velum-docker-image >= 1.1.0
 Requires:       sles12-haproxy-docker-image >= 1.1.0
-Requires:       sles12-flannel-docker-image >= 1.1.0
 Requires:       sles12-dnsmasq-nanny-docker-image >= 1.1.0
 Requires:       sles12-kubedns-docker-image >= 1.1.0
 Requires:       sles12-sidecar-docker-image >= 1.1.0
