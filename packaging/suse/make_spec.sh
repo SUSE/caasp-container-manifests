@@ -60,6 +60,7 @@ Requires:       sles12-kubedns-image >= 2.0.0
 Requires:       sles12-sidecar-image >= 2.0.0
 Requires:       sles12-openldap-image >= 1.0.6
 Requires:       sles12-caasp-dex-image >= 1.0.0
+Requires:       sles12-helm-tiller-image >= 2.0.0
 # Require all  the things we mount from the host from the kubernetes-salt package
 Requires:       kubernetes-salt
 BuildArch:      noarch
