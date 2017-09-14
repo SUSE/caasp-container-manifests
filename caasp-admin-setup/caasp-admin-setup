@@ -1,0 +1,534 @@
+#! /usr/bin/python
+# -*- coding: UTF-8 -*-
+#
+# Copyright © 2017 SUSE
+#
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND TREATIES.
+# IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED, PERFORMED,
+# DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT NOVELL'S PRIOR WRITTEN
+# CONSENT.  USE OR EXPLOITATION OF THIS WORK WITHOUT AUTHORIZATION COULD SUBJECT
+# THE PERPETRATOR TO CRIMINAL AND CIVIL LIABILITY.
+#
+# SUSE PROVIDES THE WORK "AS IS," WITHOUT ANY EXPRESS OR IMPLIED WARRANTY,
+# INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE AUTHORS OF THE WORK, AND
+# THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT LIABLE FOR ANY CLAIM, DAMAGES, OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
+# FROM, OUT OF, OR IN CONNECTION WITH THE WORK OR THE USE OR OTHER DEALINGS IN
+# THE WORK.
+
+"""
+SUSE CaaS Platform: Administrative Setup
+
+Must be run as root!
+* Set up SSL certificate for HTTPS-based Admin Dashboard.
+* Start CaaSP Admin services.
+* Create Administrative credentials.
+
+Usage:
+  caasp-admin-setup [--wizard]
+  caasp-admin-setup ((--ssl-crt=<certificate-file> --ssl-key=<private-key-file>)
+                        | --gensslcert)
+                    [--admin-email=<email>]
+                    [--admin-password=<password>]
+                    [--accept]
+  caasp-admin-setup -h | --help
+
+Options:
+  --accept                      Make the specified changes without confirmation.
+                                (Intended for automated use.)
+  --admin-email=<email>         Email address used for login to Admin Dashboard.
+                                default: user@lfqdn
+  --admin-password=<password>   Password used for login to Admin Dashboard.
+                                default: randomly-generated
+  --gensslcert                  Generate a self-signed certificate for SSL, and
+                                display the fingerprint for local confirmation.
+  -h --help                     Show this screen.
+  --ssl-crt=<certificate-file>  Path of local file to install as SSL certificate
+                                for HTTPS server.
+  --ssl-key=<private-key-file>  Path of local file to install as private key for
+                                HTTPS server.
+  --wizard                      Prompt for above options in Q&A format.
+                                Default behavior when no arguments are supplied.
+"""
+from __future__ import print_function, unicode_literals
+
+import docker  # https://github.com/docker/docker-py/blob/1.10.6/docs/api.md
+import fileinput
+import os
+import netifaces
+import re
+import shutil
+import socket
+import subprocess
+import sys
+import time
+from docopt import docopt
+from email.utils import parseaddr
+from OpenSSL import crypto
+
+
+# TODO: Migrate this out to a separate library
+# TODO: Python module for Azure metadata
+class AbstractMetadata:
+    def __init__(self):
+        self.meta = None
+        self.meta = (self._try_ec2() or self._try_gce())
+
+    @staticmethod
+    def _try_ec2():
+        try:
+            import ec2metadata
+            return ec2metadata.EC2Metadata()
+        except ImportError:
+            return None
+
+    @staticmethod
+    def _try_gce():
+        try:
+            import gcemetadata.gcemetadata as gcemetadata
+            return gcemetadata.GCEMetadata()
+        except ImportError:
+            return None
+
+    def framework(self):
+        if self.meta.__module__ == "ec2metadata":
+            return "ec2"
+        elif self.meta.__module__ == "gcemetadata.gcemetadata":
+            return "gce"
+        else:
+            return None
+
+    def local_ipv4(self):
+        if self.framework() == "ec2":
+            return meta.get("local-ipv4")
+        elif self.framework() == "gce":
+            meta.set_data_category("instance")
+            return meta.get("ip")
+        else:
+            return netifaces.ifaddresses('eth0')[netifaces.AF_INET][0]['addr']
+
+    def instance_id(self):
+        if self.framework() == "ec2":
+            return meta.get("instance-id")
+        elif self.framework() == "gce":
+            meta.set_data_category("instance")
+            return meta.get("id")
+        else:
+            return socket.getfqdn()
+
+
+# https://github.com/kubic-project/caasp-container-manifests/blob/master/public.yaml#L381-L383
+def _velum_ssl_crt_path():
+    return "/etc/pki/velum.crt"
+
+
+# https://github.com/kubic-project/caasp-container-manifests/blob/master/public.yaml#L384-L386
+def _velum_ssl_key_path():
+    return "/etc/pki/private/velum.key"
+
+
+# https://github.com/kubic-project/caasp-container-manifests/blob/master/packaging/suse/make_spec.sh
+# https://build.suse.de/package/view_file/Devel:CASP:1.0:ControllerNode/caasp-container-manifests/caasp-container-manifests.spec?expand=1
+def _activate_script_path():
+    return "/usr/share/caasp-container-manifests/activate.sh"
+
+
+# https://github.com/kubic-project/caasp-container-manifests/blob/master/activate.sh#L36-L37
+def _activate_script_artifact_path():
+    return "/etc/issue.d/90-velum.conf"
+
+
+# https://build.opensuse.org/package/view_file/openSUSE:Factory/etcd/etcd.spec?expand=1
+def _etcd_config_path():
+    return "/etc/sysconfig/etcd"
+
+
+def _services():
+    return ["etcd", "kubelet"]
+
+
+def make_email():
+    return "{user}@{fqdn}".format(
+        user="caasp-admin",
+        fqdn=socket.getfqdn()
+    )
+
+
+def prompt(statement, default):
+    response = raw_input("\n{} [ {} ] > ".format(statement, default))
+    if (response == ""):
+        response = default
+    return response
+
+
+def confirmation_prompt(statement):
+    response = raw_input("\n{} (y/N) > ".format(statement))
+    return (response.lower() in ['y', 'yes'])
+
+
+def prompt_for_upload_cert():
+    return confirmation_prompt(
+        "Would you like to use your own certificate from a known "
+        "(public or self signed) Certificate Authority?"
+    )
+
+
+def prompt_for_acceptance():
+    response = confirmation_prompt(
+        "Please confirm the above settings are correct. "
+        "Proceed with system changes?"
+    )
+    if (not response):
+        sys.exit("Cancelled.")
+
+
+def validate(
+            value,
+            validating_function,
+            success_statement,
+            failure_statement
+        ):
+    if validating_function(value):
+        if success_statement:
+            print("\t" + success_statement)
+        return value
+    else:
+        if failure_statement:
+            print(failure_statement)
+        return None
+
+
+def crypto_file_test(path, crypto_function):
+    file_test = validate(
+        path,
+        os.path.isfile,
+        None,
+        "'{}' was not found.".format(path)
+    )
+    if (not file_test):
+        return False
+    # otherwise... test the file
+    try:
+        crypto_function(
+            crypto.FILETYPE_PEM,
+            open(path).read()
+        )
+        return True
+    except:
+        return False
+
+
+def ssl_cert_test(path):
+    return crypto_file_test(path, crypto.load_certificate)
+
+
+def validate_ssl_cert(path):
+    return validate(
+        path,
+        ssl_cert_test,
+        "Using '{}' as SSL certificate.".format(path),
+        "'{}' was not a valid SSL certificate.".format(path)
+    )
+
+
+def ssl_key_test(path):
+    return crypto_file_test(path, crypto.load_privatekey)
+
+
+def validate_ssl_key(path):
+    return validate(
+        path,
+        ssl_key_test,
+        "Using '{}' as server private key.".format(path),
+        "'{}' was not a valid private key.".format(path)
+    )
+
+
+def email_test(address):
+    email = parseaddr(address)[1]
+    return ("@" in email)
+
+
+def validate_email(address):
+    return validate(
+        address,
+        email_test,
+        "Setting admin dashboard login to: '{}'".format(address),
+        (
+            "You did not input a valid email address; "
+            "please use the format 'user@hostname.domain'"
+        )
+    )
+
+
+def password_test(password):
+    # https://github.com/kubic-project/velum/blob/master/config/initializers/devise.rb#L168
+    return (len(password) >= 8 and len(password) <= 128)
+
+
+def validate_password(password):
+    return validate(
+        password,
+        password_test,
+        "Setting admin dashboard password to: '{}'".format(password),
+        "Please enter a password of at least 8 but no more than 128 characters."
+    )
+
+
+def prompt_for_ssl_cert_path():
+    default = "/tmp/server.crt"
+    statement = (
+        "Please upload the SSL certificate file to this system, "
+        "then enter the local path."
+    )
+    return validate_ssl_cert(prompt(statement, default))
+
+
+def prompt_for_ssl_key_path():
+    default = "/tmp/server.key"
+    statement = (
+        "Please upload the server's private key to this system, "
+        "then enter the local path."
+    )
+    return validate_ssl_key(prompt(statement, default))
+
+
+def prompt_for_admin_email():
+    default = make_email()
+    statement = "Email address for login to Admin Dashboard?"
+    return validate_email(prompt(statement, default))
+
+
+def prompt_for_admin_password(default):
+    statement = "Password for login to Admin Dashboard (len: 8 - 128 chars)?"
+    return validate_password(prompt(statement, default))
+
+
+def install_ssl_file(source_path, dest_path):
+    print("\tChanging file ownership to root... ", end='')
+    os.chown(source_path, 0, 0)
+    print("Done.")
+
+    print("\tLimiting file permissions... ", end='')
+    os.chmod(source_path, 0o600)
+    print("Done.")
+
+    print("\tMoving file to system path... ", end='')
+    shutil.move(source_path, dest_path)
+    print("Done.")
+
+
+def install_ssl_crt(source_file_path):
+    print("Installing SSL certificate:")
+    install_ssl_file(source_file_path, _velum_ssl_crt_path())
+
+
+def install_ssl_key(source_file_path):
+    print("Installer server private key:")
+    install_ssl_file(source_file_path, _velum_ssl_key_path())
+
+
+def configure_etcd(meta):
+    ip_address = meta.local_ipv4()
+
+    advertise_regex = re.compile(
+        '^#?ETCD_INITIAL_ADVERTISE_PEER_URLS=".*"$'
+    )
+    advertise_config = (
+        'ETCD_INITIAL_ADVERTISE_PEER_URLS="http://{}:2380"'
+    ).format(ip_address)
+
+    cluster_regex = re.compile(
+        '^#?ETCD_INITIAL_CLUSTER=".*"$'
+    )
+    cluster_config = (
+        'ETCD_INITIAL_CLUSTER="default=http://{}:2380"'
+    ).format(ip_address)
+
+    for line in fileinput.input(_etcd_config_path(), inplace=True):
+        if advertise_regex.match(line.strip()):
+            print(advertise_regex.sub(advertise_config, line))
+        elif cluster_regex.match(line.strip()):
+            print(cluster_regex.sub(cluster_config, line))
+        else:
+            print(line)
+
+
+def print_startline(statement):
+    print(
+        "\t{}...".format(statement),
+        end='',
+        flush=True
+    )
+
+
+def print_endline(statement):
+    print(
+        " {}.".format(statement),
+        flush=True
+    )
+
+
+def enable_services():
+    for service in _services():
+        print_startline("Enabling {} service".format(service))
+        subprocess.check_call(
+            ["systemctl", "enable", "{}.service".format(service)]
+        )
+        print_endline("Done")
+
+        print_startline("Starting {} service".format(service))
+        subprocess.check_call(
+            ["systemctl", "start", "{}.service".format(service)]
+        )
+        print_endline("Done")
+
+
+def get_velum_container_id():
+    client = docker.Client()
+    containers = client.containers(filters={
+        'name': 'velum-dashboard',
+        'status': 'running'
+    })
+    if (len(containers) > 0):
+        return containers[0]['Id']
+    else:
+        return None
+
+
+def get_velum_db_version():
+    client = docker.Client()
+    task = client.exec_create(
+        container=get_velum_container_id(),
+        cmd='entrypoint.sh rake db:version'
+    )
+    result = re.match(
+        'Current version: (?P<version>\S*)',
+        client.exec_start(task['Id'])
+    )
+    if (result):
+        return result.group('version')
+    else:
+        return None
+
+
+def wait_for(command, tries=120, interval=5):
+    result = None
+    while (result is None and tries > 0):
+        time.sleep(interval)
+        result = command()
+        print(".", end='')
+        tries = tries - 1
+    return result
+
+
+def wait_for_velum():
+    print_startline("Waiting for dashboard to start")
+    velum_container_id = wait_for(get_velum_container_id)
+    if (not velum_container_id):
+        raise EnvironmentError('Dashboard container failed to start in time.')
+    print_endline("Running")
+    #
+    print_startline("Verifying dashboard database is ready")
+    velum_db_version = wait_for(get_velum_db_version)
+    if (not velum_db_version):
+        raise EnvironmentError('Dashboard database failed to respond in time.')
+    print_endline("Ready")
+
+
+def create_admin_user(container_id, username, password):
+    print_startline("Setting dashboard credentials")
+    velum_task = (
+        "entrypoint.sh rake velum:create_user[{username},{password}]"
+    ).format(
+        username=username,
+        password=password
+    )
+    client = docker.Client()
+    velum_task = client.exec_create(
+        container=container_id,
+        cmd=velum_task
+    )
+    print(client.exec_start(velum_task['Id']))
+
+
+if __name__ == '__main__':
+    arguments = docopt(__doc__)
+
+    if not os.getuid() == 0:
+        sys.exit("Root permissions required; please rerun as root.")
+
+    # get a metadata interface
+    meta = AbstractMetadata()
+
+    # 'wizard' mode argument is optional, determine it based on
+    # other required arguments if necessary
+    if (arguments["--wizard"] or (
+                (not arguments["--ssl-crt"]) and (not arguments["--gensslcert"])
+            )):
+        arguments["--wizard"] = True
+        if prompt_for_upload_cert():
+            while (not arguments["--ssl-crt"]):
+                arguments["--ssl-crt"] = prompt_for_ssl_cert_path()
+            while (not arguments["--ssl-key"]):
+                arguments["--ssl-key"] = prompt_for_ssl_key_path()
+        else:
+            arguments["--gensslcert"] = True
+        while (not arguments["--admin-email"]):
+            arguments["--admin-email"] = prompt_for_admin_email()
+        while (not arguments["--admin-password"]):
+            arguments["--admin-password"] = prompt_for_admin_password(
+                meta.instance_id()
+            )
+    else:
+        # argument-driven mode
+        # set defaults
+        if (not arguments["--admin-email"]):
+            arguments["--admin-email"] = make_email()
+        if (not arguments["--admin-password"]):
+            arguments["--admin-password"] = meta.instance_id()
+
+        # validate arguments & display confirmables
+        if (arguments["--gensslcert"]):
+            print(
+                "\tA self-signed certificate will be generated; "
+                "the fingerprint will be displayed for local verification."
+            )
+        else:
+            if (not validate_ssl_cert(arguments["--ssl-crt"])):
+                sys.exit("Invalid argument '--ssl-crt'")
+            if (not validate_ssl_key(arguments["--ssl-key"])):
+                sys.exit("Invalid argument '--ssl-key'")
+
+        if (not validate_email(arguments["--admin-email"])):
+            sys.exit("Invalid argument '--admin-email'")
+        if (not validate_password(arguments["--admin-password"])):
+            sys.exit("Invalid argument '--admin-password'")
+
+    # last chance to back out
+    if (arguments["--accept"]):
+        print("\tConfirmation automatically accepted.")
+    else:
+        prompt_for_acceptance()
+
+    if (not arguments["--gensslcert"]):
+        # install user-supplied certificate
+        install_ssl_crt(arguments["--ssl-crt"])
+        install_ssl_key(arguments["--ssl-key"])
+
+    # activate CaaSP
+    subprocess.check_call(_activate_script_path())
+    configure_etcd(meta)
+    enable_services()
+    wait_for_velum()
+    create_admin_user(
+        get_velum_container_id(),
+        arguments["--admin-email"],
+        arguments["--admin-password"]
+    )
+
+    if (arguments["--gensslcert"]):
+        # show fingerprints
+        with open(_activate_script_artifact_path(), 'r') as file:
+            print(file.read())
