@@ -325,6 +325,12 @@ spec:
       - mountPath: /var/lib/misc/infra-secrets
         name: infra-secrets
         readOnly: True
+      - mountPath: /var/lib/ldap
+        name: openldap-data
+      # these files are generated during first run of openldap
+      # if this folder is lost, TLS and other things stop working
+      - mountPath: /etc/openldap/slapd.d
+        name: openldap-config
   - name: velum-autoyast
     image: sles12/velum:__TAG__
     env:
@@ -412,6 +418,12 @@ spec:
         readOnly: True
     args: ["bundle", "exec", "bin/rake", "salt:process"]
   volumes:
+    - name: openldap-data
+      hostPath:
+        path: /var/lib/misc/ldap
+    - name: openldap-config
+      hostPath:
+        path: /var/lib/misc/ldap-config
     - name: mariadb-unix-socket
       hostPath:
         path: /var/run/mysql
