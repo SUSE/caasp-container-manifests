@@ -48,7 +48,8 @@ Options:
                                 for HTTPS server.
   --ssl-key=<private-key-file>  Path of local file to install as private key for
                                 HTTPS server.
-  --wizard                      Prompt for above options in Q&A format.
+  --wizard                      Step-by-step prompts for SSL configuration and
+                                administrative credentials.
                                 Default behavior when no arguments are supplied.
 """
 from __future__ import print_function, unicode_literals
@@ -346,14 +347,15 @@ def configure_etcd(meta):
         'ETCD_INITIAL_CLUSTER="default=http://{}:2380"'
     ).format(ip_address)
 
-    for line in fileinput.input(_etcd_config_path(), inplace=True):
+    etcd_config = fileinput.FileInput(_etcd_config_path(), inplace=True)
+    for line in etcd_config:
         if advertise_regex.match(line.strip()):
             print(advertise_regex.sub(advertise_config, line))
         elif cluster_regex.match(line.strip()):
             print(cluster_regex.sub(cluster_config, line))
         else:
             print(line)
-
+    etcd_config.close()
 
 def print_startline(statement):
     print(
