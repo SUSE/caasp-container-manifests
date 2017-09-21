@@ -28,6 +28,16 @@ EOF
 echo "master: localhost" > /etc/salt/minion.d/minion.conf
 echo "id: admin" > /etc/salt/minion.d/minion_id.conf
 
+# First time setup of user-configuration for salt-master
+if [ ! -d "/etc/caasp" ]; then
+	mkdir /etc/caasp
+fi
+
+if [ ! -f "/etc/caasp/salt-master-custom.conf" ]; then
+	echo "# Custom Configurations for Salt-Master" > /etc/caasp/salt-master-custom.conf
+fi
+
+# Generate TLS CA and Initial Certificates
 /usr/share/caasp-container-manifests/gen-certs.sh
 
 VELUM_CRT_FINGERPRINT_SHA1=$(openssl x509 -noout -in /etc/pki/velum.crt -fingerprint -sha1 | cut -d= -f2)
