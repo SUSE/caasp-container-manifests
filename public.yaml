@@ -101,6 +101,19 @@ spec:
       readOnly: True
     - mountPath: /salt-master-credentials
       name: salt-master-credentials
+  - name: velum-internal-api
+    image: sles12/velum:__TAG__
+    command: ["sh", "-c", "umask 377;
+                           if [ ! -f /infra-secrets/velum-internal-api-username ]; then
+                             head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/velum-internal-api-username;
+                           fi;
+                           if [ ! -f /infra-secrets/velum-internal-api-password ]; then
+                             head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/velum-internal-api-password;
+                           fi;
+                           exit 0"]
+    volumeMounts:
+    - mountPath: /infra-secrets
+      name: infra-secrets
   containers:
   - name: salt-master
     image: sles12/salt-master:__TAG__
@@ -109,7 +122,14 @@ spec:
       value: /var/run/mysql/mysql.sock
     - name: SALTAPI_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/saltapi-password
+    - name: VELUM_INTERNAL_API_USERNAME_FILE
+      value: /var/lib/misc/infra-secrets/velum-internal-api-username
+    - name: VELUM_INTERNAL_API_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/velum-internal-api-password
     volumeMounts:
+    - mountPath: /etc/pki/ca.crt
+      name: ca-certificate
+      readOnly: True
     - mountPath: /etc/salt/master.d/50-master.conf
       name: salt-master-config-master-conf
       readOnly: True
@@ -225,6 +245,10 @@ spec:
       value: saltapi
     - name: VELUM_SALT_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/saltapi-password
+    - name: VELUM_INTERNAL_API_USERNAME_FILE
+      value: /var/lib/misc/infra-secrets/velum-internal-api-username
+    - name: VELUM_INTERNAL_API_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/velum-internal-api-password
     - name: LDAP_HOST
       value: "127.0.0.1"
     - name: LDAP_PORT
@@ -350,6 +374,10 @@ spec:
       value: saltapi
     - name: VELUM_SALT_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/saltapi-password
+    - name: VELUM_INTERNAL_API_USERNAME_FILE
+      value: /var/lib/misc/infra-secrets/velum-internal-api-username
+    - name: VELUM_INTERNAL_API_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/velum-internal-api-password
     - name: LDAP_HOST
       value: "127.0.0.1"
     - name: LDAP_PORT
