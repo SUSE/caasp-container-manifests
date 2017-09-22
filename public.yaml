@@ -89,10 +89,10 @@ spec:
   - name: salt-master-config
     image: sles12/velum:__TAG__
     command: ["sh", "-c", "umask 377;
-                           if ! grep mysql /salt-master-credentials/returner-credentials.conf; then
-                             echo \"mysql:\" > /salt-master-credentials/returner-credentials.conf;
-                             echo -n \"  pass: \" >> /salt-master-credentials/returner-credentials.conf;
-                             cat /infra-secrets/mariadb-salt-password >> /salt-master-credentials/returner-credentials.conf;
+                           if ! grep mysql /salt-master-credentials/55-returner-credentials.conf; then
+                             echo \"mysql:\" > /salt-master-credentials/55-returner-credentials.conf;
+                             echo -n \"  pass: \" >> /salt-master-credentials/55-returner-credentials.conf;
+                             cat /infra-secrets/mariadb-salt-password >> /salt-master-credentials/55-returner-credentials.conf;
                            fi;
                            exit 0"]
     volumeMounts:
@@ -125,7 +125,7 @@ spec:
     - mountPath: /etc/salt/master.d/50-returner.conf
       name: salt-master-config-returner-conf
       readOnly: True
-    - mountPath: /etc/salt/master.d/returner-credentials.conf
+    - mountPath: /etc/salt/master.d/55-returner-credentials.conf
       name: salt-master-config-returner-credentials-conf
       readOnly: True
     - mountPath: /etc/salt/master.d/75-custom.conf
@@ -172,7 +172,7 @@ spec:
     - mountPath: /etc/salt/master.d/50-returner.conf
       name: salt-master-config-returner-conf
       readOnly: True
-    - mountPath: /etc/salt/master.d/returner-credentials.conf
+    - mountPath: /etc/salt/master.d/55-returner-credentials.conf
       name: salt-master-config-returner-credentials-conf
       readOnly: True
     - mountPath: /etc/salt/master.d/75-custom.conf
@@ -418,7 +418,7 @@ spec:
       path: /usr/share/salt/kubernetes/config/master.d/50-returner.conf
   - name: salt-master-config-returner-credentials-conf
     hostPath:
-      path: /var/lib/misc/salt-master-credentials/returner-credentials.conf
+      path: /var/lib/misc/salt-master-credentials/55-returner-credentials.conf
       type: FileOrCreate
   - name: salt-master-config-custom-conf
     hostPath:
