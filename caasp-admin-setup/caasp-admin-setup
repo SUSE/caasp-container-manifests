@@ -64,6 +64,7 @@ import socket
 import subprocess
 import sys
 import time
+from ConfigParser import RawConfigParser
 from docopt import docopt
 from email.utils import parseaddr
 from OpenSSL import crypto
@@ -72,51 +73,52 @@ from OpenSSL import crypto
 # TODO: Migrate this out to a separate library
 # TODO: Python module for Azure metadata
 class AbstractMetadata:
-    def __init__(self):
-        self.meta = None
-        self.meta = (self._try_ec2() or self._try_gce())
-
-    @staticmethod
-    def _try_ec2():
-        try:
-            import ec2metadata
-            return ec2metadata.EC2Metadata()
-        except ImportError:
-            return None
-
-    @staticmethod
-    def _try_gce():
-        try:
-            import gcemetadata.gcemetadata as gcemetadata
-            return gcemetadata.GCEMetadata()
-        except ImportError:
-            return None
-
-    def framework(self):
-        if self.meta.__module__ == "ec2metadata":
-            return "ec2"
-        elif self.meta.__module__ == "gcemetadata.gcemetadata":
-            return "gce"
+    def __init__(self, config_path):
+        self.framework == self._cloud_config(config_path)
+        if (self.framework == "ec2"):
+            self.meta = self._load_ec2()
+        elif (self.framework == "gce"):
+            self.meta = self.load_gce()
         else:
-            return None
+            self.meta = None
+
+    @staticmethod
+    def _cloud_config(config_path):
+        config = RawConfigParser.read(config_path)
+        return config.get("main", "cloud")
+
+    @staticmethod
+    def _load_ec2():
+        import ec2metadata
+        return ec2metadata.EC2Metadata()
+
+    @staticmethod
+    def _load_gce():
+        import gcemetadata.gcemetadata as gcemetadata
+        return gcemetadata.GCEMetadata()
 
     def local_ipv4(self):
-        if self.framework() == "ec2":
+        if self.framework == "ec2":
             return meta.get("local-ipv4")
-        elif self.framework() == "gce":
+        elif self.framework == "gce":
             meta.set_data_category("instance")
             return meta.get("ip")
         else:
             return netifaces.ifaddresses('eth0')[netifaces.AF_INET][0]['addr']
 
     def instance_id(self):
-        if self.framework() == "ec2":
+        if self.framework == "ec2":
             return meta.get("instance-id")
-        elif self.framework() == "gce":
+        elif self.framework == "gce":
             meta.set_data_category("instance")
             return meta.get("id")
         else:
             return socket.getfqdn()
+
+
+# https://github.com/SUSE/pubcloud/pull/193/commits/ce61ce64697631e94be46a6448fa62f39cfbfc5c
+def _cloud_config_path():
+    return "/etc/caasp-cloud-config.cfg"
 
 
 # https://github.com/kubic-project/caasp-container-manifests/blob/master/public.yaml#L381-L383
@@ -462,7 +464,9 @@ if __name__ == '__main__':
         sys.exit("Root permissions required; please rerun as root.")
 
     # get a metadata interface
-    meta = AbstractMetadata()
+    print_startline("Looking up public cloud metadata")
+    meta = AbstractMetadata(_cloud_config_path())
+    print_endline("found '{}' framework".format(meta.framework))
 
     # 'wizard' mode argument is optional, determine it based on
     # other required arguments if necessary
