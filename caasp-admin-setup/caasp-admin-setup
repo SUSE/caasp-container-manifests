@@ -201,6 +201,17 @@ def validate(
             print(failure_statement)
         return None
 
+def wait_for_file_stability(path, tries=12, interval=5):
+    start_size = os.path.getsize(path)
+    end_size = 0
+    while ((end_size != start_size) and tries > 0):
+        start_size = os.path.getsize(path)
+        time.sleep(interval)
+        end_size = os.path.getsize(path)
+        print(".", end='')
+        tries = tries - 1
+    return (end_size == start_size)
+
 
 def crypto_file_test(path, crypto_function):
     file_test = validate(
@@ -211,7 +222,16 @@ def crypto_file_test(path, crypto_function):
     )
     if (not file_test):
         return False
-    # otherwise... test the file
+    # wait for file size to stabilize ... e.g. wait for upload to finish
+    size_test = validate(
+        path,
+        wait_for_file_stability,
+        None,
+        "'{}' is still changing; please wait for the upload to complete."
+    )
+    if not (size_test):
+        return False
+    # now... test the file
     try:
         crypto_function(
             crypto.FILETYPE_PEM,
