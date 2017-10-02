@@ -119,7 +119,7 @@ class AbstractMetadata:
 
 # commit 6058e7e4
 def _cloud_config_path():
-    return "/srv/pillar/csp.sls"
+    return "/srv/pillar/cloud.sls"
 
 
 # https://github.com/kubic-project/caasp-container-manifests/blob/master/public.yaml#L381-L383

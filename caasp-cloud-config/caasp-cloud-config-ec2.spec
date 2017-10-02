@@ -41,10 +41,10 @@ Configuration for CaaSP set up and operation in the Public Cloud
 %install
 make install-caasp-config DESTDIR=%{buildroot}
 pushd %{buildroot}/srv/pillar
-mv ec2.csp.sls csp.sls
+mv ec2.csp.sls cloud.sls
 popd
 
 %files
 %defattr(-,root,root,-)
 %dir /srv/pillar
-%config /srv/pillar/csp.sls
+%config /srv/pillar/cloud.sls
