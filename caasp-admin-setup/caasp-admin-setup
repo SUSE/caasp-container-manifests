@@ -118,7 +118,7 @@ class AbstractMetadata:
 
 # https://github.com/SUSE/pubcloud/pull/193/commits/ce61ce64697631e94be46a6448fa62f39cfbfc5c
 def _cloud_config_path():
-    return "/etc/caasp-cloud-config.cfg"
+    return "/etc/caasp/caasp-cloud.cfg"
 
 
 # https://github.com/kubic-project/caasp-container-manifests/blob/master/public.yaml#L381-L383
