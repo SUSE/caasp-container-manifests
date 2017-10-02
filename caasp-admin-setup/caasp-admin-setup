@@ -64,7 +64,7 @@ import socket
 import subprocess
 import sys
 import time
-from ConfigParser import RawConfigParser
+import yaml
 from docopt import docopt
 from email.utils import parseaddr
 from OpenSSL import crypto
@@ -84,8 +84,9 @@ class AbstractMetadata:
 
     @staticmethod
     def _cloud_config(config_path):
-        config = RawConfigParser.read(config_path)
-        return config.get("main", "cloud")
+        with open(config_path) as config_file:
+            config = yaml.load(config_file.read())
+        return config['csp']['cloud']
 
     @staticmethod
     def _load_ec2():
@@ -116,9 +117,9 @@ class AbstractMetadata:
             return socket.getfqdn()
 
 
-# https://github.com/SUSE/pubcloud/pull/193/commits/ce61ce64697631e94be46a6448fa62f39cfbfc5c
+# commit 6058e7e4
 def _cloud_config_path():
-    return "/etc/caasp/caasp-cloud.cfg"
+    return "/srv/pillar/csp.sls"
 
 
 # https://github.com/kubic-project/caasp-container-manifests/blob/master/public.yaml#L381-L383
