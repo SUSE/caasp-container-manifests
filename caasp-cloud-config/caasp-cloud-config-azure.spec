@@ -40,12 +40,11 @@ Configuration for CaaSP set up and operation in the Public Cloud
 
 %install
 make install-caasp-config DESTDIR=%{buildroot}
-pushd %{buildroot}/%{_sysconfdir}/caasp
-ln -s caasp-azure.cfg caasp-cloud.cfg
+pushd %{buildroot}/srv/pillar
+mv azure.csp.sls csp.sls
 popd
 
 %files
 %defattr(-,root,root,-)
-%dir %{_sysconfdir}/caasp
-%config %{_sysconfdir}/caasp/caasp-cloud.cfg
-%config %{_sysconfdir}/caasp/caasp-azure.cfg
+%dir /srv/pillar
+%config /srv/pillar/csp.sls
