@@ -40,11 +40,12 @@ Configuration for CaaSP set up and operation in the Public Cloud
 
 %install
 make install-caasp-config DESTDIR=%{buildroot}
-pushd %{buildroot}/%{_sysconfdir}
-ln -s caasp-ec2.cfg caasp-cloud-config.cfg
+pushd %{buildroot}/%{_sysconfdir}/caasp
+ln -s caasp-ec2.cfg caasp-cloud.cfg
 popd
 
 %files
 %defattr(-,root,root,-)
-%config %{_sysconfdir}/caasp-cloud-config.cfg
-%config %{_sysconfdir}/caasp-ec2.cfg
+%dir %{_sysconfdir}/caasp
+%config %{_sysconfdir}/caasp/caasp-cloud.cfg
+%config %{_sysconfdir}/caasp/caasp-ec2.cfg
