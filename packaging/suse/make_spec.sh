@@ -55,6 +55,7 @@ Requires:       sles12-salt-master-image >= 2.0.0
 Requires:       sles12-salt-minion-image >= 2.0.0
 Requires:       sles12-velum-image >= 2.0.0
 Requires:       sles12-haproxy-image >= 2.0.0
+Requires:       sles12-flannel-docker-image >= 2.0.0
 Requires:       sles12-dnsmasq-nanny-image >= 2.0.0
 Requires:       sles12-kubedns-image >= 2.0.0
 Requires:       sles12-sidecar-image >= 2.0.0
