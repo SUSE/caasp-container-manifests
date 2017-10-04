@@ -1,21 +1,20 @@
 #! /usr/bin/python
-# -*- coding: UTF-8 -*-
 #
 # Copyright © 2017 SUSE
 #
 # THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND TREATIES.
 # IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED, PERFORMED,
 # DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT NOVELL'S PRIOR WRITTEN
-# CONSENT.  USE OR EXPLOITATION OF THIS WORK WITHOUT AUTHORIZATION COULD SUBJECT
-# THE PERPETRATOR TO CRIMINAL AND CIVIL LIABILITY.
+# CONSENT.  USE OR EXPLOITATION OF THIS WORK WITHOUT AUTHORIZATION COULD
+# SUBJECT THE PERPETRATOR TO CRIMINAL AND CIVIL LIABILITY.
 #
 # SUSE PROVIDES THE WORK "AS IS," WITHOUT ANY EXPRESS OR IMPLIED WARRANTY,
 # INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
 # PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE AUTHORS OF THE WORK, AND
 # THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT LIABLE FOR ANY CLAIM, DAMAGES, OR
-# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
-# FROM, OUT OF, OR IN CONNECTION WITH THE WORK OR THE USE OR OTHER DEALINGS IN
-# THE WORK.
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE,
+# ARISING FROM, OUT OF, OR IN CONNECTION WITH THE WORK OR THE USE OR OTHER
+# DEALINGS IN THE WORK.
 
 """
 SUSE CaaS Platform: Administrative Setup
@@ -27,7 +26,9 @@ Must be run as root!
 
 Usage:
   caasp-admin-setup [--wizard]
-  caasp-admin-setup ((--ssl-crt=<certificate-file> --ssl-key=<private-key-file>)
+  caasp-admin-setup ((
+                      --ssl-crt=<certificate-file> --ssl-key=<private-key-file>
+                     )
                         | --gensslcert)
                     [--admin-email=<email>]
                     [--admin-password=<password>]
@@ -35,29 +36,31 @@ Usage:
   caasp-admin-setup -h | --help
 
 Options:
-  --accept                      Make the specified changes without confirmation.
-                                (Intended for automated use.)
-  --admin-email=<email>         Email address used for login to Admin Dashboard.
-                                default: user@lfqdn
+  --accept                      Make the specified changes without
+                                confirmation. (Intended for automated use.)
+  --admin-email=<email>         Email address used for login to Admin
+                                Dashboard. default: user@lfqdn
   --admin-password=<password>   Password used for login to Admin Dashboard.
                                 default: randomly-generated
   --gensslcert                  Generate a self-signed certificate for SSL, and
                                 display the fingerprint for local confirmation.
   -h --help                     Show this screen.
-  --ssl-crt=<certificate-file>  Path of local file to install as SSL certificate
+  --ssl-crt=<certificate-file>  Path of local file to install as SSL
+                                certificate for HTTPS server.
+  --ssl-key=<private-key-file>  Path of local file to install as private key
                                 for HTTPS server.
-  --ssl-key=<private-key-file>  Path of local file to install as private key for
-                                HTTPS server.
   --wizard                      Step-by-step prompts for SSL configuration and
                                 administrative credentials.
-                                Default behavior when no arguments are supplied.
+                                Default behavior when no arguments are
+                                supplied.
 """
 from __future__ import print_function, unicode_literals
 
 import docker  # https://github.com/docker/docker-py/blob/1.10.6/docs/api.md
 import fileinput
-import os
+import logging
 import netifaces
+import os
 import re
 import shutil
 import socket
@@ -68,6 +71,18 @@ import yaml
 from docopt import docopt
 from email.utils import parseaddr
 from OpenSSL import crypto
+
+
+log_filename = '/var/log/caasp_cloud_setup.log'
+try:
+    logging.basicConfig(
+        filename=log_filename,
+        level=logging.INFO,
+        format='%(asctime)s %(levelname)s:%(message)s'
+    )
+except IOError:
+    print 'Could not open log file "', log_filename, '" for writing.'
+    print 'Proceeding without log creation'
 
 
 # TODO: Migrate this out to a separate library
@@ -99,22 +114,31 @@ class AbstractMetadata:
         return gcemetadata.GCEMetadata()
 
     def local_ipv4(self):
+        ip_address = None
         if self.framework == "ec2":
-            return meta.get("local-ipv4")
+            ip_address = meta.get("local-ipv4")
         elif self.framework == "gce":
             meta.set_data_category("instance")
-            return meta.get("ip")
+            ip_address = meta.get("ip")
         else:
-            return netifaces.ifaddresses('eth0')[netifaces.AF_INET][0]['addr']
+            ip_address = netifaces.ifaddresses(
+                'eth0')[netifaces.AF_INET][0]['addr']
+
+        logging.info('Instance IP: "%s"' % ip_address)
+        return ip_address
 
     def instance_id(self):
+        instance_id = None
         if self.framework == "ec2":
-            return meta.get("instance-id")
+            instance_id = meta.get("instance-id")
         elif self.framework == "gce":
             meta.set_data_category("instance")
-            return meta.get("id")
+            instance_id = meta.get("id")
         else:
-            return socket.getfqdn()
+            instance_id = socket.getfqdn()
+
+        logging.info('Instance ID: "%s"' % instance_id)
+        return instance_id
 
 
 # commit 6058e7e4
@@ -153,21 +177,28 @@ def _services():
 
 
 def make_email():
-    return "{user}@{fqdn}".format(
+    email = "{user}@{fqdn}".format(
         user="caasp-admin",
         fqdn=socket.getfqdn()
     )
+    logging.info('Generated e-mail: "%s"' % email)
+    return email
 
 
-def prompt(statement, default):
+def prompt(statement, default, hide=False):
     response = raw_input("\n{} [ {} ] > ".format(statement, default))
     if (response == ""):
         response = default
+    answer = response
+    if hide:
+        answer = '*******'
+    logging.info('Q&A: "%s : %s"' % (statement, answer))
     return response
 
 
 def confirmation_prompt(statement):
     response = raw_input("\n{} (y/N) > ".format(statement))
+    logging.info('Q&A: "%s : %s"' % (statement, response))
     return (response.lower() in ['y', 'yes'])
 
 
@@ -196,11 +227,14 @@ def validate(
     if validating_function(value):
         if success_statement:
             print("\t" + success_statement)
+            logging.info(success_statement)
         return value
     else:
         if failure_statement:
             print(failure_statement)
+            logging.info(failure_statement)
         return None
+
 
 def wait_for_file_stability(path, tries=12, interval=5):
     start_size = os.path.getsize(path)
@@ -211,7 +245,9 @@ def wait_for_file_stability(path, tries=12, interval=5):
         end_size = os.path.getsize(path)
         print(".", end='')
         tries = tries - 1
-    return (end_size == start_size)
+    upload_complete = end_size == start_size
+    logging.info('Upload complete: "%b"' % upload_complete)
+    return upload_complete
 
 
 def crypto_file_test(path, crypto_function):
@@ -238,8 +274,10 @@ def crypto_file_test(path, crypto_function):
             crypto.FILETYPE_PEM,
             open(path).read()
         )
+        logging.info('Valid: "%s"' % path)
         return True
     except:
+        logging.info('Inalid: "%s"' % path)
         return False
 
 
@@ -292,11 +330,13 @@ def password_test(password):
 
 
 def validate_password(password):
+    failed_msg = "Please enter a password of at least 8 but no more "
+    failed_msg += "than 128 characters."
     return validate(
         password,
         password_test,
         "Setting admin dashboard password to: '{}'".format(password),
-        "Please enter a password of at least 8 but no more than 128 characters."
+        failed_msg
     )
 
 
@@ -379,6 +419,7 @@ def configure_etcd(meta):
         else:
             print(line)
     etcd_config.close()
+
 
 def print_startline(statement):
     print(
@@ -463,6 +504,7 @@ def wait_for_velum():
 
 
 def create_admin_user(container_id, username, password):
+    logging.info('Create admin user in container: %s' % container_id)
     print_startline("Setting dashboard credentials")
     velum_task = (
         "entrypoint.sh rake velum:create_user[{username},{password}]"
@@ -480,7 +522,7 @@ def create_admin_user(container_id, username, password):
 
 if __name__ == '__main__':
     arguments = docopt(__doc__)
-
+    logging.info('Command line arguments: "%s"' % arguments)
     if not os.getuid() == 0:
         sys.exit("Root permissions required; please rerun as root.")
 
@@ -492,7 +534,11 @@ if __name__ == '__main__':
     # 'wizard' mode argument is optional, determine it based on
     # other required arguments if necessary
     if (arguments["--wizard"] or (
-                (not arguments["--ssl-crt"]) and (not arguments["--gensslcert"])
+                (
+                    not arguments["--ssl-crt"]
+                ) and (
+                    not arguments["--gensslcert"]
+                )
             )):
         arguments["--wizard"] = True
         if prompt_for_upload_cert():
