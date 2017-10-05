@@ -124,7 +124,7 @@ class AbstractMetadata:
             ip_address = netifaces.ifaddresses(
                 'eth0')[netifaces.AF_INET][0]['addr']
 
-        logging.info('Instance IP: "%s"' % ip_address)
+        logging.info('Instance IP: "{}"'.format(ip_address))
         return ip_address
 
     def instance_id(self):
@@ -137,7 +137,7 @@ class AbstractMetadata:
         else:
             instance_id = socket.getfqdn()
 
-        logging.info('Instance ID: "%s"' % instance_id)
+        logging.info('Instance ID: "{}"'.format(instance_id))
         return instance_id
 
 
@@ -181,7 +181,7 @@ def make_email():
         user="caasp-admin",
         fqdn=socket.getfqdn()
     )
-    logging.info('Generated e-mail: "%s"' % email)
+    logging.info('Generated e-mail: "{}"'.format(email))
     return email
 
 
@@ -192,13 +192,13 @@ def prompt(statement, default, hide=False):
     answer = response
     if hide:
         answer = '*******'
-    logging.info('Q&A: "%s : %s"' % (statement, answer))
+    logging.info('Q&A: "{} : {}"'.format(statement, answer))
     return response
 
 
 def confirmation_prompt(statement):
     response = raw_input("\n{} (y/N) > ".format(statement))
-    logging.info('Q&A: "%s : %s"' % (statement, response))
+    logging.info('Q&A: "{} : {}"'.format(statement, response))
     return (response.lower() in ['y', 'yes'])
 
 
@@ -246,7 +246,7 @@ def wait_for_file_stability(path, tries=12, interval=5):
         print(".", end='')
         tries = tries - 1
     upload_complete = end_size == start_size
-    logging.info('Upload complete: "%b"' % upload_complete)
+    logging.info('Upload complete: "{}"'.format(upload_complete))
     return upload_complete
 
 
@@ -274,10 +274,10 @@ def crypto_file_test(path, crypto_function):
             crypto.FILETYPE_PEM,
             open(path).read()
         )
-        logging.info('Valid: "%s"' % path)
+        logging.info('Valid: "{}"'.format(path))
         return True
     except:
-        logging.info('Invalid: "%s"' % path)
+        logging.info('Invalid: "{}"'.format(path))
         return False
 
 
@@ -504,7 +504,7 @@ def wait_for_velum():
 
 
 def create_admin_user(container_id, username, password):
-    logging.info('Create admin user in container: %s' % container_id)
+    logging.info('Create admin user in container: {}'.format(container_id))
     print_startline("Setting dashboard credentials")
     velum_task = (
         "entrypoint.sh rake velum:create_user[{username},{password}]"
@@ -522,7 +522,7 @@ def create_admin_user(container_id, username, password):
 
 if __name__ == '__main__':
     arguments = docopt(__doc__)
-    logging.info('Command line arguments: "%s"' % arguments)
+    logging.info('Command line arguments: "{}"'.format(arguments))
     if not os.getuid() == 0:
         sys.exit("Root permissions required; please rerun as root.")
 
