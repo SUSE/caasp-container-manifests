@@ -1,3 +1,4 @@
-csp:
-  cloud: ec2
+cloud:
+  provider: ec2
   update_policy: transactional
+  procurement_flavor: byos
