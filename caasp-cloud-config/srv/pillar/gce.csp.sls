@@ -1,3 +1,4 @@
-csp:
-  cloud: gce
+clou:
+  framework: gce
   update_policy: transactional
+  procurement_flavor: byos

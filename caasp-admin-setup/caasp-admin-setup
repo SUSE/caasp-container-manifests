@@ -101,7 +101,7 @@ class AbstractMetadata:
     def _cloud_config(config_path):
         with open(config_path) as config_file:
             config = yaml.load(config_file.read())
-        return config['csp']['cloud']
+        return config['cloud']['framework']
 
     @staticmethod
     def _load_ec2():
