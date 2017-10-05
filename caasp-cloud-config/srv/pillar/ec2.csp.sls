@@ -1,4 +1,4 @@
 cloud:
-  provider: ec2
+  framework: ec2
   update_policy: transactional
   procurement_flavor: byos

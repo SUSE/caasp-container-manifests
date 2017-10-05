@@ -1,4 +1,4 @@
 clou:
-  provider: gce
+  framework: gce
   update_policy: transactional
   procurement_flavor: byos
