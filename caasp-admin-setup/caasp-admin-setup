@@ -540,6 +540,21 @@ def get_velum_db_version():
     else:
         return None
 
+def get_velum_db_ready():
+    client = docker.Client()
+    task = client.exec_create(
+        container=get_velum_container_id(),
+        cmd='entrypoint.sh bundle exec rails runner bin/check_db.rb'
+    )
+    result = re.match(
+        'DB_READY',
+        client.exec_start(task['Id'])
+    )
+    if (result):
+        return True
+    else:
+        return None
+
 
 def wait_for(command, tries=120, interval=5):
     result = None
@@ -559,7 +574,7 @@ def wait_for_velum():
     print_endline("Running")
     #
     print_startline("Verifying dashboard database is ready")
-    velum_db_version = wait_for(get_velum_db_version)
+    velum_db_ready = wait_for(get_velum_db_ready)
     if (not velum_db_version):
         raise EnvironmentError('Dashboard database failed to respond in time.')
     print_endline("Ready")
