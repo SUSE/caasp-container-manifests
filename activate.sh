@@ -1,6 +1,7 @@
 #!/bin/sh
 # activate the dashboard
 # this script WILL BE RUN ONLY ONCE, after the installation
+# this script WILL NOT RUN during/after upgrades
 
 # Make sure that the controller node looks for the local pause image
 # TODO: remove this as soon as possible. As an idea, we could use a systemd drop-in unit.
@@ -27,31 +28,3 @@ roles:
 EOF
 echo "master: localhost" > /etc/salt/minion.d/minion.conf
 echo "id: admin" > /etc/salt/minion.d/minion_id.conf
-
-# First time setup of user-configuration for salt-master
-if [ ! -d "/etc/caasp" ]; then
-	mkdir /etc/caasp
-fi
-
-if [ ! -f "/etc/caasp/salt-master-custom.conf" ]; then
-	echo "# Custom Configurations for Salt-Master" > /etc/caasp/salt-master-custom.conf
-fi
-
-# Generate TLS CA and Initial Certificates
-/usr/share/caasp-container-manifests/gen-certs.sh
-
-VELUM_CRT_FINGERPRINT_SHA1=$(openssl x509 -noout -in /etc/pki/velum.crt -fingerprint -sha1 | cut -d= -f2)
-VELUM_CRT_FINGERPRINT_SHA256=$(openssl x509 -noout -in /etc/pki/velum.crt -fingerprint -sha256 | cut -d= -f2)
-
-# https://bugzilla.suse.com/show_bug.cgi?id=1031682
-cat <<EOF > /etc/issue.d/90-velum.conf
-
-You can manage your cluster by opening the web application running on
-port 443 of this node from your browser: https://<this-node>
-
-You can also check that the instance you are accessing matches the
-certificate fingerprints presented to your browser:
-
-Velum SHA1 fingerprint:   $VELUM_CRT_FINGERPRINT_SHA1
-Velum SHA256 fingerprint: $VELUM_CRT_FINGERPRINT_SHA256
-EOF
