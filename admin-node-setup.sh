@@ -48,3 +48,6 @@ cp $tmp_dir/public.yaml $kube_dir
 cp $tmp_dir/private.yaml $kube_dir
 
 rm -rf $tmp_dir
+
+# switch deprecated --config flag in kubelet
+sed -i -e "s/--config=/--pod-manifest-path=/g" /etc/kubernetes/kubelet
