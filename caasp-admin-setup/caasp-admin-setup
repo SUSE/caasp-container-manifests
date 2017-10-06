@@ -26,7 +26,7 @@ Must be run as root!
 
 Usage:
   caasp-admin-setup [--wizard]
-  caasp-admin-setup (--ssl-crt=<certificate-file> --ssl-key=<private-key-file>
+  caasp-admin-setup ((--ssl-crt=<certificate-file> --ssl-key=<private-key-file>)
                         | --gensslcert)
                     [--admin-email=<email>]
                     [--admin-password=<password>]
