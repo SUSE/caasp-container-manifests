@@ -1,6 +1,6 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 #
-# Copyright © 2017 SUSE
+# Copyright 2017 SUSE
 #
 # THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND TREATIES.
 # IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED, PERFORMED,
@@ -26,9 +26,7 @@ Must be run as root!
 
 Usage:
   caasp-admin-setup [--wizard]
-  caasp-admin-setup ((
-                      --ssl-crt=<certificate-file> --ssl-key=<private-key-file>
-                     )
+  caasp-admin-setup ((--ssl-crt=<certificate-file> --ssl-key=<private-key-file>)
                         | --gensslcert)
                     [--admin-email=<email>]
                     [--admin-password=<password>]
@@ -54,7 +52,6 @@ Options:
                                 Default behavior when no arguments are
                                 supplied.
 """
-from __future__ import print_function, unicode_literals
 
 import docker  # https://github.com/docker/docker-py/blob/1.10.6/docs/api.md
 import fileinput
@@ -72,6 +69,7 @@ from docopt import docopt
 from email.utils import parseaddr
 from OpenSSL import crypto
 
+scc_error_exp = re.compile('^error', re.IGNORECASE)
 
 log_filename = '/var/log/caasp_cloud_setup.log'
 try:
@@ -81,15 +79,15 @@ try:
         format='%(asctime)s %(levelname)s:%(message)s'
     )
 except IOError:
-    print 'Could not open log file "', log_filename, '" for writing.'
-    print 'Proceeding without log creation'
+    print('Could not open log file "', log_filename, '" for writing.')
+    print('Proceeding without log creation')
 
 
 # TODO: Migrate this out to a separate library
 # TODO: Python module for Azure metadata
 class AbstractMetadata:
     def __init__(self, config_path):
-        self.framework == self._cloud_config(config_path)
+        self.framework = self._cloud_config(config_path)
         if (self.framework == "ec2"):
             self.meta = self._load_ec2()
         elif (self.framework == "gce"):
@@ -116,10 +114,10 @@ class AbstractMetadata:
     def local_ipv4(self):
         ip_address = None
         if self.framework == "ec2":
-            ip_address = meta.get("local-ipv4")
+            ip_address = self.meta.get("local-ipv4")
         elif self.framework == "gce":
-            meta.set_data_category("instance")
-            ip_address = meta.get("ip")
+            self.meta.set_data_category("instance")
+            ip_address = self.meta.get("ip")
         else:
             ip_address = netifaces.ifaddresses(
                 'eth0')[netifaces.AF_INET][0]['addr']
@@ -130,10 +128,10 @@ class AbstractMetadata:
     def instance_id(self):
         instance_id = None
         if self.framework == "ec2":
-            instance_id = meta.get("instance-id")
+            instance_id = self.meta.get("instance-id")
         elif self.framework == "gce":
-            meta.set_data_category("instance")
-            instance_id = meta.get("id")
+            self.meta.set_data_category("instance")
+            instance_id = self.meta.get("id")
         else:
             instance_id = socket.getfqdn()
 
@@ -186,7 +184,7 @@ def make_email():
 
 
 def prompt(statement, default, hide=False):
-    response = raw_input("\n{} [ {} ] > ".format(statement, default))
+    response = input("\n{} [ {} ] > ".format(statement, default))
     if (response == ""):
         response = default
     answer = response
@@ -196,9 +194,15 @@ def prompt(statement, default, hide=False):
     return response
 
 
-def confirmation_prompt(statement):
-    response = raw_input("\n{} (y/N) > ".format(statement))
+def confirmation_prompt(statement, default=False):
+    if default:
+        default_answer = '(Y/n)'
+    else:
+        default_answer = '(y/N)'
+    response = input("\n{} {} > ".format(statement, default_answer))
     logging.info('Q&A: "{} : {}"'.format(statement, response))
+    if default and not response:
+        return True
     return (response.lower() in ['y', 'yes'])
 
 
@@ -436,6 +440,63 @@ def print_endline(statement):
     )
 
 
+def register_instance(config_path):
+    """Collect SCC credentials and register the system"""
+    with open(config_path) as config_file:
+            config = yaml.load(config_file.read())
+    flavor = config['cloud']['procurement_flavor']
+    if flavor != 'byos':
+        # On-demand, nothing to do automatic registration
+        return
+    wants_registration = confirmation_prompt(
+        "Would you like to register the system with the "
+        "SUSE Customer Center (SCC) to receive updates? "
+        "(e-mail and registration code required)", True
+    )
+    if wants_registration:
+        email = prompt(
+            "Please provide the e-mail associated with your SCC account",
+            'name@company.com'
+        )
+        if not email_test(email):
+            msg = 'Invalid e-mail provided "{}"'.format(email)
+            msg += 'Proceeding without registration'
+            logging.info(msg)
+            print(msg)
+            return
+        registration_code = prompt(
+            "Please provide your SCC registration code",
+            '123456789',
+            True
+        )
+        if not registration_code:
+            msg = 'No registration code provided.'
+            msg += 'Proceeding without registration'
+            logging.info(msg)
+            print(msg)
+            return
+        cmd = [
+            '/usr/sbin/SUSEConnect',
+            '-e',
+            email,
+            '-r',
+            registration_code
+        ]
+        p = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        res = p.communicate()
+        for entry in res:
+            if scc_error_exp.match(entry.decode()):
+                msg = 'SCC registration failed, please register the system'
+                msg += 'with SUSEConnect -e email -r regcode'
+                logging.info(msg)
+                print(msg)
+                return
+        logging.info('Registration success')
+
+
 def enable_services():
     for service in _services():
         print_startline("Enabling {} service".format(service))
@@ -578,6 +639,9 @@ if __name__ == '__main__':
             sys.exit("Invalid argument '--admin-email'")
         if (not validate_password(arguments["--admin-password"])):
             sys.exit("Invalid argument '--admin-password'")
+
+    # Register if byos and user desired
+    register_instance(_cloud_config_path())
 
     # last chance to back out
     if (arguments["--accept"]):
