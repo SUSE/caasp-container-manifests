@@ -48,3 +48,12 @@ cp $tmp_dir/public.yaml $kube_dir
 cp $tmp_dir/private.yaml $kube_dir
 
 rm -rf $tmp_dir
+
+# First time setup of user-configuration for salt-master
+if [ ! -d "/etc/caasp" ]; then
+    mkdir /etc/caasp
+fi
+
+if [ ! -f "/etc/caasp/salt-master-custom.conf" ]; then
+    echo "# Custom Configurations for Salt-Master" > /etc/caasp/salt-master-custom.conf
+fi

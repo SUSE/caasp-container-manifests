@@ -1,6 +1,7 @@
 #!/bin/sh
 # activate the dashboard
 # this script WILL BE RUN ONLY ONCE, after the installation
+# this script WILL NOT RUN during/after upgrades
 
 # Make sure that the controller node looks for the local pause image
 # TODO: remove this as soon as possible. As an idea, we could use a systemd drop-in unit.
@@ -27,15 +28,6 @@ roles:
 EOF
 echo "master: localhost" > /etc/salt/minion.d/minion.conf
 echo "id: admin" > /etc/salt/minion.d/minion_id.conf
-
-# First time setup of user-configuration for salt-master
-if [ ! -d "/etc/caasp" ]; then
-	mkdir /etc/caasp
-fi
-
-if [ ! -f "/etc/caasp/salt-master-custom.conf" ]; then
-	echo "# Custom Configurations for Salt-Master" > /etc/caasp/salt-master-custom.conf
-fi
 
 # Generate TLS CA and Initial Certificates
 /usr/share/caasp-container-manifests/gen-certs.sh
