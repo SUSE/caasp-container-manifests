@@ -429,16 +429,16 @@ def configure_etcd(meta):
 def print_startline(statement):
     print(
         "\t{}...".format(statement),
-        end='',
-        flush=True
+        end=''
     )
+    sys.stdout.flush()
 
 
 def print_endline(statement):
     print(
-        " {}.".format(statement),
-        flush=True
+        " {}.".format(statement)
     )
+    sys.stdout.flush()
 
 
 def register_instance(config_path):
@@ -575,7 +575,7 @@ def wait_for_velum():
     #
     print_startline("Verifying dashboard database is ready")
     velum_db_ready = wait_for(get_velum_db_ready)
-    if (not velum_db_version):
+    if (not velum_db_ready):
         raise EnvironmentError('Dashboard database failed to respond in time.')
     print_endline("Ready")
 
