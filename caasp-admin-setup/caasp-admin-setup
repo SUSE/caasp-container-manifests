@@ -54,6 +54,7 @@ Options:
 """
 
 from __future__ import print_function
+from builtins import input
 import docker  # https://github.com/docker/docker-py/blob/1.10.6/docs/api.md
 import fileinput
 import importlib
@@ -193,7 +194,7 @@ def make_email():
 
 
 def prompt(statement, default, hide=False):
-    response = raw_input("\n{} [ {} ] > ".format(statement, default))
+    response = input("\n{} [ {} ] > ".format(statement, default))
     if (response == ""):
         response = default
     answer = response
@@ -208,7 +209,7 @@ def confirmation_prompt(statement, default=False):
         default_answer = '(Y/n)'
     else:
         default_answer = '(y/N)'
-    response = raw_input("\n{} {} > ".format(statement, default_answer))
+    response = input("\n{} {} > ".format(statement, default_answer))
     logging.info('Q&A: "{} : {}"'.format(statement, response))
     if default and not response:
         return True
