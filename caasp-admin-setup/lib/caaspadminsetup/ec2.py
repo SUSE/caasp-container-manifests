@@ -13,10 +13,52 @@ def get_local_ipv4():
 def get_instance_id():
     return _get_from_metadata('instance-id')
 
-def upload_ssh_public_key(key_name, public_key_data):
+def create_public_key(key_name, public_key_data):
     client = boto3.client(service_name='ec2', region_name=_get_instance_region())
     client.import_key_pair(
         KeyName = key_name,
         PublicKeyMaterial = public_key_data
     )
+
+def generate_salt_cloud_config(
+        config_dir,
+        key_name,
+        private_key_file,
+        image,
+        root_volume_size
+    ):
+    providers_conf = """\
+ec2:
+  driver: ec2
+  keyname: {}
+  ssh_interface: private_ips
+  ssh_user: ec2-user
+  private_ley: {}
+  id: use-instance-role-credentials
+  key: use-instance-role-credentials
+  location: LOCATION
+  minion:
+    master: {}
+""".format(key_name, private_key_file, get_local_ipv4())
+    providers_conf_file = open('{}/cloud.providers'.format(config_dir), 'w')
+    providers_conf_file.write(providers_conf)
+    providers_conf_file.close()
+
+    profiles_conf = """\
+worker:
+  provider: ec2
+  size: SIZE
+  image: {}
+  script_args: -C
+  volumes:
+    - {{ size: {}, device: /dev/sda1 }}
+  network_interfaces:
+    - DeviceIndex: 0
+      AssociatePublicIpAddress: False
+      SubnetId: SUBNETID
+      SecurityGroupId: SECURITYGROUPID
+""".format(image, root_volume_size)
+    profiles_conf_file = open('{}/cloud.profiles'.format(config_dir), 'w')
+    profiles_conf_file.write(profiles_conf)
+    profiles_conf_file.close()
 
