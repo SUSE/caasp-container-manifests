@@ -308,6 +308,9 @@ spec:
       - mountPath: /var/lib/misc/infra-secrets
         name: infra-secrets
         readOnly: True
+      - mountPath: /etc/hosts
+        name: etc-hosts
+        readOnly: True
     args: ["bin/init"]
   - name: openldap
     image: sles12/openldap:__TAG__
@@ -523,3 +526,6 @@ spec:
     - name: infra-secrets
       hostPath:
         path: /var/lib/misc/infra-secrets
+    - name: etc-hosts
+      hostPath:
+        path: /etc/hosts
