@@ -21,16 +21,17 @@ Version:        1.0.0
 Release:        0
 License:        MIT
 Summary:        Setup the CaaSP Admin Node
-URL:            http://www.github.com:SUSE/pubcloud
+URL:            http://www.github.com/SUSE/pubcloud
 Group:          Productivity/Networking/Web/Servers
 Source0:        %{name}-%{version}.tar.bz2
 Requires:       caasp-cloud-config
-Requires:       python3
-Requires:       python3-docker
-Requires:       python3-docopt
-Requires:       python3-netifaces
-Requires:       python3-PyYAML
-Requires:       python3-pyOpenSSL
+Requires:       python
+Requires:       python-docker-py
+Requires:       python-docopt
+Requires:       python-future
+Requires:       python-netifaces
+Requires:       python-pyOpenSSL
+BuildRequires:  python
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
 BuildArch:      noarch
@@ -44,9 +45,15 @@ Basic setup of the Admin node for a CaaSP cluster
 %build
 
 %install
-make install DESTDIR=%{buildroot}
+# not using setup.py, installation into /usr/sbin seems impossible
+#python setup.py install --prefix=%{_prefix} --root=%{buildroot}
+mkdir -p %{buildroot}/%{python_sitelib}
+mkdir -p %{buildroot}/%{_sbindir}
+cp -r lib/caaspadminsetup %{buildroot}/%{python_sitelib}
+install -m 755 caasp-admin-setup %{buildroot}/%{_sbindir}
 
 %files
 %defattr(-,root,root,-)
 %doc LICENSE
 %{_sbindir}/caasp-admin-setup
+%{python_sitelib}/caaspadminsetup
