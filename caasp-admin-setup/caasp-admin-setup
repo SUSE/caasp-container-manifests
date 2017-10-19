@@ -624,7 +624,7 @@ def setup_salt_cloud(pubkey_name):
     platform.generate_salt_cloud_config(
         config_dir = _salt_cloud_config_path(),
         key_name = pubkey_name,
-        private_key_file = "/etc/salt/cloud-ssh-key.pem",
+        private_key_file = "/etc/salt/ssh_key.pem",
         image = image_id,
         root_volume_size = '30'
     )

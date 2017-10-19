@@ -33,7 +33,7 @@ ec2:
   keyname: {}
   ssh_interface: private_ips
   ssh_user: ec2-user
-  private_ley: {}
+  private_key: {}
   id: use-instance-role-credentials
   key: use-instance-role-credentials
   location: LOCATION
