@@ -607,7 +607,7 @@ def create_framework_public_key(pubkey_name):
 
 def setup_salt_cloud(pubkey_name):
     logging.info("Set up salt-cloud")
-    print_startline("Setting up salt-cluud")
+    print_startline("Setting up salt-cloud")
     # TODO: look up latest CaaSP cluster node image from pint and write
     # image ID to salt-cloud profile
     image_id = 'IMAGE'
