@@ -25,11 +25,15 @@ done
 velum_passwd=`cat /infra-secrets/mariadb-velum-password`
 salt_passwd=`cat /infra-secrets/mariadb-salt-password`
 
+# Create both the ENV and the test databases.
+# This is requird to run the test suites inside of devenv
 mysql $mysql_flags -f <<EOF
   CREATE SCHEMA IF NOT EXISTS velum_$ENV;
+  CREATE SCHEMA IF NOT EXISTS velum_test;
   CREATE USER velum@localhost IDENTIFIED BY "$velum_passwd";
   CREATE USER salt@localhost IDENTIFIED BY "$salt_passwd";
   GRANT ALL PRIVILEGES ON velum_$ENV.* TO velum@localhost;
+  GRANT ALL PRIVILEGES ON velum_test.* TO velum@localhost;
   GRANT SELECT,INSERT,DELETE ON velum_$ENV.* TO salt@localhost;
   FLUSH PRIVILEGES;
 EOF
