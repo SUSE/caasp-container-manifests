@@ -50,8 +50,9 @@ worker:
   size: SIZE
   image: {}
   script: /etc/salt/cloud-configure-minion.sh
-  volumes:
-    - {{ size: {}, device: /dev/sda1 }}
+  block_device_mappings:
+    - DeviceName: /dev/sda1
+      Ebs.VolumeSize: {}
   network_interfaces:
     - DeviceIndex: 0
       AssociatePublicIpAddress: False
