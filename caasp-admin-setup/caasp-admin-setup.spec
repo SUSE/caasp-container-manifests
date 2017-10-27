@@ -32,6 +32,7 @@ Requires:       python-future
 Requires:       python-netifaces
 Requires:       python-pyOpenSSL
 BuildRequires:  python
+BuildRequires:  python-setuptools
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
 BuildArch:      noarch
@@ -45,15 +46,16 @@ Basic setup of the Admin node for a CaaSP cluster
 %build
 
 %install
-# not using setup.py, installation into /usr/sbin seems impossible
-#python setup.py install --prefix=%{_prefix} --root=%{buildroot}
-mkdir -p %{buildroot}/%{python_sitelib}
-mkdir -p %{buildroot}/%{_sbindir}
-cp -r lib/caaspadminsetup %{buildroot}/%{python_sitelib}
-install -m 755 caasp-admin-setup %{buildroot}/%{_sbindir}
+python setup.py install --prefix=%{_prefix} --root=%{buildroot}
+
+# we want the script in /usr/sbin since it's admin use only, but
+# setuptools do not support installing into /usr/sbin
+mv %{buildroot}%{_bindir} %{buildroot}%{_sbindir}
+
 
 %files
 %defattr(-,root,root,-)
 %doc LICENSE
 %{_sbindir}/caasp-admin-setup
+%{python_sitelib}/caasp_admin_setup-%{version}-py%{py_ver}.egg-info
 %{python_sitelib}/caaspadminsetup
