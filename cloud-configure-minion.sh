@@ -79,8 +79,14 @@ else
   die "No minion public key in deploy directory"
 fi
 
+# NOTE: the minion configuration passed by salt-cloud is monolithic and
+# contains the minion ID in /etc/salt/minion. SLES automatically initializes
+# the minion ID on boot, which we need to prevent.
+#
 # remove client generated salt minion ID
 rm -f "${SALT_DIR}/minion.d/minion_id.conf"
+# this prevents it from being re-generated at boot
+systemctl disable setup-salt-minion.service
 
 systemctl enable salt-minion.service || die "Error enabling salt-minion"
 systemctl start salt-minion.service || die "Error starting salt-minion"
