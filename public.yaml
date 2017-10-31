@@ -17,131 +17,90 @@ metadata:
   name: velum-public
   labels:
     name: velum-public
-  annotations:
-    pod.beta.kubernetes.io/init-containers: '[
-      {
-        "name": "mariadb-user-secrets",
-        "image": "sles12/mariadb:__TAG__",
-        "command": ["/setup-mysql.sh"],
-        "env": [
-          {
-            "name": "ENV",
-            "value": "production"
-          }
-        ],
-        "volumeMounts": [
-          {
-            "mountPath": "/infra-secrets",
-            "name": "infra-secrets"
-          },
-          {
-            "mountPath": "/var/run/mysql",
-            "name": "mariadb-unix-socket"
-          },
-          {
-            "mountPath": "/setup-mysql.sh",
-            "name": "setup-mysql",
-            "readOnly": true
-          }
-        ]
-      },
-      {
-        "name": "openldap-secrets",
-        "image": "sles12/velum:__TAG__",
-        "command": ["sh", "-c", "umask 377;
-                                 if [ ! -f /infra-secrets/openldap-password ]; then
-                                   head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/openldap-password;
-                                 fi;
-                                 exit 0"],
-        "volumeMounts": [
-          {
-            "mountPath": "/infra-secrets",
-            "name": "infra-secrets"
-          }
-        ]
-      },
-      {
-        "name": "saltapi-secrets",
-        "image": "sles12/velum:__TAG__",
-        "command": ["sh", "-c", "umask 377;
-                                 if [ ! -f /infra-secrets/saltapi-password ]; then
-                                   head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/saltapi-password;
-                                 fi;
-                                 exit 0"],
-        "volumeMounts": [
-          {
-            "mountPath": "/infra-secrets",
-            "name": "infra-secrets"
-          }
-        ]
-      },
-      {
-        "name": "salt-minion-key-generation",
-        "image": "sles12/salt-master:__TAG__",
-        "command": ["sh", "-c", "umask 377;
-                                 mkdir /salt-master-pki/minions/;
-                                 temp_dir=`mktemp -d`;
-                                 if [ -f /salt-admin-minion-pki/minion.pub ] && [ -f /salt-admin-minion-pki/minion.pem ] && [ ! -f /salt-master-pki/minions/admin ]; then
-                                   cp /salt-admin-minion-pki/minion.pub /salt-master-pki/minions/admin;
-                                 fi;
-                                 if [ ! -f /salt-admin-minion-pki/minion.pub ] || [ ! -f /salt-admin-minion-pki/minion.pem ]; then
-                                   salt-key -u root --gen-keys=admin --gen-keys-dir $temp_dir;
-                                   cp $temp_dir/admin.pub /salt-master-pki/minions/admin;
-                                   mv $temp_dir/admin.pub /salt-admin-minion-pki/minion.pub;
-                                   mv $temp_dir/admin.pem /salt-admin-minion-pki/minion.pem;
-                                 fi;
-                                 if [ -f /salt-ca-minion-pki/minion.pub ] && [ -f /salt-ca-minion-pki/minion.pem ] && [ ! -f /salt-master-pki/minions/ca ]; then
-                                   cp /salt-ca-minion-pki/minion.pub /salt-master-pki/minions/ca;
-                                 fi;
-                                 if [ ! -f /salt-ca-minion-pki/minion.pub ] || [ ! -f /tmp/ca.pem /salt-ca-minion-pki/minion.pem ]; then
-                                   salt-key -u root --gen-keys=ca --gen-keys-dir $temp_dir;
-                                   cp $temp_dir/ca.pub /salt-master-pki/minions/ca;
-                                   mv $temp_dir/ca.pub /salt-ca-minion-pki/minion.pub;
-                                   mv $temp_dir/ca.pem /salt-ca-minion-pki/minion.pem;
-                                 fi;
-                                 rm -rf $temp_dir;
-                                 exit 0"],
-        "volumeMounts": [
-          {
-            "mountPath": "/salt-master-pki",
-            "name": "salt-master-pki"
-          },
-          {
-            "mountPath": "/salt-ca-minion-pki",
-            "name": "salt-ca-minion-pki"
-          },
-          {
-            "mountPath": "/salt-admin-minion-pki",
-            "name": "salt-admin-minion-pki"
-          }
-        ]
-      },
-      {
-        "name": "salt-master-config",
-        "image": "sles12/velum:__TAG__",
-        "command": ["sh", "-c", "umask 377;
-                                 rmdir /salt-master-credentials/returner-credentials.conf;
-                                 if [ ! -f /salt-master-credentials/returner-credentials.conf ]; then
-                                   echo \"mysql:\" > /salt-master-credentials/returner-credentials.conf;
-                                   echo -n \"  pass: \" >> /salt-master-credentials/returner-credentials.conf;
-                                   cat /infra-secrets/mariadb-salt-password >> /salt-master-credentials/returner-credentials.conf;
-                                 fi;
-                                 exit 0"],
-        "volumeMounts": [
-          {
-            "mountPath": "/infra-secrets",
-            "name": "infra-secrets",
-            "readOnly": true
-          },
-          {
-            "mountPath": "/salt-master-credentials",
-            "name": "salt-master-credentials"
-          }
-        ]
-      }
-    ]'
 spec:
-  hostNetwork: true
+  hostNetwork: True
+  initContainers:
+  - name: mariadb-user-secrets
+    image: sles12/mariadb:__TAG__
+    command: ["/setup-mysql.sh"]
+    env:
+    - name: ENV
+      value: production
+    volumeMounts:
+    - mountPath: /infra-secrets
+      name: infra-secrets
+    - mountPath: /var/run/mysql
+      name: mariadb-unix-socket
+    - mountPath: /setup-mysql.sh
+      name: setup-mysql
+      readOnly: True
+  - name: openldap-secrets
+    image: sles12/velum:__TAG__
+    command: ["sh", "-c", "umask 377;
+                           if [ ! -f /infra-secrets/openldap-password ]; then
+                             head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/openldap-password;
+                           fi;
+                           exit 0"]
+    volumeMounts:
+    - mountPath: /infra-secrets
+      name: infra-secrets
+  - name: saltapi-secrets
+    image: sles12/velum:__TAG__
+    command: ["sh", "-c", "umask 377;
+                           if [ ! -f /infra-secrets/saltapi-password ]; then
+                             head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/saltapi-password;
+                           fi;
+                           exit 0"]
+    volumeMounts:
+    - mountPath: /infra-secrets
+      name: infra-secrets
+  - name: salt-minion-key-generation
+    image: sles12/salt-master:__TAG__
+    command: ["sh", "-c", "umask 377;
+                           mkdir /salt-master-pki/minions/;
+                           temp_dir=`mktemp -d`;
+                           if [ -f /salt-admin-minion-pki/minion.pub ] && [ -f /salt-admin-minion-pki/minion.pem ] && [ ! -f /salt-master-pki/minions/admin ]; then
+                             cp /salt-admin-minion-pki/minion.pub /salt-master-pki/minions/admin;
+                           fi;
+                           if [ ! -f /salt-admin-minion-pki/minion.pub ] || [ ! -f /salt-admin-minion-pki/minion.pem ]; then
+                             salt-key -u root --gen-keys=admin --gen-keys-dir $temp_dir;
+                             cp $temp_dir/admin.pub /salt-master-pki/minions/admin;
+                             mv $temp_dir/admin.pub /salt-admin-minion-pki/minion.pub;
+                             mv $temp_dir/admin.pem /salt-admin-minion-pki/minion.pem;
+                           fi;
+                           if [ -f /salt-ca-minion-pki/minion.pub ] && [ -f /salt-ca-minion-pki/minion.pem ] && [ ! -f /salt-master-pki/minions/ca ]; then
+                             cp /salt-ca-minion-pki/minion.pub /salt-master-pki/minions/ca;
+                           fi;
+                           if [ ! -f /salt-ca-minion-pki/minion.pub ] || [ ! -f /tmp/ca.pem /salt-ca-minion-pki/minion.pem ]; then
+                             salt-key -u root --gen-keys=ca --gen-keys-dir $temp_dir;
+                             cp $temp_dir/ca.pub /salt-master-pki/minions/ca;
+                             mv $temp_dir/ca.pub /salt-ca-minion-pki/minion.pub;
+                             mv $temp_dir/ca.pem /salt-ca-minion-pki/minion.pem;
+                           fi;
+                           rm -rf $temp_dir;
+                           exit 0"]
+    volumeMounts:
+    - mountPath: /salt-master-pki
+      name: salt-master-pki
+    - mountPath: /salt-ca-minion-pki
+      name: salt-ca-minion-pki
+    - mountPath: /salt-admin-minion-pki
+      name: salt-admin-minion-pki
+  - name: salt-master-config
+    image: sles12/velum:__TAG__
+    command: ["sh", "-c", "umask 377;
+                           if ! grep mysql /salt-master-credentials/returner-credentials.conf; then
+                             echo \"mysql:\" > /salt-master-credentials/returner-credentials.conf;
+                             echo -n \"  pass: \" >> /salt-master-credentials/returner-credentials.conf;
+                             cat /infra-secrets/mariadb-salt-password >> /salt-master-credentials/returner-credentials.conf;
+                           fi;
+                           exit 0"]
+    volumeMounts:
+    - mountPath: /infra-secrets
+      name: infra-secrets
+      readOnly: True
+    - mountPath: /salt-master-credentials
+      name: salt-master-credentials
   containers:
   - name: salt-master
     image: sles12/salt-master:__TAG__
@@ -289,25 +248,25 @@ spec:
     - name: LDAP_DOMAIN
       value: infra.caasp.local
     volumeMounts:
-      - mountPath: /etc/pki/velum.crt
-        name: velum-certificate
-        readOnly: True
-      - mountPath: /etc/pki/velum.key
-        name: velum-certificate-key
-        readOnly: True
-      - mountPath: /etc/pki/ca.crt
-        name: ca-certificate
-        readOnly: True
-      - mountPath: /var/run/mysql
-        name: mariadb-unix-socket
-      - mountPath: /var/lib/misc/velum-secrets
-        name: velum-secrets
-      - mountPath: /var/lib/misc/ssh-public-key
-        name: ssh-public-key
-        readOnly: True
-      - mountPath: /var/lib/misc/infra-secrets
-        name: infra-secrets
-        readOnly: True
+    - mountPath: /etc/pki/velum.crt
+      name: velum-certificate
+      readOnly: True
+    - mountPath: /etc/pki/velum.key
+      name: velum-certificate-key
+      readOnly: True
+    - mountPath: /etc/pki/ca.crt
+      name: ca-certificate
+      readOnly: True
+    - mountPath: /var/run/mysql
+      name: mariadb-unix-socket
+    - mountPath: /var/lib/misc/velum-secrets
+      name: velum-secrets
+    - mountPath: /var/lib/misc/ssh-public-key
+      name: ssh-public-key
+      readOnly: True
+    - mountPath: /var/lib/misc/infra-secrets
+      name: infra-secrets
+      readOnly: True
     args: ["bin/init"]
   - name: openldap
     image: sles12/openldap:__TAG__
@@ -319,24 +278,24 @@ spec:
     - name: SLAPD_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/openldap-password
     volumeMounts:
-      - mountPath: /etc/openldap/pki/openldap.crt
-        name: openldap-certificate
-        readOnly: True
-      - mountPath: /etc/openldap/pki/openldap.pem
-        name: openldap-certificate-key
-        readOnly: True
-      - mountPath: /etc/openldap/pki/ca.crt
-        name: ca-certificate
-        readOnly: True
-      - mountPath: /var/lib/misc/infra-secrets
-        name: infra-secrets
-        readOnly: True
-      - mountPath: /var/lib/ldap
-        name: openldap-data
-      # these files are generated during first run of openldap
-      # if this folder is lost, TLS and other things stop working
-      - mountPath: /etc/openldap/slapd.d
-        name: openldap-config
+    - mountPath: /etc/openldap/pki/openldap.crt
+      name: openldap-certificate
+      readOnly: True
+    - mountPath: /etc/openldap/pki/openldap.pem
+      name: openldap-certificate-key
+      readOnly: True
+    - mountPath: /etc/openldap/pki/ca.crt
+      name: ca-certificate
+      readOnly: True
+    - mountPath: /var/lib/misc/infra-secrets
+      name: infra-secrets
+      readOnly: True
+    - mountPath: /var/lib/ldap
+      name: openldap-data
+    # these files are generated during first run of openldap
+    # if this folder is lost, TLS and other things stop working
+    - mountPath: /etc/openldap/slapd.d
+      name: openldap-config
   - name: velum-autoyast
     image: sles12/velum:__TAG__
     env:
@@ -355,16 +314,16 @@ spec:
     - name: VELUM_DB_SOCKET
       value: /var/run/mysql/mysql.sock
     volumeMounts:
-      - mountPath: /var/run/mysql
-        name: mariadb-unix-socket
-      - mountPath: /var/lib/misc/velum-secrets
-        name: velum-secrets
-      - mountPath: /var/lib/misc/ssh-public-key
-        name: ssh-public-key
-        readOnly: True
-      - mountPath: /var/lib/misc/infra-secrets
-        name: infra-secrets
-        readOnly: True
+    - mountPath: /var/run/mysql
+      name: mariadb-unix-socket
+    - mountPath: /var/lib/misc/velum-secrets
+      name: velum-secrets
+    - mountPath: /var/lib/misc/ssh-public-key
+      name: ssh-public-key
+      readOnly: True
+    - mountPath: /var/lib/misc/infra-secrets
+      name: infra-secrets
+      readOnly: True
     args: ["bundle", "exec", "puma", "-C", "config/puma.rb"]
   - name: velum-event-processor
     image: sles12/velum:__TAG__
@@ -412,114 +371,115 @@ spec:
     - name: LDAP_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/openldap-password
     volumeMounts:
-      - mountPath: /etc/pki/ca.crt
-        name: ca-certificate
-        readOnly: True
-      - mountPath: /var/run/mysql
-        name: mariadb-unix-socket
-      - mountPath: /var/lib/misc/velum-secrets
-        name: velum-secrets
-      - mountPath: /var/lib/misc/infra-secrets
-        name: infra-secrets
-        readOnly: True
+    - mountPath: /etc/pki/ca.crt
+      name: ca-certificate
+      readOnly: True
+    - mountPath: /var/run/mysql
+      name: mariadb-unix-socket
+    - mountPath: /var/lib/misc/velum-secrets
+      name: velum-secrets
+    - mountPath: /var/lib/misc/infra-secrets
+      name: infra-secrets
+      readOnly: True
     args: ["bundle", "exec", "bin/rake", "salt:process"]
   volumes:
-    - name: openldap-data
-      hostPath:
-        path: /var/lib/misc/ldap
-    - name: openldap-config
-      hostPath:
-        path: /var/lib/misc/ldap-config
-    - name: mariadb-unix-socket
-      hostPath:
-        path: /var/run/mysql
-    - name: velum-secrets
-      hostPath:
-        path: /var/lib/misc/velum-secrets
-    - name: salt-master-cache
-      hostPath:
-        path: /var/lib/misc/salt/cache/salt-master
-    - name: salt-master-credentials
-      hostPath:
-        path: /var/lib/misc/salt-master-credentials
-    - name: salt-master-config-master-conf
-      hostPath:
-        path: /usr/share/salt/kubernetes/config/master.d/50-master.conf
-    - name: salt-master-config-api-conf
-      hostPath:
-        path: /usr/share/salt/kubernetes/config/master.d/50-api.conf
-    - name: salt-master-config-peer-conf
-      hostPath:
-        path: /usr/share/salt/kubernetes/config/master.d/50-peer.conf
-    - name: salt-master-config-reactor-conf
-      hostPath:
-        path: /usr/share/salt/kubernetes/config/master.d/50-reactor.conf
-    - name: salt-master-config-returner-conf
-      hostPath:
-        path: /usr/share/salt/kubernetes/config/master.d/50-returner.conf
-    - name: salt-master-config-returner-credentials-conf
-      hostPath:
-        path: /var/lib/misc/salt-master-credentials/returner-credentials.conf
-    - name: salt-master-config-custom-conf
-      hostPath:
-        path: /etc/caasp/salt-master-custom.conf
-    - name: salt-master-pki
-      hostPath:
-        path: /etc/salt/pki/master
-    - name: salt
-      hostPath:
-        path: /usr/share/salt/kubernetes
-    - name: salt-sock-dir
-      hostPath:
-        path: /var/run/salt/master/sock-dir
-    - name: salt-minion-ca-cache
-      hostPath:
-        path: /var/lib/misc/salt/cache/salt-minion-ca
-    - name: salt-minion-ca-certificates
-      hostPath:
-        path: /etc/pki
-    - name: velum-certificate
-      hostPath:
-        path: /etc/pki/velum.crt
-    - name: velum-certificate-key
-      hostPath:
-        path: /etc/pki/private/velum.key
-    - name: openldap-certificate
-      hostPath:
-        path: /etc/pki/ldap.crt
-    - name: openldap-certificate-key
-      hostPath:
-        path: /etc/pki/private/ldap.key
-    - name: salt-api-certificate
-      hostPath:
-        path: /etc/pki/salt-api.crt
-    - name: salt-api-certificate-key
-      hostPath:
-        path: /etc/pki/private/salt-api.key
-    - name: ca-certificate
-      hostPath:
-        path: /etc/pki/ca.crt
-    - name: salt-minion-ca-grains
-      hostPath:
-        path: /usr/share/caasp-container-manifests/config/salt/grains/ca
-    - name: salt-minion-ca-config
-      hostPath:
-        path: /usr/share/caasp-container-manifests/config/salt/minion.d-ca/minion.conf
-    - name: salt-minion-ca-signing-policies
-      hostPath:
-        path: /usr/share/caasp-container-manifests/config/salt/minion.d-ca/signing_policies.conf
-    - name: setup-mysql
-      hostPath:
-        path: /usr/share/caasp-container-manifests/setup/mysql/setup-mysql.sh
-    - name: salt-ca-minion-pki
-      hostPath:
-        path: /etc/salt/pki/minion-ca
-    - name: salt-admin-minion-pki
-      hostPath:
-        path: /etc/salt/pki/minion
-    - name: ssh-public-key
-      hostPath:
-        path: /var/lib/misc/ssh-public-key
-    - name: infra-secrets
-      hostPath:
-        path: /var/lib/misc/infra-secrets
+  - name: openldap-data
+    hostPath:
+      path: /var/lib/misc/ldap
+  - name: openldap-config
+    hostPath:
+      path: /var/lib/misc/ldap-config
+  - name: mariadb-unix-socket
+    hostPath:
+      path: /var/run/mysql
+  - name: velum-secrets
+    hostPath:
+      path: /var/lib/misc/velum-secrets
+  - name: salt-master-cache
+    hostPath:
+      path: /var/lib/misc/salt/cache/salt-master
+  - name: salt-master-credentials
+    hostPath:
+      path: /var/lib/misc/salt-master-credentials
+  - name: salt-master-config-master-conf
+    hostPath:
+      path: /usr/share/salt/kubernetes/config/master.d/50-master.conf
+  - name: salt-master-config-api-conf
+    hostPath:
+      path: /usr/share/salt/kubernetes/config/master.d/50-api.conf
+  - name: salt-master-config-peer-conf
+    hostPath:
+      path: /usr/share/salt/kubernetes/config/master.d/50-peer.conf
+  - name: salt-master-config-reactor-conf
+    hostPath:
+      path: /usr/share/salt/kubernetes/config/master.d/50-reactor.conf
+  - name: salt-master-config-returner-conf
+    hostPath:
+      path: /usr/share/salt/kubernetes/config/master.d/50-returner.conf
+  - name: salt-master-config-returner-credentials-conf
+    hostPath:
+      path: /var/lib/misc/salt-master-credentials/returner-credentials.conf
+      type: FileOrCreate
+  - name: salt-master-config-custom-conf
+    hostPath:
+      path: /etc/caasp/salt-master-custom.conf
+  - name: salt-master-pki
+    hostPath:
+      path: /etc/salt/pki/master
+  - name: salt
+    hostPath:
+      path: /usr/share/salt/kubernetes
+  - name: salt-sock-dir
+    hostPath:
+      path: /var/run/salt/master/sock-dir
+  - name: salt-minion-ca-cache
+    hostPath:
+      path: /var/lib/misc/salt/cache/salt-minion-ca
+  - name: salt-minion-ca-certificates
+    hostPath:
+      path: /etc/pki
+  - name: velum-certificate
+    hostPath:
+      path: /etc/pki/velum.crt
+  - name: velum-certificate-key
+    hostPath:
+      path: /etc/pki/private/velum.key
+  - name: openldap-certificate
+    hostPath:
+      path: /etc/pki/ldap.crt
+  - name: openldap-certificate-key
+    hostPath:
+      path: /etc/pki/private/ldap.key
+  - name: salt-api-certificate
+    hostPath:
+      path: /etc/pki/salt-api.crt
+  - name: salt-api-certificate-key
+    hostPath:
+      path: /etc/pki/private/salt-api.key
+  - name: ca-certificate
+    hostPath:
+      path: /etc/pki/ca.crt
+  - name: salt-minion-ca-grains
+    hostPath:
+      path: /usr/share/caasp-container-manifests/config/salt/grains/ca
+  - name: salt-minion-ca-config
+    hostPath:
+      path: /usr/share/caasp-container-manifests/config/salt/minion.d-ca/minion.conf
+  - name: salt-minion-ca-signing-policies
+    hostPath:
+      path: /usr/share/caasp-container-manifests/config/salt/minion.d-ca/signing_policies.conf
+  - name: setup-mysql
+    hostPath:
+      path: /usr/share/caasp-container-manifests/setup/mysql/setup-mysql.sh
+  - name: salt-ca-minion-pki
+    hostPath:
+      path: /etc/salt/pki/minion-ca
+  - name: salt-admin-minion-pki
+    hostPath:
+      path: /etc/salt/pki/minion
+  - name: ssh-public-key
+    hostPath:
+      path: /var/lib/misc/ssh-public-key
+  - name: infra-secrets
+    hostPath:
+      path: /var/lib/misc/infra-secrets
