@@ -189,6 +189,26 @@ def _services():
     return ["etcd", "kubelet", "salt-minion"]
 
 
+def print_startline(statement):
+    print(
+        "\t{}...".format(statement),
+        end=''
+    )
+    sys.stdout.flush()
+
+
+def print_endline(statement):
+    print(
+        " {}.".format(statement)
+    )
+    sys.stdout.flush()
+
+
+def log_start_task(statement):
+    print_startline(statement)
+    logging.info(statement)
+
+
 def make_email():
     email = "{user}@{fqdn}".format(
         user="caasp-admin",
@@ -389,17 +409,17 @@ def prompt_for_admin_password(default):
 
 
 def install_ssl_file(source_path, dest_path):
-    print("\tChanging file ownership to root... ", end='')
+    log_start_task("Changing file ownership to root")
     os.chown(source_path, 0, 0)
-    print("Done.")
+    print_endline("Done")
 
-    print("\tLimiting file permissions... ", end='')
+    log_start_task("Limiting file permissions")
     os.chmod(source_path, 0o600)
-    print("Done.")
+    print_endline("Done")
 
-    print("\tMoving file to system path... ", end='')
+    log_start_task("Moving file to system path")
     shutil.move(source_path, dest_path)
-    print("Done.")
+    print_endline("Done")
 
 
 def install_ssl_crt(source_file_path):
@@ -438,21 +458,6 @@ def configure_etcd(ip_address):
         else:
             print(line, end='')
     etcd_config.close()
-
-
-def print_startline(statement):
-    print(
-        "\t{}...".format(statement),
-        end=''
-    )
-    sys.stdout.flush()
-
-
-def print_endline(statement):
-    print(
-        " {}.".format(statement)
-    )
-    sys.stdout.flush()
 
 
 def register_instance(config_path):
@@ -514,13 +519,13 @@ def register_instance(config_path):
 
 def enable_services():
     for service in _services():
-        print_startline("Enabling {} service".format(service))
+        log_start_task("Enabling {} service".format(service))
         subprocess.check_call(
             ["systemctl", "enable", "{}.service".format(service)]
         )
         print_endline("Done")
 
-        print_startline("Starting {} service".format(service))
+        log_start_task("Starting {} service".format(service))
         subprocess.check_call(
             ["systemctl", "start", "{}.service".format(service)]
         )
@@ -597,8 +602,7 @@ def create_admin_user(container_id, username, password):
 
 
 def create_framework_public_key(pubkey_name):
-    logging.info("Upload ssh public key to cloud framework")
-    print_startline("Uploading ssh public key")
+    log_start_task("Upload ssh public key to cloud framework")
     ssh_pubkey = open('/var/lib/misc/ssh-public-key/id_rsa.pub', 'r').read()
     platform.create_public_key(
         key_name = pubkey_name,
@@ -608,8 +612,7 @@ def create_framework_public_key(pubkey_name):
 
 
 def setup_salt_cloud(pubkey_name):
-    logging.info("Prepare salt-cloud configuration")
-    print_startline("Preparing salt-cloud configuration")
+    log_start_task("Prepare salt-cloud configuration")
     # TODO: look up latest CaaSP cluster node image from pint and write
     # image ID to salt-cloud profile
     image_id = 'IMAGE'
@@ -621,13 +624,13 @@ def setup_salt_cloud(pubkey_name):
     shutil.copy("/root/.ssh/id_rsa", "{}/id_rsa".format(_ssh_private_key_path()))
 
     # call framework specific handles to generate the salt-cloud files
-    logging.info("Making salt cloud configuration directories")
+    logging.info("Make salt cloud configuration directories")
     os.makedirs(_salt_cloud_config_path())
     os.makedirs("{}/{}".format(_salt_cloud_config_path(), "cloud.profiles.d"))
     os.makedirs("{}/{}".format(_salt_cloud_config_path(), "cloud.providers.d"))
 
     # update salt pillar file
-    logging.info("Updating salt pillar file")
+    logging.info("Update salt pillar file")
     salt_pillar = yaml.load(open(_cloud_config_path(), 'r').read())
     salt_pillar['cloud']['profiles'] = platform.get_salt_cloud_profile_config(
                                            image = image_id,
@@ -639,6 +642,7 @@ def setup_salt_cloud(pubkey_name):
                                        )
     pillar_file = open(_cloud_config_path(), 'w')
     yaml.safe_dump(salt_pillar, pillar_file, default_flow_style=False)
+    logging.info("{} written".format(_cloud_config_path()))
     print_endline("Done")
 
 if __name__ == '__main__':
