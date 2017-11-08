@@ -29,28 +29,25 @@ _PROFILES_DIR="/etc/salt/cloud.profiles.d"
 
 log=logging.getLogger(__name__)
 
-def dict_merge(a, b):
-    if not isinstance(b, dict):
-        return b
-    result = copy.deepcopy(a)
-    for k, v in b.iteritems():
-        if k in result and isinstance(result[k], dict):
-            result[k] = dict_merge(result[k], v)
-        else:
-            result[k] = copy.deepcopy(v)
-    return result
-
-def _update_yaml(cfg_file, config_new):
+def _update_yaml(cfg_file, section_name, config_new):
     if os.path.isfile(cfg_file):
-        config_old = yaml.load(open(cfg_file, 'r').read())
-        # This file should have only one key
-        if len(config_old.keys()) != 1:
+        config = yaml.load(open(cfg_file, 'r').read())
+        # We use one config section per file, and the section
+        # has the same name as the config file (minus the .conf)
+        # Sanity check
+        if len(config.keys()) != 1:
             log.error("File {} has unexpected format.".format(cfg_file))
             return False
-        config = dict_merge(config_old, config_new)
+        if config.keys()[0] != section_name:
+            log.error("File {} contains unexpected section name {}.".format(
+                      cfg_file,
+                      config.keys()[0]
+                     ))
+            return False
+        config[section_name].update(config_new)
     else:
-	log.debug("File {} does not exist, will be created.".format(cfg_file))
-	config = config_new
+        log.debug("File {} does not exist, will be created.".format(cfg_file))
+        config = { section_name: config_new }
     with open(cfg_file, 'w') as outfile:
         yaml.safe_dump(config, outfile, default_flow_style=False)
     return True
@@ -67,7 +64,8 @@ def _update_config(cfg_path, config):
             return False
         log.debug("Updating {} configuration in {}".format(section_name, cfg_path))
         success = success and _update_yaml("{}/{}.conf".format(cfg_path, section_name),
-                                           { section_name: config[section_name] })
+                                           section_name,
+                                           config[section_name])
     return success
 
 
