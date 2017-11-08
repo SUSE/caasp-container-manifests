@@ -14,12 +14,8 @@ def get_instance_id():
 def create_public_key(key_name, public_key_data):
     raise Exception('not yet implemented')
 
-def generate_salt_cloud_config(
-        config_dir,
-        key_name,
-        private_key_file,
-        image,
-        root_volume_size
-    ):
+def get_salt_cloud_profile_config(image, root_volume_size):
     raise Exception('not yet implemented')
 
+def get_salt_cloud_provider_config(key_name, private_key_file):
+    raise Exception('not yet implemented')

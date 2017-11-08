@@ -595,6 +595,7 @@ def create_admin_user(container_id, username, password):
     )
     print(client.exec_start(velum_task['Id']))
 
+
 def create_framework_public_key(pubkey_name):
     logging.info("Upload ssh public key to cloud framework")
     print_startline("Uploading ssh public key")
@@ -605,9 +606,10 @@ def create_framework_public_key(pubkey_name):
     )
     print_endline("Done")
 
+
 def setup_salt_cloud(pubkey_name):
-    logging.info("Set up salt-cloud")
-    print_startline("Setting up salt-cloud")
+    logging.info("Prepare salt-cloud configuration")
+    print_startline("Preparing salt-cloud configuration")
     # TODO: look up latest CaaSP cluster node image from pint and write
     # image ID to salt-cloud profile
     image_id = 'IMAGE'
@@ -619,15 +621,24 @@ def setup_salt_cloud(pubkey_name):
     shutil.copy("/root/.ssh/id_rsa", "{}/id_rsa".format(_ssh_private_key_path()))
 
     # call framework specific handles to generate the salt-cloud files
+    logging.info("Making salt cloud configuration directories")
     os.makedirs(_salt_cloud_config_path())
-    logging.info("Generate salt-cloud configuration data")
-    platform.generate_salt_cloud_config(
-        config_dir = _salt_cloud_config_path(),
-        key_name = pubkey_name,
-        private_key_file = "/etc/salt/ssh_key.pem",
-        image = image_id,
-        root_volume_size = '30'
-    )
+    os.makedirs("{}/{}".format(_salt_cloud_config_path(), "cloud.profiles.d"))
+    os.makedirs("{}/{}".format(_salt_cloud_config_path(), "cloud.providers.d"))
+
+    # update salt pillar file
+    logging.info("Updating salt pillar file")
+    salt_pillar = yaml.load(open(_cloud_config_path(), 'r').read())
+    salt_pillar['cloud']['profiles'] = platform.get_salt_cloud_profile_config(
+                                           image = image_id,
+                                           root_volume_size = 30
+                                       )
+    salt_pillar['cloud']['providers'] = platform.get_salt_cloud_provider_config(
+                                           key_name = pubkey_name,
+                                           private_key_file = "/etc/salt/ssh_key.pem",
+                                       )
+    pillar_file = open(_cloud_config_path(), 'w')
+    yaml.safe_dump(salt_pillar, pillar_file, default_flow_style=False)
     print_endline("Done")
 
 if __name__ == '__main__':
@@ -720,6 +731,10 @@ if __name__ == '__main__':
         arguments["--admin-email"],
         arguments["--admin-password"]
     )
+
+    # change motd
+    if os.path.isfile("/etc/motd.done"):
+        os.rename("/etc/motd.done", "/etc/motd")
 
     if (arguments["--gensslcert"]):
         # show fingerprints
