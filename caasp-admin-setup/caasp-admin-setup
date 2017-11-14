@@ -601,6 +601,29 @@ def create_admin_user(container_id, username, password):
     print(client.exec_start(velum_task['Id']))
 
 
+def create_pillar(container_id, pillar, value):
+    logging.info(
+        "Adding extended pillar '{}' with value '{}' in container: {}".format(
+            pillar,
+            value,
+            container_id
+        )
+    )
+    print_startline("Customizing dashboard for this framework")
+    velum_task = (
+        "entrypoint.sh rake velum:create_pillar['{}','{}']".format(
+            pillar,
+            value
+        )
+    )
+    client = docker.Client()
+    velum_task = client.exec_create(
+        container=container_id,
+        cmd=velum_task
+    )
+    print(client.exec_start(velum_task['Id']))
+
+
 def create_framework_public_key(pubkey_name):
     log_start_task("Upload ssh public key to cloud framework")
     ssh_pubkey = open('/var/lib/misc/ssh-public-key/id_rsa.pub', 'r').read()
@@ -734,6 +757,11 @@ if __name__ == '__main__':
         get_velum_container_id(),
         arguments["--admin-email"],
         arguments["--admin-password"]
+    )
+    create_pillar(
+        get_velum_container_id(),
+        "cloud:framework",
+        _get_framework_from_config()
     )
 
     # change motd
