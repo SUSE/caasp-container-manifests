@@ -15,3 +15,6 @@ def get_salt_cloud_profile_config(image, root_volume_size):
 
 def get_salt_cloud_provider_config(key_name, private_key_file):
     raise Exception('not yet implemented')
+
+def setup_network_security(cluster_name):
+    raise Exception('not yet implemented')

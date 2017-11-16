@@ -47,12 +47,12 @@ def create_public_key(key_name, public_key_data):
         PublicKeyMaterial = public_key_data
     )
 
-def create_security_group(security_group_name):
+def setup_network_security(cluster_name):
     global _cluster_security_group_id
     client = boto3.client(service_name='ec2', region_name=_get_instance_region())
     response = client.create_security_group(
                    Description="Autocreated by SUSE CaaSP",
-                   GroupName=security_group_name,
+                   GroupName=cluster_name,
                    VpcId=_get_instance_vpc_id()
                )
     group_id = response["GroupId"]
