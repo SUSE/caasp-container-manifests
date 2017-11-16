@@ -48,3 +48,5 @@ popd
 %defattr(-,root,root,-)
 %dir /srv/pillar
 %config /srv/pillar/cloud.sls
+/srv/pillar/top.sls
+/usr/share/caasp-cloud-config
