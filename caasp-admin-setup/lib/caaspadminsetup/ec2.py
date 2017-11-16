@@ -3,42 +3,29 @@ import ec2metadata
 import netifaces
 import urllib
 
-_meta_data_base_url = "http://169.254.169.254/2016-09-02/meta-data/"
 _cluster_security_group_id = None
 
 def _get_from_metadata(key):
-    return ec2metadata.EC2Metadata().get(key)
+    return ec2metadata.EC2Metadata(api="2016-09-02").get(key)
 
 def _get_instance_region():
     return _get_from_metadata('availability-zone')[:-1]
 
 def _get_instance_mac():
+    return _get_from_metadata("mac")
     return netifaces.ifaddresses("eth0")[netifaces.AF_LINK][0]["addr"]
 
 def _get_instance_vpc_id():
-    url = "{}/network/interfaces/macs/{}/vpc-id".format(
-                                                     _meta_data_base_url,
-                                                     _get_instance_mac()
-                                                 )
-    val = urllib.urlopen(url).read()
-    return val
+    return _get_from_metadata("vpc-id")
+
+def _get_instance_subnet_id():
+    return _get_from_metadata('subnet-id')
 
 def get_local_ipv4():
     return _get_from_metadata('local-ipv4')
 
 def get_instance_id():
     return _get_from_metadata('instance-id')
-
-def get_instance_subnet_id():
-    url = "{}/network/interfaces/macs/{}/subnet-id".format(
-                                                        _meta_data_base_url,
-                                                        _get_instance_mac()
-                                                    )
-    val = urllib.urlopen(url).read()
-    return val
-
-def get_cluster_security_group_id():
-    return _cluster_security_group_id
 
 def create_public_key(key_name, public_key_data):
     client = boto3.client(service_name='ec2', region_name=_get_instance_region())
@@ -88,7 +75,7 @@ def get_salt_cloud_profile_config(profile_name, image, root_volume_size):
                 "DeviceIndex": 0,
                 "AssociatePublicIpAddress": False,
                 "SecurityGroupId": _cluster_security_group_id,
-                "SubnetId": get_instance_subnet_id()
+                "SubnetId": _get_instance_subnet_id()
             }]
         }
     }
