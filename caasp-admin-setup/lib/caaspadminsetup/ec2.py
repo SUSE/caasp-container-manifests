@@ -13,7 +13,6 @@ def _get_instance_region():
 
 def _get_instance_mac():
     return _get_from_metadata("mac")
-    return netifaces.ifaddresses("eth0")[netifaces.AF_LINK][0]["addr"]
 
 def _get_instance_vpc_id():
     return _get_from_metadata("vpc-id")
