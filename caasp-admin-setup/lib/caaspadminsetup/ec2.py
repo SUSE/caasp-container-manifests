@@ -1,6 +1,5 @@
 import boto3
 import ec2metadata
-import netifaces
 import urllib
 
 _cluster_security_group_id = None
