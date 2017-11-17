@@ -62,7 +62,7 @@ def setup_network_security(cluster_name):
 
 def get_salt_cloud_profile_config(profile_name, image, root_volume_size):
     config = {
-        "cluster_node":  {
+        profile_name:  {
             "provider": "ec2",
             "image": image,
             "script": "/usr/share/caasp-cloud-config/cloud-configure-minion.sh",

@@ -659,7 +659,7 @@ def setup_salt_cloud(pubkey_name):
     logging.info("Update salt pillar file")
     salt_pillar = yaml.load(open(_cloud_config_path(), 'r').read())
     salt_pillar['cloud']['profiles'] = platform.get_salt_cloud_profile_config(
-                                           profile_name = "worker",
+                                           profile_name = "cluster_node",
                                            image = image_id,
                                            root_volume_size = 30
                                        )
