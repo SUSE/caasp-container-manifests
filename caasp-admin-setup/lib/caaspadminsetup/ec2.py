@@ -59,6 +59,18 @@ def setup_network_security(cluster_name):
     )
     _cluster_security_group_id = sec_group.group_id
 
+    # also attach security group to host instance so nodes can
+    # communicate to salt-master
+    groups_desc = client.describe_instance_attribute(
+                      InstanceId=get_instance_id(),
+                      Attribute="groupSet"
+                  )["Groups"]
+    groups = []
+    for grp in groups_desc:
+        groups += [ grp["GroupId"] ]
+    groups += [ _cluster_security_group_id ]
+    client.modify_instance_attribute(InstanceId=get_instance_id(), Groups=groups)
+
 def get_salt_cloud_profile_config(profile_name, image, root_volume_size):
     config = {
         profile_name:  {
