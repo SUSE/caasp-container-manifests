@@ -62,6 +62,7 @@ import logging
 import netifaces
 import os
 import re
+import salt.client
 import shutil
 import socket
 import subprocess
@@ -559,6 +560,14 @@ def velum_db_ready():
     else:
         return None
 
+def fetch_salt_pillar():
+    try:
+        caller = salt.client.Caller()
+        data = caller.function("pillar.items")
+    except:
+        return None
+    return data
+
 
 def wait_for(command, tries=120, interval=5):
     result = None
@@ -581,6 +590,13 @@ def wait_for_velum():
     velum_db_is_ready = wait_for(velum_db_ready)
     if (not velum_db_is_ready):
         raise EnvironmentError('Dashboard database failed to respond in time.')
+    print_endline("Ready")
+
+def wait_for_salt_master():
+    print_startline("Waiting for salt-master to be ready")
+    pillar_data = wait_for(fetch_salt_pillar)
+    if (not pillar_data):
+        raise EnvironmentError('Salt master failed to start in time.')
     print_endline("Ready")
 
 
@@ -762,6 +778,7 @@ if __name__ == '__main__':
         arguments["--admin-email"],
         arguments["--admin-password"]
     )
+    wait_for_salt_master()
     create_pillar(
         get_velum_container_id(),
         "cloud:framework",
