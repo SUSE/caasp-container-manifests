@@ -78,6 +78,9 @@ scc_error_exp = re.compile('^error', re.IGNORECASE)
 
 log_filename = '/var/log/caasp_cloud_setup.log'
 try:
+    # importing salt (presumably) sets up some logging
+    # clear handler or our logging won't work
+    logging.getLogger('').handlers = []
     logging.basicConfig(
         filename=log_filename,
         level=logging.INFO,
