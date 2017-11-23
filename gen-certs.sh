@@ -157,6 +157,8 @@ EOF
 
     # final verification
     openssl verify -CAfile $(dir)/ca.crt $(dir)/$1.crt
+
+    cat $(dir)/$1.crt $(privatedir)/$1.key > $(privatedir)/$1-bundle.pem
 }
 
 ip_addresses() {

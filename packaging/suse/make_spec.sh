@@ -77,9 +77,10 @@ and velum containers on a controller node.
 %build
 
 %install
-for file in public.yaml private.yaml; do
+for file in public.yaml private.yaml haproxy.yaml; do
   install -D -m 0644 \$file %{buildroot}/%{_datadir}/%{name}/\$file
 done
+install -D -m 0755 haproxy.cfg %{buildroot}/etc/haproxy/haproxy.cfg
 install -D -m 0755 activate.sh %{buildroot}/%{_datadir}/%{name}/activate.sh
 install -D -m 0755 gen-certs.sh %{buildroot}/%{_datadir}/%{name}/gen-certs.sh
 for dir in mysql salt/grains salt/minion.d-ca; do
@@ -109,6 +110,7 @@ ln -s %{_sbindir}/service %{buildroot}/%{_sbindir}/rcadmin-node-setup
 %service_del_postun admin-node-setup.service
 
 %files
+%config(noreplace) /etc/haproxy/haproxy.cfg
 %defattr(-,root,root)
 %doc LICENSE README.md
 %dir %{_datadir}/%{name}
