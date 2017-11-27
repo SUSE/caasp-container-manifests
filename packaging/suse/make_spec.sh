@@ -110,10 +110,11 @@ ln -s %{_sbindir}/service %{buildroot}/%{_sbindir}/rcadmin-node-setup
 %service_del_postun admin-node-setup.service
 
 %files
-%config(noreplace) /etc/haproxy/haproxy.cfg
 %defattr(-,root,root)
 %doc LICENSE README.md
 %dir %{_datadir}/%{name}
+%dir /etc/haproxy
+%config(noreplace) /etc/haproxy/haproxy.cfg
 %{_sbindir}/rcadmin-node-setup
 %{_unitdir}/admin-node-setup.service
 %{_datadir}/%{name}/*
