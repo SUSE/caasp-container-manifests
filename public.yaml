@@ -227,8 +227,10 @@ spec:
       value: production
     - name: VELUM_SECRETS_DIR
       value: /var/lib/misc/velum-secrets
-    - name: VELUM_PORT
-      value: "443"
+    - name: VELUM_SOCKET_NAME
+      value: dashboard.sock
+    - name: VELUM_WORKERS
+      value: "2"
     - name: VELUM_DB_HOST
       value:
     - name: VELUM_DB_USERNAME
@@ -272,17 +274,13 @@ spec:
     - name: LDAP_DOMAIN
       value: infra.caasp.local
     volumeMounts:
-    - mountPath: /etc/pki/velum.crt
-      name: velum-certificate
-      readOnly: True
-    - mountPath: /etc/pki/velum.key
-      name: velum-certificate-key
-      readOnly: True
     - mountPath: /etc/pki/ca.crt
       name: ca-certificate
       readOnly: True
     - mountPath: /var/run/mysql
       name: mariadb-unix-socket
+    - mountPath: /var/run/puma
+      name: velum-unix-socket
     - mountPath: /var/lib/misc/velum-secrets
       name: velum-secrets
     - mountPath: /var/lib/misc/ssh-public-key
@@ -292,6 +290,76 @@ spec:
       name: infra-secrets
       readOnly: True
     args: ["bin/init"]
+  - name: velum-api
+    image: sles12/velum:__TAG__
+    env:
+    - name: RAILS_ENV
+      value: production
+    - name: VELUM_SECRETS_DIR
+      value: /var/lib/misc/velum-secrets
+    - name: VELUM_SOCKET_NAME
+      value: api.sock
+    - name: VELUM_WORKERS
+      value: "6"
+    - name: VELUM_DB_HOST
+      value:
+    - name: VELUM_DB_USERNAME
+      value: "velum"
+    - name: VELUM_DB_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/mariadb-velum-password
+    - name: VELUM_DB_SOCKET
+      value: /var/run/mysql/mysql.sock
+    - name: VELUM_SALT_HOST
+      value: "127.0.0.1"
+    - name: VELUM_SALT_PORT
+      value: "8000"
+    - name: VELUM_SALT_USER
+      value: saltapi
+    - name: VELUM_SALT_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/saltapi-password
+    - name: VELUM_INTERNAL_API_USERNAME_FILE
+      value: /var/lib/misc/infra-secrets/velum-internal-api-username
+    - name: VELUM_INTERNAL_API_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/velum-internal-api-password
+    - name: LDAP_HOST
+      value: "127.0.0.1"
+    - name: LDAP_PORT
+      value: "389"
+    - name: LDAP_GROUP_BASE_DN
+      value: ou=Groups,dc=infra,dc=caasp,dc=local
+    - name: LDAP_PEOPLE_BASE_DN
+      value: ou=People,dc=infra,dc=caasp,dc=local
+    - name: LDAP_BIND_DN
+      value: cn=admin,dc=infra,dc=caasp,dc=local
+    - name: LDAP_BASE_DN
+      value: dc=infra,dc=caasp,dc=local
+    - name: LDAP_ADMIN_GROUP_DN
+      value: cn=Administrators,ou=Groups,dc=infra,dc=caasp,dc=local
+    - name: LDAP_TLS_METHOD
+      value: start_tls
+    - name: LDAP_MAIL_ATTRIBUTE
+      value: mail
+    - name: LDAP_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/openldap-password
+    - name: LDAP_DOMAIN
+      value: infra.caasp.local
+    volumeMounts:
+    - mountPath: /etc/pki/ca.crt
+      name: ca-certificate
+      readOnly: True
+    - mountPath: /var/run/mysql
+      name: mariadb-unix-socket
+    - mountPath: /var/run/puma
+      name: velum-unix-socket
+    - mountPath: /var/lib/misc/velum-secrets
+      name: velum-secrets
+    - mountPath: /var/lib/misc/ssh-public-key
+      name: ssh-public-key
+      readOnly: True
+    - mountPath: /var/lib/misc/infra-secrets
+      name: infra-secrets
+      readOnly: True
+    args: ["bundle", "exec", "puma", "-C", "config/puma.rb"]
   - name: openldap
     image: sles12/openldap:__TAG__
     env:
@@ -320,35 +388,6 @@ spec:
     # if this folder is lost, TLS and other things stop working
     - mountPath: /etc/openldap/slapd.d
       name: openldap-config
-  - name: velum-autoyast
-    image: sles12/velum:__TAG__
-    env:
-    - name: RAILS_ENV
-      value: production
-    - name: VELUM_SECRETS_DIR
-      value: /var/lib/misc/velum-secrets
-    - name: VELUM_PORT
-      value: "80"
-    - name: VELUM_DB_HOST
-      value:
-    - name: VELUM_DB_USERNAME
-      value: "velum"
-    - name: VELUM_DB_PASSWORD_FILE
-      value: /var/lib/misc/infra-secrets/mariadb-velum-password
-    - name: VELUM_DB_SOCKET
-      value: /var/run/mysql/mysql.sock
-    volumeMounts:
-    - mountPath: /var/run/mysql
-      name: mariadb-unix-socket
-    - mountPath: /var/lib/misc/velum-secrets
-      name: velum-secrets
-    - mountPath: /var/lib/misc/ssh-public-key
-      name: ssh-public-key
-      readOnly: True
-    - mountPath: /var/lib/misc/infra-secrets
-      name: infra-secrets
-      readOnly: True
-    args: ["bundle", "exec", "puma", "-C", "config/puma.rb"]
   - name: velum-event-processor
     image: sles12/velum:__TAG__
     env:
@@ -420,6 +459,9 @@ spec:
   - name: mariadb-unix-socket
     hostPath:
       path: /var/run/mysql
+  - name: velum-unix-socket
+    hostPath:
+      path: /var/run/puma
   - name: velum-secrets
     hostPath:
       path: /var/lib/misc/velum-secrets
@@ -466,12 +508,6 @@ spec:
   - name: salt-minion-ca-certificates
     hostPath:
       path: /etc/pki
-  - name: velum-certificate
-    hostPath:
-      path: /etc/pki/velum.crt
-  - name: velum-certificate-key
-    hostPath:
-      path: /etc/pki/private/velum.key
   - name: openldap-certificate
     hostPath:
       path: /etc/pki/ldap.crt

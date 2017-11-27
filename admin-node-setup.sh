@@ -32,11 +32,16 @@ if [ ! -f $manifest_dir/private.yaml ]; then
     echo "private.yaml is not in $manifest_dir" >&2
     exit -3
 fi
+if [ ! -f $manifest_dir/haproxy.yaml ]; then
+    echo "haproxy.yaml is not in $manifest_dir" >&2
+    exit -3
+fi
 
 tmp_dir=$(mktemp -d)
 
 cp $manifest_dir/public.yaml $tmp_dir
 cp $manifest_dir/private.yaml $tmp_dir
+cp $manifest_dir/haproxy.yaml $tmp_dir
 
 for i in $(ls $images_dir/sles*.tag);do
     metadata_file=$(basename $i .tag).metadata
@@ -45,10 +50,12 @@ for i in $(ls $images_dir/sles*.tag);do
     echo "$0: Setting $image_name:$tag into public and private manifests"
     sed -i -e "s%$image_name:__TAG__%$image_name:$tag%g" $tmp_dir/public.yaml
     sed -i -e "s%$image_name:__TAG__%$image_name:$tag%g" $tmp_dir/private.yaml
+    sed -i -e "s%$image_name:__TAG__%$image_name:$tag%g" $tmp_dir/haproxy.yaml
 done
 echo "$0: Replacing public and private manifests"
 cp $tmp_dir/public.yaml $kube_dir
 cp $tmp_dir/private.yaml $kube_dir
+cp $tmp_dir/haproxy.yaml $kube_dir
 
 rm -rf $tmp_dir
 
