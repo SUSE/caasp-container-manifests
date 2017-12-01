@@ -77,7 +77,7 @@ and velum containers on a controller node.
 %build
 
 %install
-for file in public.yaml private.yaml haproxy.yaml; do
+for file in manifests/*.yaml; do
   install -D -m 0644 \$file %{buildroot}/%{_datadir}/%{name}/\$file
 done
 install -D -m 0755 config/haproxy/haproxy.cfg %{buildroot}/etc/haproxy/haproxy.cfg
@@ -113,6 +113,7 @@ ln -s %{_sbindir}/service %{buildroot}/%{_sbindir}/rcadmin-node-setup
 %defattr(-,root,root)
 %doc LICENSE README.md
 %dir %{_datadir}/%{name}
+%dir %{_datadir}/%{name}/manifests
 %dir /etc/haproxy
 %config(noreplace) /etc/haproxy/haproxy.cfg
 %{_sbindir}/rcadmin-node-setup

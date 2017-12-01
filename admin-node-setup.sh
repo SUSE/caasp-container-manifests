@@ -11,7 +11,7 @@ sed -i -e "s/--config=/--pod-manifest-path=/g" /etc/kubernetes/kubelet
 
 # Update manifest files
 kube_dir=/etc/kubernetes/manifests
-manifest_dir=/usr/share/caasp-container-manifests
+manifest_dir=/usr/share/caasp-container-manifests/manifests
 images_dir=/usr/share/suse-docker-images/native
 
 if [ ! -d $kube_dir ]; then
@@ -24,38 +24,25 @@ if [ ! -d $manifest_dir ]; then
     echo "manifest files are expected to be there" >&2
     exit -2
 fi
-if [ ! -f $manifest_dir/public.yaml ]; then
-    echo "public.yaml is not in $manifest_dir" >&2
-    exit -3
-fi
-if [ ! -f $manifest_dir/private.yaml ]; then
-    echo "private.yaml is not in $manifest_dir" >&2
-    exit -3
-fi
-if [ ! -f $manifest_dir/haproxy.yaml ]; then
-    echo "haproxy.yaml is not in $manifest_dir" >&2
-    exit -3
-fi
 
 tmp_dir=$(mktemp -d)
 
-cp $manifest_dir/public.yaml $tmp_dir
-cp $manifest_dir/private.yaml $tmp_dir
-cp $manifest_dir/haproxy.yaml $tmp_dir
+cp $manifest_dir/*.yaml $tmp_dir
 
 for i in $(ls $images_dir/sles*.tag);do
     metadata_file=$(basename $i .tag).metadata
     image_name=$(cat $images_dir/$metadata_file | grep \"name\": | cut -d":" -f2 | cut -d\" -f2)
     tag=$(cat $i)
-    echo "$0: Setting $image_name:$tag into public and private manifests"
-    sed -i -e "s%$image_name:__TAG__%$image_name:$tag%g" $tmp_dir/public.yaml
-    sed -i -e "s%$image_name:__TAG__%$image_name:$tag%g" $tmp_dir/private.yaml
-    sed -i -e "s%$image_name:__TAG__%$image_name:$tag%g" $tmp_dir/haproxy.yaml
+
+    echo "$0: Setting $image_name:$tag into manifests"
+    sed -i -e "s%$image_name:__TAG__%$image_name:$tag%g" $tmp_dir/*.yaml
 done
-echo "$0: Replacing public and private manifests"
-cp $tmp_dir/public.yaml $kube_dir
-cp $tmp_dir/private.yaml $kube_dir
-cp $tmp_dir/haproxy.yaml $kube_dir
+
+# TODO: We also need to delete old manifest files, if/when
+#       we delete manifests. Something like this:
+# rsync -r --delete $tmp_dir/ $kube_dir/
+echo "$0: Replacing manifests"
+cp $tmp_dir/*.yaml $kube_dir/
 
 rm -rf $tmp_dir
 
