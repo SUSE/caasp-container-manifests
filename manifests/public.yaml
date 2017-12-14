@@ -89,6 +89,7 @@ spec:
   - name: salt-master-config
     image: sles12/velum:__TAG__
     command: ["sh", "-c", "umask 377;
+                           rmdir /salt-master-credentials/55-returner-credentials.conf;
                            if ! grep mysql /salt-master-credentials/55-returner-credentials.conf; then
                              echo \"mysql:\" > /salt-master-credentials/55-returner-credentials.conf;
                              echo -n \"  pass: \" >> /salt-master-credentials/55-returner-credentials.conf;
@@ -489,7 +490,6 @@ spec:
   - name: salt-master-config-returner-credentials-conf
     hostPath:
       path: /var/lib/misc/salt-master-credentials/55-returner-credentials.conf
-      type: FileOrCreate
   - name: salt-master-config-custom-conf
     hostPath:
       path: /etc/caasp/salt-master-custom.conf
