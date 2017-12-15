@@ -17,7 +17,7 @@
 
 
 Name:           caasp-cloud-config-ec2
-Version:        1.0.0
+Version:        1.0.1
 Release:        0
 License:        MIT
 Summary:        Configuration for CaaSP
@@ -40,13 +40,11 @@ Configuration for CaaSP set up and operation in the Public Cloud
 
 %install
 make install-caasp-config DESTDIR=%{buildroot}
-pushd %{buildroot}/srv/pillar
+pushd %{buildroot}/etc/salt/pillar
 mv ec2.csp.sls cloud.sls
 popd
 
 %files
 %defattr(-,root,root,-)
-%dir /srv/pillar
-%config /srv/pillar/cloud.sls
-/srv/pillar/top.sls
+%config /etc/salt/pillar
 /usr/share/caasp-cloud-config

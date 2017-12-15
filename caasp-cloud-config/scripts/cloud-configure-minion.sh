@@ -22,6 +22,7 @@
 
 SALT_DIR=/etc/salt
 PKI_DIR="${SALT_DIR}/pki/minion"
+SUSECONNECT_OPTS=
 
 die()
 {
@@ -90,6 +91,11 @@ systemctl disable setup-salt-minion.service
 
 systemctl enable salt-minion.service || die "Error enabling salt-minion"
 systemctl start salt-minion.service || die "Error starting salt-minion"
+
+# Attempt SCC registration
+if [ -n "$SUSECONNECT_OPTS" ]; then
+  eval SUSEConnect "$SUSECONNECT_OPTS" || die "Could not register with SCC"
+fi
 
 test -z "$KEEP_DEPLOY_DIR" && rm -rf "$DEPLOY_DIR"
 

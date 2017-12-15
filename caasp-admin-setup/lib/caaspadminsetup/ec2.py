@@ -76,7 +76,7 @@ def get_salt_cloud_profile_config(profile_name, image, root_volume_size):
         profile_name:  {
             "provider": "ec2",
             "image": image,
-            "script": "/usr/share/caasp-cloud-config/cloud-configure-minion.sh",
+            "script": "/etc/salt/cloud-configure-minion.sh",
             "block_device_mappings": [{
                 "DeviceName": "/dev/sda1",
                 "Ebs.VolumeSize": root_volume_size

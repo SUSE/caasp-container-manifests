@@ -76,6 +76,9 @@ from OpenSSL import crypto
 
 scc_error_exp = re.compile('^error', re.IGNORECASE)
 
+salt_deploy_script_tmpl = '/usr/share/caasp-cloud-config//cloud-configure-minion.sh'
+salt_deploy_script_dest = '/etc/salt/cloud-configure-minion.sh'
+
 log_filename = '/var/log/caasp_cloud_setup.log'
 try:
     # importing salt (presumably) sets up some logging
@@ -149,7 +152,7 @@ class AbstractMetadata:
 
 # commit 6058e7e4
 def _cloud_config_path():
-    return "/srv/pillar/cloud.sls"
+    return "/etc/salt/pillar/cloud.sls"
 
 
 def _get_framework_from_config():
@@ -411,6 +414,18 @@ def prompt_for_admin_password(default):
     statement = "Password for login to Admin Dashboard (len: 8 - 128 chars)?"
     return validate_password(prompt(statement, default))
 
+def install_salt_deploy_script(email, registration_code, server=""):
+    suseconnect_opts = "-e "+email+" -r "+registration_code
+    if server:
+      suseconnect_opts += " -s "+server
+    with open(salt_deploy_script_dest, mode='w', ) as dst_file:
+      os.chmod(salt_deploy_script_dest, 0o600)
+      with open(salt_deploy_script_tmpl, mode='r') as src_file:
+        for line in src_file:
+	  if 'SUSECONNECT_OPTS=' in line :
+            dst_file.write('SUSECONNECT_OPTS="{}"\n'.format(suseconnect_opts))
+          else:
+            dst_file.write(line)
 
 def install_ssl_file(source_path, dest_path):
     log_start_task("Changing file ownership to root")
@@ -518,6 +533,7 @@ def register_instance(config_path):
                 logging.info(msg)
                 print(msg)
                 return
+        install_salt_deploy_script(email, registration_code)
         logging.info('Registration success')
 
 
@@ -761,6 +777,13 @@ if __name__ == '__main__':
         # install user-supplied certificate
         install_ssl_crt(arguments["--ssl-crt"])
         install_ssl_key(arguments["--ssl-key"])
+
+    # copy deploy script if necessary (i.e. registration was skipped)
+    if not os.path.isfile(salt_deploy_script_dest):
+      shutil.copyfile(salt_deploy_script_tmpl, salt_deploy_script_dest)
+      # make it only root readable in case admin decides to fill in
+      # registration code later
+      os.chmod(salt_deploy_script_dest, 0o600)
 
     # activate CaaSP
     subprocess.check_call(_activate_script_path())
