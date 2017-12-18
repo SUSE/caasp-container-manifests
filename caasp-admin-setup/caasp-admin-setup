@@ -415,17 +415,15 @@ def prompt_for_admin_password(default):
     return validate_password(prompt(statement, default))
 
 def install_salt_deploy_script(email, registration_code, server=""):
-    suseconnect_opts = "-e "+email+" -r "+registration_code
+    suseconnect_opts = "-e " + email + " -r " + registration_code
     if server:
       suseconnect_opts += " -s "+server
+    content = open(salt_deploy_script_tmpl, 'r').read()
     with open(salt_deploy_script_dest, mode='w', ) as dst_file:
       os.chmod(salt_deploy_script_dest, 0o600)
-      with open(salt_deploy_script_tmpl, mode='r') as src_file:
-        for line in src_file:
-	  if 'SUSECONNECT_OPTS=' in line :
-            dst_file.write('SUSECONNECT_OPTS="{}"\n'.format(suseconnect_opts))
-          else:
-            dst_file.write(line)
+      dst_file.write(content.replace(
+        'SUSECONNECT_OPTS=', 'SUSECONNECT_OPTS="{}"'.format(suseconnect_opts)
+      ))
 
 def install_ssl_file(source_path, dest_path):
     log_start_task("Changing file ownership to root")
