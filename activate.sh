@@ -28,3 +28,7 @@ roles:
 EOF
 echo "master: localhost" > /etc/salt/minion.d/minion.conf
 echo "id: admin" > /etc/salt/minion.d/minion_id.conf
+
+# Disable swap
+# On ISO-based installs the script runs in a chroot and then the system is rebooted
+sed -i '/^#/! {/ swap / s/^/#/}' /etc/fstab
