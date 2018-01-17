@@ -6,6 +6,9 @@ if [ -f /etc/salt/grains ]; then
     sed -i -e 's|tx_update_reboot_needed:.*|tx_update_reboot_needed: false|g' /etc/salt/grains
 fi
 
+# Turn off current swaps if any
+/usr/sbin/swapoff -a
+
 # switch deprecated --config flag in kubelet
 sed -i -e "s/--config=/--pod-manifest-path=/g" /etc/kubernetes/kubelet
 
