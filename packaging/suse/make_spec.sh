@@ -102,6 +102,8 @@ for file in manifests/*.yaml; do
 done
 install -D -m 0755 config/haproxy/haproxy.cfg %{buildroot}/etc/haproxy/haproxy.cfg
 install -D -m 0755 activate.sh %{buildroot}/%{_datadir}/%{name}/activate.sh
+# fix image name in activate
+sed -e "s|sles12/pause|%{_base_image}/pause|g" -i %{buildroot}/%{_datadir}/%{name}/activate.sh
 install -D -m 0755 gen-certs.sh %{buildroot}/%{_datadir}/%{name}/gen-certs.sh
 for dir in mysql salt/grains salt/minion.d-ca; do
   install -d %{buildroot}/%{_datadir}/%{name}/config/\$dir
