@@ -46,7 +46,7 @@ cat <<EOF > ${NAME}.spec
 %endif
 
 %if 0%{?is_opensuse} && 0%{?suse_version} > 1500
-  %define _base_image tumbleweed
+  %define _base_image kubic
 %endif
 
 Name:           $NAME
