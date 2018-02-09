@@ -100,7 +100,7 @@ for file in manifests/*.yaml; do
   # fix image name
   sed -e "s|image:[ ]*sles12/\(.*\):|image: %{_base_image}/\1:|g" -i %{buildroot}/%{_datadir}/%{name}/\$file
 done
-install -D -m 0755 config/haproxy/haproxy.cfg %{buildroot}/etc/haproxy/haproxy.cfg
+install -D -m 0755 config/haproxy/haproxy.cfg %{buildroot}/etc/caasp/haproxy/haproxy.cfg
 install -D -m 0755 activate.sh %{buildroot}/%{_datadir}/%{name}/activate.sh
 # fix image name in activate
 sed -e "s|sles12/pause|%{_base_image}/pause|g" -i %{buildroot}/%{_datadir}/%{name}/activate.sh
@@ -136,8 +136,8 @@ ln -s %{_sbindir}/service %{buildroot}/%{_sbindir}/rcadmin-node-setup
 %doc LICENSE README.md
 %dir %{_datadir}/%{name}
 %dir %{_datadir}/%{name}/manifests
-%dir /etc/haproxy
-%config(noreplace) /etc/haproxy/haproxy.cfg
+%dir /etc/caasp/haproxy
+%config(noreplace) /etc/caasp/haproxy/haproxy.cfg
 %{_sbindir}/rcadmin-node-setup
 %{_unitdir}/admin-node-setup.service
 %{_datadir}/%{name}/*

@@ -41,7 +41,7 @@ spec:
   volumes:
     - name: haproxy-cfg
       hostPath:
-        path: /etc/haproxy
+        path: /etc/caasp/haproxy
     - name: etc-hosts
       hostPath:
         path: /etc/hosts
