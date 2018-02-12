@@ -136,6 +136,7 @@ ln -s %{_sbindir}/service %{buildroot}/%{_sbindir}/rcadmin-node-setup
 %doc LICENSE README.md
 %dir %{_datadir}/%{name}
 %dir %{_datadir}/%{name}/manifests
+$dir /etc/caasp
 %dir /etc/caasp/haproxy
 %config(noreplace) /etc/caasp/haproxy/haproxy.cfg
 %{_sbindir}/rcadmin-node-setup
