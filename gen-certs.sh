@@ -148,6 +148,7 @@ EOF
     openssl verify -CAfile $DIR/ca.crt $DIR/$1.crt
 
     cat $DIR/$1.crt $PRIVATEDIR/$1.key > $PRIVATEDIR/$1-bundle.pem
+    chmod 600 $PRIVATEDIR/$1-bundle.pem
 }
 
 ip_addresses() {
