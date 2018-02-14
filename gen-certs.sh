@@ -161,4 +161,4 @@ set -e
 genca
 gencert "velum" "Velum" "$all_hostnames" "$(ip_addresses)"
 gencert "salt-api" "salt-api.infra.caasp.local" "" "127.0.0.1"
-gencert "ldap" "OpenLDAP" "$all_hostnames" "$(ip_addresses)"
+gencert "ldap" "OpenLDAP" "ldap.infra.caasp.local" "$(ip_addresses)"

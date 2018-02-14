@@ -61,6 +61,12 @@ fi
 # Generate TLS CA and Initial Certificates
 /usr/share/caasp-container-manifests/gen-certs.sh
 
+# add an entry for ldap.infra.caasp.local to /etc/hosts
+# this is needed to enable net-ldap to validate the certificate for LDAP_HOST
+if ! [ "$(cat /etc/hosts | grep -E "^127.0.0.1\s+" | grep ldap.infra.caasp.local)" ]; then
+    sed -i 's/127.0.0.1\tlocalhost/127.0.0.1\tlocalhost ldap.infra.caasp.local/g' /etc/hosts
+fi
+
 VELUM_CRT_FINGERPRINT_SHA1=$(openssl x509 -noout -in /etc/pki/velum.crt -fingerprint -sha1 | cut -d= -f2)
 VELUM_CRT_FINGERPRINT_SHA256=$(openssl x509 -noout -in /etc/pki/velum.crt -fingerprint -sha256 | cut -d= -f2)
 
