@@ -233,8 +233,6 @@ spec:
       value: /var/lib/misc/velum-secrets
     - name: VELUM_SOCKET_NAME
       value: dashboard.sock
-    - name: VELUM_WORKERS
-      value: "2"
     - name: VELUM_DB_HOST
       value:
     - name: VELUM_DB_USERNAME
@@ -303,8 +301,6 @@ spec:
       value: /var/lib/misc/velum-secrets
     - name: VELUM_SOCKET_NAME
       value: api.sock
-    - name: VELUM_WORKERS
-      value: "6"
     - name: VELUM_DB_HOST
       value:
     - name: VELUM_DB_USERNAME
