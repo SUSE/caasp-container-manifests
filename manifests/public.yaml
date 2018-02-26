@@ -422,7 +422,7 @@ spec:
     - name: VELUM_INTERNAL_API_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/velum-internal-api-password
     - name: LDAP_HOST
-      value: "127.0.0.1"
+      value: "ldap.infra.caasp.local"
     - name: LDAP_PORT
       value: "389"
     - name: LDAP_GROUP_BASE_DN
