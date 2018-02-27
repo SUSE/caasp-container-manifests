@@ -28,6 +28,7 @@ spec:
       volumeMounts:
         - name: haproxy-cfg
           mountPath: /etc/haproxy
+          readOnly: True
         - name: etc-hosts
           mountPath: /etc/hosts
         - name: velum-bundle-certificate
