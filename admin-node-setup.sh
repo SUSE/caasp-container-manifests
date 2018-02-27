@@ -49,13 +49,62 @@ cp $tmp_dir/*.yaml $kube_dir/
 
 rm -rf $tmp_dir
 
-# First time setup of user-configuration for salt-master
+# Create CaaSP config dir
 if [ ! -d "/etc/caasp" ]; then
     mkdir /etc/caasp
 fi
 
+# First time setup of user-configuration for salt-master
 if [ ! -f "/etc/caasp/salt-master-custom.conf" ]; then
     echo "# Custom Configurations for Salt-Master" > /etc/caasp/salt-master-custom.conf
+fi
+
+# Migrate haproxy config path post path change
+if [[ ! -f "/etc/caasp/haproxy/haproxy.cfg" && -f "/etc/haproxy/haproxy.cfg" ]]; then
+    if [ ! -d "/etc/caasp/haproxy" ]; then
+        mkdir /etc/caasp/haproxy
+    fi
+
+    mv /etc/haproxy/haproxy.cfg /etc/caasp/haproxy/haproxy.cfg
+
+    # Add the Velum and Velum-API services to HAproxy
+    cat << EOF >> /etc/caasp/haproxy/haproxy.cfg
+
+listen velum
+        bind 0.0.0.0:80
+        bind 0.0.0.0:443 ssl crt /etc/pki/velum.pem ca-file /etc/pki/ca.crt
+        mode http
+        acl path_autoyast path_reg ^/autoyast$
+        option forwardfor
+        http-request set-header X-Forwarded-Proto https
+        redirect scheme https code 302 if !{ ssl_fc } !path_autoyast
+        default-server inter 10s fall 3
+        balance roundrobin
+        server velum unix@/var/run/puma/dashboard.sock
+
+listen velum-api
+        bind 127.0.0.1:443 ssl crt /etc/pki/velum.pem ca-file /etc/pki/ca.crt
+        mode http
+        option forwardfor
+        http-request set-header X-Forwarded-Proto https
+        default-server inter 10s fall 3
+        balance roundrobin
+        server velum unix@/var/run/puma/api.sock
+EOF
+fi
+
+# Generate missing TLS bundle files
+if [ ! -f "/etc/pki/private/velum-bundle.pem" ]; then
+    cat /etc/pki/velum.crt /etc/pki/private/velum.key > /etc/pki/private/velum-bundle.pem
+    chmod 600 /etc/pki/private/velum-bundle.pem
+fi
+if [ ! -f "/etc/pki/private/salt-api-bundle.pem" ]; then
+    cat /etc/pki/salt-api.crt /etc/pki/private/salt-api.key > /etc/pki/private/salt-api-bundle.pem
+    chmod 600 /etc/pki/private/salt-api-bundle.pem
+fi
+if [ ! -f "/etc/pki/private/ldap-bundle.pem" ]; then
+    cat /etc/pki/ldap.crt /etc/pki/private/ldap.key > /etc/pki/private/ldap-bundle.pem
+    chmod 600 /etc/pki/private/ldap-bundle.pem
 fi
 
 # Generate TLS CA and Initial Certificates
