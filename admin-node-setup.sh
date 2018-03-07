@@ -32,7 +32,7 @@ tmp_dir=$(mktemp -d)
 
 cp $manifest_dir/*.yaml $tmp_dir
 
-for i in $(ls $images_dir/sles*.tag);do
+for i in $(ls $images_dir/sles*.tag $images_dir/kubic*.tag);do
     metadata_file=$(basename $i .tag).metadata
     image_name=$(cat $images_dir/$metadata_file | grep \"name\": | cut -d":" -f2 | cut -d\" -f2)
     tag=$(cat $i)
