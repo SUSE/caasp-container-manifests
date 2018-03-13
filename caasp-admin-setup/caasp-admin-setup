@@ -642,7 +642,6 @@ def create_pillar(container_id, pillar, value):
             container_id
         )
     )
-    print_startline("Customizing dashboard for this framework")
     velum_task = (
         "entrypoint.sh rake velum:create_pillar['{}','{}']".format(
             pillar,
@@ -674,12 +673,27 @@ def init_framework(cluster_name):
     platform.setup_network_security(cluster_name)
     print_endline("Done")
 
+def create_database_pillars():
+    log_start_task("Create cloud pillars in data base")
+    # create the framework pillar
+    create_pillar(
+        get_velum_container_id(),
+        "cloud:framework",
+        _get_framework_from_config()
+    )
+    # create framwork specific pillars
+    pillars = platform.get_database_pillars()
+    for pillar in pillars:
+        create_pillar(
+            get_velum_container_id(),
+            pillar['name'],
+            pillar['value']
+        )
+    print_endline("Done")
+
 
 def setup_salt_cloud(pubkey_name):
     log_start_task("Prepare salt-cloud configuration")
-    # TODO: look up latest CaaSP cluster node image from pint and write
-    # image ID to salt-cloud profile
-    image_id = 'IMAGE'
 
     # copy ssh private key to /var/lib/misc so it can be mapped into
     # Velum and salt-master containers
@@ -690,18 +704,20 @@ def setup_salt_cloud(pubkey_name):
 
     # update salt pillar file
     logging.info("Update salt pillar file")
+    pub_key_data = open('/var/lib/misc/ssh-public-key/id_rsa.pub', 'r').read().rstrip()
     salt_pillar = yaml.load(open(_cloud_config_path(), 'r').read())
     salt_pillar['cloud']['profiles'] = platform.get_salt_cloud_profile_config(
                                            profile_name = "cluster_node",
-                                           image = image_id,
-                                           root_volume_size = 30
+                                           root_volume_size = 30,
+                                           ssh_user = "caasp",
+                                           ssh_pub_key = pub_key_data
                                        )
     salt_pillar['cloud']['providers'] = platform.get_salt_cloud_provider_config(
                                            key_name = pubkey_name,
                                            private_key_file = ssh_private_key_file
                                        )
     pillar_file = open(_cloud_config_path(), 'w')
-    yaml.safe_dump(salt_pillar, pillar_file, default_flow_style=False)
+    yaml.safe_dump(salt_pillar, pillar_file, default_flow_style=False, width=4196)
     logging.info("{} written".format(_cloud_config_path()))
     print_endline("Done")
 
@@ -803,11 +819,7 @@ if __name__ == '__main__':
         arguments["--admin-password"]
     )
     wait_for_salt_master()
-    create_pillar(
-        get_velum_container_id(),
-        "cloud:framework",
-        _get_framework_from_config()
-    )
+    create_database_pillars()
 
     # change motd
     if os.path.isfile("/etc/motd.done"):

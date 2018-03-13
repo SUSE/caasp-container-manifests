@@ -19,6 +19,10 @@ def _get_instance_vpc_id():
 def _get_instance_subnet_id():
     return _get_from_metadata('subnet-id')
 
+def _get_cluser_node_image_id():
+    # FIXME: looks this up from pint
+    return "IMAGE"
+
 def get_local_ipv4():
     return _get_from_metadata('local-ipv4')
 
@@ -71,21 +75,17 @@ def setup_network_security(cluster_name):
     groups += [ _cluster_security_group_id ]
     client.modify_instance_attribute(InstanceId=get_instance_id(), Groups=groups)
 
-def get_salt_cloud_profile_config(profile_name, image, root_volume_size):
+def get_salt_cloud_profile_config(profile_name, root_volume_size, ssh_user, ssh_pub_key):
     config = {
         profile_name:  {
             "provider": "ec2",
-            "image": image,
+            "image": _get_cluser_node_image_id(),
+            "ssh_user": "ec2-user",
             "script": "/etc/salt/cloud-configure-minion.sh",
+            "script_args": "-u {}".format(ssh_user),
             "block_device_mappings": [{
                 "DeviceName": "/dev/sda1",
                 "Ebs.VolumeSize": root_volume_size
-            }],
-            "network_interfaces": [{
-                "DeviceIndex": 0,
-                "AssociatePublicIpAddress": False,
-                "SecurityGroupId": _cluster_security_group_id,
-                "SubnetId": _get_instance_subnet_id()
             }]
         }
     }
@@ -97,7 +97,6 @@ def get_salt_cloud_provider_config(key_name, private_key_file):
             "driver": "ec2",
             "keyname": key_name,
             "ssh_interface": "private_ips",
-            "ssh_user": "ec2-user",
             "private_key": private_key_file,
             "id": "use-instance-role-credentials",
             "key": "use-instance-role-credentials",
@@ -108,3 +107,20 @@ def get_salt_cloud_provider_config(key_name, private_key_file):
         }
     }
     return config
+
+
+def get_database_pillars():
+    return [
+        {
+            "name": "cloud:profiles:cluster_node:image",
+            "value": _get_cluser_node_image_id()
+        },
+        {
+            "name": "cloud:profiles:cluster_node:network_interfaces:SubnetId",
+            "value": _get_instance_subnet_id()
+        },
+        {
+            "name": "cloud:profiles:cluster_node:network_interfaces:SecurityGroupId",
+            "value": _cluster_security_group_id
+        }
+    ]
