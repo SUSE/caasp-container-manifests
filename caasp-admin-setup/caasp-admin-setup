@@ -674,7 +674,7 @@ def init_framework(cluster_name):
     print_endline("Done")
 
 def create_database_pillars():
-    log_start_task("Create cloud pillars in data base")
+    log_start_task("Create cloud pillars in database")
     # create the framework pillar
     create_pillar(
         get_velum_container_id(),
