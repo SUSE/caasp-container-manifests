@@ -78,12 +78,6 @@ Requires:       %{_base_image}-caasp-dex-image >= 2.0.0
 Requires:       kubernetes-salt
 BuildArch:      noarch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-%if ! 0%{?is_susecaasp}
-# caasp-tools package provides %{_datadir}/caasp-container-manifests/activate.sh
-# if this is not building for SUSE CaaSP, so both packages can't be installed
-# at the same time.
-Conflicts:      caasp-tools
-%endif
 
 %description
 Manifest file templates will instruct kubelet service to bring up salt
