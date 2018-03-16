@@ -121,7 +121,7 @@ VELUM_CRT_FINGERPRINT_SHA256=$(openssl x509 -noout -in /etc/pki/velum.crt -finge
 
 # Generate issue file with Velum details
 # https://bugzilla.suse.com/show_bug.cgi?id=1031682
-cat <<EOF > /etc/issue.d/90-velum.conf
+cat <<EOF > /etc/issue.d/80-velum.conf
 
 You can manage your cluster by opening the web application running on
 port 443 of this node from your browser: https://<this-node>
