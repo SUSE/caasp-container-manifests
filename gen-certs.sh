@@ -152,7 +152,7 @@ EOF
 }
 
 ip_addresses() {
-    ifconfig | grep -Po 'inet addr:\K[\d.]+' | grep -v '127.0.0.1' | tr '\n' ' '
+    ip address show | grep -Po 'inet \K[\d.]+' | grep -v '127.0.0.1' | tr '\n' ' '
 }
 
 all_hostnames=$(echo "$(hostname) $(hostname --fqdn) $(hostnamectl --transient) $(hostnamectl --static) \
