@@ -116,11 +116,11 @@ def get_database_pillars():
             "value": _get_cluser_node_image_id()
         },
         {
-            "name": "cloud:profiles:cluster_node:network_interfaces:SubnetId",
+            "name": "cloud:profiles:cluster_node:network_interfaces:0:SubnetId",
             "value": _get_instance_subnet_id()
         },
         {
-            "name": "cloud:profiles:cluster_node:network_interfaces:SecurityGroupId",
+            "name": "cloud:profiles:cluster_node:network_interfaces:0:SecurityGroupId",
             "value": _cluster_security_group_id
         }
     ]
