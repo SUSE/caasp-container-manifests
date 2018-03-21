@@ -35,15 +35,25 @@ die()
 
 while [ -n "$1" ]; do
   case "$1" in
-    "-n"|"--help")
-      echo "Usage: $0 [-c salt-cloud-deploy-dir] [-k]"
+    "-h"|"--help")
+      echo "Usage: $0 [-c salt-cloud-deploy-dir] [-k] [-u username] [-s ssh_key_data]"
       echo
       echo "-k  keep deploy directory"
       exit 0
     ;;
     "-c")
-      test -z "$2" && die "-n requires an argument"
+      test -z "$2" && die "-c requires an argument"
       DEPLOY_DIR="$2"
+      shift
+    ;;
+    "-u")
+      test -z "$2" && die "-u requires an argument"
+      SSH_USER="$2"
+      shift
+    ;;
+    "-s")
+      test -z "$2" && die "-s requires an argument"
+      SSH_KEY="$2"
       shift
     ;;
     "-k")
@@ -57,7 +67,12 @@ if [ -z "$DEPLOY_DIR" ]; then
   DEPLOY_DIR="$(dirname $0)"
 fi
 
-echo "Temp depoly conf dir: ${DEPLOY_DIR}"
+exec 1> >(tee "${DEPLOY_DIR}/log")
+exec 2>&1
+
+echo "Minion boostrap running."
+
+echo "Temp deploy conf dir: ${DEPLOY_DIR}"
 ls -l ${DEPLOY_DIR}
 
 if [ -f "${DEPLOY_DIR}/minion" ]; then
@@ -91,6 +106,41 @@ systemctl disable setup-salt-minion.service
 
 systemctl enable salt-minion.service || die "Error enabling salt-minion"
 systemctl start salt-minion.service || die "Error starting salt-minion"
+
+# for user convenience, assess to the nodes should be possible using
+# the same credentials regardless of which cloud framework is being used
+current_user=`logname`
+if [ -n "$SSH_USER" -a "$SSH_USER" != "$current_user" ]; then
+  # we may need to set up SSH_USER as a new sudo enabled user
+  if ! id -u "$SSH_USER" 2>/dev/null ; then
+    useradd -m "$SSH_USER" && echo "User $SSH_USER created"
+    echo "$SSH_USER ALL=(ALL) NOPASSWD: ALL" >/etc/sudoers.d/caasp-admin
+    if [ -z "$SSH_KEY" ]; then
+      # new user created but no key provided, use current user's authorized
+      # keys
+      eval home_dir="~${SSH_USER}"
+      mkdir -p "${home_dir}/.ssh"
+      eval src_auth_keys_file="~${current_user}/.ssh/authorized_keys"
+      cp $src_auth_keys_file "${home_dir}/.ssh/authorized_keys" && \
+        echo "Added authorized keys of ${current_user} for ${SSH_USER}"
+      chown "$SSH_USER":users "${home_dir}/.ssh/authorized_keys"
+      chmod 600 "${home_dir}/.ssh/authorized_keys"
+    fi
+  fi
+fi
+# add provided ssh key, if any
+if [ -n "$SSH_KEY" ]; then
+  target_user="$SSH_USER"
+  test -z "$target_user" && target_user="$current_user"
+  eval home_dir="~$target_user"
+  mkdir -p "${home_dir}/.ssh"
+  auth_keys_file="${home_dir}/.ssh/authorized_keys"
+  grep -q "$SSH_KEY" "$auth_keys_file" 2>/dev/null || \
+    echo "$SSH_KEY" >> "$auth_keys_file"
+  echo "Added provided public key to ${auth_keys_file}"
+  chown "$target_user":users ${auth_keys_file}
+  chmod 600 ${auth_keys_file}
+fi
 
 # Attempt SCC registration
 if [ -n "$SUSECONNECT_OPTS" ]; then
