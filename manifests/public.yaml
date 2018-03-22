@@ -293,6 +293,8 @@ spec:
     - mountPath: /var/lib/misc/infra-secrets
       name: infra-secrets
       readOnly: True
+    - mountPath: /etc/caasp/cpi
+      name: caasp-cpi-configs
     args: ["bin/init"]
   - name: velum-api
     image: sles12/velum:__TAG__
@@ -553,3 +555,6 @@ spec:
   - name: public-cloud-config
     hostPath:
       path: /etc/salt/pillar
+  - name: caasp-cpi-configs
+    hostPath:
+      path: /etc/caasp/cpi
