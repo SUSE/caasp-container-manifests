@@ -31,6 +31,7 @@ Requires:       python-docopt
 Requires:       python-future
 Requires:       python-netifaces
 Requires:       python-pyOpenSSL
+Requires:       python-susepubliccloudinfo
 BuildRequires:  python
 BuildRequires:  python-setuptools
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root

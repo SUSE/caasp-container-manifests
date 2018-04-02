@@ -1,55 +1,76 @@
 import boto3
+import caaspadminsetup.utils as utils
 import ec2metadata
-import urllib
+import logging
 
 _cluster_security_group_id = None
+
 
 def _get_from_metadata(key):
     return ec2metadata.EC2Metadata(api="2016-09-02").get(key)
 
+
 def _get_instance_region():
     return _get_from_metadata('availability-zone')[:-1]
+
 
 def _get_instance_mac():
     return _get_from_metadata("mac")
 
+
 def _get_instance_vpc_id():
     return _get_from_metadata("vpc-id")
+
 
 def _get_instance_subnet_id():
     return _get_from_metadata('subnet-id')
 
+
 def _get_cluser_node_image_id():
-    # FIXME: looks this up from pint
-    return "IMAGE"
+    region = _get_instance_region()
+    image_data = utils.get_cluster_image_identifier('amazon', region)
+    image_to_use = image_data.get('id')
+    logging.info('Using cluster node image with name: "%s"' % image_to_use)
+    return image_to_use
+
 
 def get_local_ipv4():
     return _get_from_metadata('local-ipv4')
 
+
 def get_instance_id():
     return _get_from_metadata('instance-id')
 
+
 def create_public_key(key_name, public_key_data):
-    client = boto3.client(service_name='ec2', region_name=_get_instance_region())
+    client = boto3.client(
+        service_name='ec2',
+        region_name=_get_instance_region())
     client.import_key_pair(
-        KeyName = key_name,
-        PublicKeyMaterial = public_key_data
+        KeyName=key_name,
+        PublicKeyMaterial=public_key_data
     )
+
 
 def setup_network_security(cluster_name):
     global _cluster_security_group_id
-    client = boto3.client(service_name='ec2', region_name=_get_instance_region())
+    client = boto3.client(
+        service_name='ec2',
+        region_name=_get_instance_region()
+    )
     response = client.create_security_group(
                    Description="Autocreated by SUSE CaaSP",
                    GroupName=cluster_name,
                    VpcId=_get_instance_vpc_id()
                )
     group_id = response["GroupId"]
-    res = boto3.resource(service_name='ec2', region_name=_get_instance_region())
+    res = boto3.resource(
+        service_name='ec2',
+        region_name=_get_instance_region()
+    )
     sec_group = res.SecurityGroup(group_id)
     sec_group.authorize_ingress(
-        IpPermissions=
-        [{
+        IpPermissions=[{
             "IpProtocol": "-1",
             "UserIdGroupPairs":
             [{
@@ -71,11 +92,16 @@ def setup_network_security(cluster_name):
                   )["Groups"]
     groups = []
     for grp in groups_desc:
-        groups += [ grp["GroupId"] ]
-    groups += [ _cluster_security_group_id ]
-    client.modify_instance_attribute(InstanceId=get_instance_id(), Groups=groups)
+        groups += [grp["GroupId"]]
+    groups += [_cluster_security_group_id]
+    client.modify_instance_attribute(
+        InstanceId=get_instance_id(),
+        Groups=groups
+    )
 
-def get_salt_cloud_profile_config(profile_name, root_volume_size, ssh_user, ssh_pub_key):
+
+def get_salt_cloud_profile_config(
+        profile_name, root_volume_size, ssh_user, ssh_pub_key):
     config = {
         profile_name:  {
             "provider": "ec2",
@@ -90,6 +116,7 @@ def get_salt_cloud_profile_config(profile_name, root_volume_size, ssh_user, ssh_
         }
     }
     return config
+
 
 def get_salt_cloud_provider_config(key_name, private_key_file):
     config = {
@@ -110,17 +137,18 @@ def get_salt_cloud_provider_config(key_name, private_key_file):
 
 
 def get_database_pillars():
+    prefix = "cloud:profiles:cluster_node:"
     return [
         {
-            "name": "cloud:profiles:cluster_node:image",
+            "name": prefix + "image",
             "value": _get_cluser_node_image_id()
         },
         {
-            "name": "cloud:profiles:cluster_node:network_interfaces:0:SubnetId",
+            "name": prefix + "network_interfaces:0:SubnetId",
             "value": _get_instance_subnet_id()
         },
         {
-            "name": "cloud:profiles:cluster_node:network_interfaces:0:SecurityGroupId",
+            "name": prefix + "network_interfaces:0:SecurityGroupId",
             "value": _cluster_security_group_id
         }
     ]
