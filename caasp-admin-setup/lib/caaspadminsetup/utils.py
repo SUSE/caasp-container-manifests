@@ -1,4 +1,3 @@
-import caaspadminsetup.utils as utils
 import json
 import logging
 import re
@@ -6,6 +5,19 @@ import susepubliccloudinfoclient.infoserverrequests as ifsrequest
 import yaml
 
 RELEASE_DATE = re.compile('^.*-v(\d{8})-.*')
+
+
+def get_caasp_release_version():
+    """Return the version from os-release"""
+    os_release = open('/etc/os-release', 'r').readlines()
+    for entry in os_release:
+        if entry.startswith('VERSION_ID'):
+            version_id = entry.split('=')[-1].strip()
+            # We assume that os-release will always have '"' as
+            # version delimiters
+            version = version_id.split('"')[1]
+            logging.info('Release version: "%s"' % version)
+            return version
 
 
 def get_cloud_config_path():
@@ -28,21 +40,36 @@ def get_from_config(config_option):
 
 def get_cluster_image_identifier(framework, region):
     """Return the identifier for the latest cluster node image"""
+    cluster_image = get_from_config('cluster_image')
+    if cluster_image:
+        # The data returned in this code path has built in knowledge
+        # about the information consumed by the client from the
+        # full pint data
+        image_data = {}
+        image_data['id'] = cluster_image
+        image_data['name'] = cluster_image
+        msg = 'Using cluster image from configuration. '
+        msg += 'Image data for cluster node image: "%s"'
+        logging.info(msg % image_data)
+        return image_data
     name_filter = 'name~caasp,name~cluster'
-    flavor = utils.get_from_config('procurement_flavor')
+    flavor = get_from_config('procurement_flavor')
     if flavor == 'byos':
         name_filter += ',name~byos'
     else:
         name_filter += ',name!byos'
+    version = get_caasp_release_version()
+    name_filter += ',name~' + version.replace('.', '-')
+    # The cluster image we choose depends on the admin node version,
+    # thus we cannot just query for active images. We need to get all
+    # images an dthen process accordingly.
     image_info = ifsrequest.get_image_data(
         framework,
-        'active',
+        None,
         'json',
         region,
         name_filter
     )
-    # We expect only one image but need to handle data inconsistencies
-    # Sort by date and use the latest
     try:
         image_data = json.loads(image_info)
         available_images = image_data.get('images', [])

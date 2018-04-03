@@ -23,6 +23,9 @@ def _get_cluster_node_image_id():
     image_data = utils.get_cluster_image_identifier('microsoft', region)
     image_to_use = image_data.get('name')
     logging.info('Using cluster node image with name: "%s"' % image_to_use)
+    # TODO figure out the data salt cloud needs to launch an instance in
+    # Azure ARM
+    # Possibly query Azure
     return image_to_use
 
 
