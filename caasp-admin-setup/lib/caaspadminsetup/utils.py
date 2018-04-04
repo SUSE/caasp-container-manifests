@@ -15,7 +15,7 @@ def get_caasp_release_version():
             version_id = entry.split('=')[-1].strip()
             # We assume that os-release will always have '"' as
             # version delimiters
-            version = version_id.split('"')[1]
+            version = version_id.strip('"\'')
             logging.info('Release version: "%s"' % version)
             return version
 
