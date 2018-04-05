@@ -729,6 +729,15 @@ def setup_salt_cloud(pubkey_name):
 
 
 if __name__ == '__main__':
+    if '--set-cluster-node-img' in sys.argv:
+        arg_index = sys.argv.index('--set-cluster-node-img')
+        cluster_image = sys.argv[arg_index + 1]
+        pillar = utils.get_cloud_config_path()
+        with open(pillar, 'a') as config_file:
+            config_file.write('  cluster_image: %s\n' % cluster_image)
+        config_file.close()
+        del(sys.argv[arg_index + 1])
+        del(sys.argv[arg_index])
     arguments = docopt(__doc__)
     logging.info('Command line arguments: "{}"'.format(arguments))
     if not os.getuid() == 0:
