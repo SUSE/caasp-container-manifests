@@ -399,6 +399,8 @@ spec:
     env:
     - name: WORKER_ID
       value: worker1
+    - name: SALT_MINION_RECONCILER
+      value: "true"
     - name: RAILS_ENV
       value: production
     - name: VELUM_SECRETS_DIR
