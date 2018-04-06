@@ -377,7 +377,7 @@ def validate_password(password):
     return validate(
         password,
         password_test,
-        "Setting admin dashboard password to: '{}'".format(password),
+        "Setting admin dashboard password",
         failed_msg
     )
 
