@@ -138,7 +138,7 @@ def get_salt_cloud_provider_config(key_name, private_key_file):
 
 def get_database_pillars():
     prefix = "cloud:profiles:cluster_node:"
-    return [
+    pillars = [
         {
             "name": prefix + "image",
             "value": _get_cluser_node_image_id()
@@ -152,3 +152,15 @@ def get_database_pillars():
             "value": _cluster_security_group_id
         }
     ]
+    if utils.get_caasp_release_version().split('.')[0] == '2':
+      pillars += [
+        {
+            "name": prefix + "network_interfaces:0:DeviceIndex",
+            "value": "0"
+        },
+        {
+            "name": prefix + "network_interfaces:0:AssignPublicIpAddress",
+            "value": "False"
+        }
+      ]
+    return pillars
