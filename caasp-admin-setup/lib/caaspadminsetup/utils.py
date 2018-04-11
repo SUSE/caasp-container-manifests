@@ -92,7 +92,7 @@ def get_cluster_image_identifier(framework, region):
                 # Image name with no date stamp skip it
                 continue
     except Exception as e:
-        logging.error('Could not load jason data from pint: "%s"' % e.message)
+        logging.error('Could not load json data from pint: "%s"' % e.message)
         # This message will bubble up through salt
         return 'See /var/log/caasp_cloud_setup.log'
 
