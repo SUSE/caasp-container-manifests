@@ -63,13 +63,18 @@ def get_cluster_image_identifier(framework, region):
     # The cluster image we choose depends on the admin node version,
     # thus we cannot just query for active images. We need to get all
     # images an dthen process accordingly.
-    image_info = ifsrequest.get_image_data(
-        framework,
-        None,
-        'json',
-        region,
-        name_filter
-    )
+    try:
+        image_info = ifsrequest.get_image_data(
+            framework,
+            None,
+            'json',
+            region,
+            name_filter
+        )
+    except Exception as e:
+        logging.error('Pint server access failed: "%s"' % e.message)
+        # This message will bubble up through salt
+        return 'See /var/log/caasp_cloud_setup.log'
     try:
         image_data = json.loads(image_info)
         available_images = image_data.get('images', [])
@@ -86,10 +91,10 @@ def get_cluster_image_identifier(framework, region):
             except Exception:
                 # Image name with no date stamp skip it
                 continue
-    except Exception:
-        # We did not find an image
-        # Let the deployment fail somewhere else
-        return
+    except Exception as e:
+        logging.error('Could not load jason data from pint: "%s"' % e.message)
+        # This message will bubble up through salt
+        return 'See /var/log/caasp_cloud_setup.log'
 
     logging.info('Image data for cluster node image: "%s"' % target_image)
     return target_image

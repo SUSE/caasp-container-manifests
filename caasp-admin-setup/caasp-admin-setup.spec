@@ -17,7 +17,7 @@
 
 
 Name:           caasp-admin-setup
-Version:        1.1.1
+Version:        1.1.2
 Release:        0
 License:        MIT
 Summary:        Setup the CaaSP Admin Node
