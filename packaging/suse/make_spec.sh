@@ -98,6 +98,10 @@ install -D -m 0755 config/haproxy/haproxy.cfg %{buildroot}/etc/caasp/haproxy/hap
 install -D -m 0755 activate.sh %{buildroot}/%{_datadir}/%{name}/activate.sh
 # fix image name in activate
 sed -e "s|sles12/pause|%{_base_image}/pause|g" -i %{buildroot}/%{_datadir}/%{name}/activate.sh
+%if 0%{?suse_version} >= 1500
+# Adjust pause image version in activate
+sed -e "s|pause:1.0.0|pause:0.1|g" -i %{buildroot}/%{_datadir}/%{name}/activate.sh
+%endif
 install -D -m 0755 gen-certs.sh %{buildroot}/%{_datadir}/%{name}/gen-certs.sh
 for dir in mysql salt/grains salt/minion.d-ca; do
   install -d %{buildroot}/%{_datadir}/%{name}/config/\$dir
