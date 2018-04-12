@@ -295,6 +295,9 @@ spec:
       readOnly: True
     - mountPath: /etc/caasp/cpi
       name: caasp-cpi-configs
+    - mountPath: /etc/caasp/pillar-seeds
+      name: caasp-pillar-seeds
+      readOnly: True
     args: ["bin/init"]
   - name: velum-api
     image: sles12/velum:__TAG__
@@ -558,3 +561,6 @@ spec:
   - name: caasp-cpi-configs
     hostPath:
       path: /etc/caasp/cpi
+  - name: caasp-pillar-seeds
+    hostPath:
+      path: /etc/caasp/pillar-seeds
