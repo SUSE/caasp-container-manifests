@@ -134,9 +134,6 @@ spec:
     - mountPath: /etc/salt/master.d/50-master.conf
       name: salt-master-config-master-conf
       readOnly: True
-    - mountPath: /etc/salt/master.d/50-api.conf
-      name: salt-master-config-api-conf
-      readOnly: True
     - mountPath: /etc/salt/master.d/50-peer.conf
       name: salt-master-config-peer-conf
       readOnly: True
@@ -181,26 +178,8 @@ spec:
     - mountPath: /etc/pki/ca.crt
       name: ca-certificate
       readOnly: True
-    - mountPath: /etc/salt/master.d/50-master.conf
-      name: salt-master-config-master-conf
-      readOnly: True
     - mountPath: /etc/salt/master.d/50-api.conf
-      name: salt-master-config-api-conf
-      readOnly: True
-    - mountPath: /etc/salt/master.d/50-peer.conf
-      name: salt-master-config-peer-conf
-      readOnly: True
-    - mountPath: /etc/salt/master.d/50-reactor.conf
-      name: salt-master-config-reactor-conf
-      readOnly: True
-    - mountPath: /etc/salt/master.d/50-returner.conf
-      name: salt-master-config-returner-conf
-      readOnly: True
-    - mountPath: /etc/salt/master.d/55-returner-credentials.conf
-      name: salt-master-config-returner-credentials-conf
-      readOnly: True
-    - mountPath: /etc/salt/master.d/75-custom.conf
-      name: salt-master-config-custom-conf
+      name: salt-api-config-api-conf
       readOnly: True
     - mountPath: /var/cache/salt
       name: salt-master-cache
@@ -483,7 +462,7 @@ spec:
   - name: salt-master-config-master-conf
     hostPath:
       path: /usr/share/salt/kubernetes/config/master.d/50-master.conf
-  - name: salt-master-config-api-conf
+  - name: salt-api-config-api-conf
     hostPath:
       path: /usr/share/salt/kubernetes/config/master.d/50-api.conf
   - name: salt-master-config-peer-conf
