@@ -1,6 +1,6 @@
-#! /usr/bin/python
+#!/usr/bin/python
 #
-# Copyright 2017 SUSE
+# Copyright 2017-2018 SUSE
 #
 # THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND TREATIES.
 # IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED, PERFORMED,
@@ -31,6 +31,8 @@ Usage:
                     [--admin-email=<email>]
                     [--admin-password=<password>]
                     [--accept]
+                    [--reg-email=<email>]
+                    [--reg-code=<reg_code>]
   caasp-admin-setup -h | --help
 
 Options:
@@ -43,6 +45,8 @@ Options:
   --gensslcert                  Generate a self-signed certificate for SSL, and
                                 display the fingerprint for local confirmation.
   -h --help                     Show this screen.
+  --reg-email=<email>           E-mail address to register with SCC.
+  --reg-code=<reg_code>         Registration code for SCC.
   --ssl-crt=<certificate-file>  Path of local file to install as SSL
                                 certificate for HTTPS server.
   --ssl-key=<private-key-file>  Path of local file to install as private key
@@ -264,12 +268,16 @@ def validate(
             value,
             validating_function,
             success_statement,
-            failure_statement
+            failure_statement,
+            log_statement=None
         ):
     if validating_function(value):
         if success_statement:
             print("\t" + success_statement)
-            logging.info(success_statement)
+            if log_statement:
+                logging.info(log_statement)
+            else:
+                logging.info(success_statement)
         return value
     else:
         if failure_statement:
@@ -377,8 +385,9 @@ def validate_password(password):
     return validate(
         password,
         password_test,
-        "Setting admin dashboard password",
-        failed_msg
+        "Setting admin dashboard password to: {}".format(password),
+        failed_msg,
+        "Setting admin dashboard password to: *******"
     )
 
 
@@ -408,7 +417,7 @@ def prompt_for_admin_email():
 
 def prompt_for_admin_password(default):
     statement = "Password for login to Admin Dashboard (len: 8 - 128 chars)?"
-    return validate_password(prompt(statement, default))
+    return validate_password(prompt(statement, default, hide=True))
 
 
 def install_salt_deploy_script(email, registration_code, server=""):
@@ -478,33 +487,38 @@ def configure_etcd(ip_address):
     etcd_config.close()
 
 
-def register_instance():
+def register_instance(email=None, registration_code=None):
     """Collect SCC credentials and register the system"""
     flavor = utils.get_from_config('procurement_flavor')
     if flavor != 'byos':
         # On-demand, nothing to do automatic registration
         return
-    wants_registration = confirmation_prompt(
-        "Would you like to register the system with the "
-        "SUSE Customer Center (SCC) to receive updates? "
-        "(e-mail and registration code required)", True
-    )
-    if wants_registration:
-        email = prompt(
-            "Please provide the e-mail associated with your SCC account",
-            'name@company.com'
+    if not email:
+        wants_registration = confirmation_prompt(
+            "Would you like to register the system with the "
+            "SUSE Customer Center (SCC) to receive updates? "
+            "(e-mail and registration code required)", True
         )
+    else:
+        wants_registration = True
+    if wants_registration:
+        if not email:
+            email = prompt(
+               "Please provide the e-mail associated with your SCC account",
+                'name@company.com'
+            )
         if not email_test(email):
             msg = 'Invalid e-mail provided "{}"'.format(email)
             msg += 'Proceeding without registration'
             logging.info(msg)
             print(msg)
             return
-        registration_code = prompt(
-            "Please provide your SCC registration code",
-            '123456789',
-            True
-        )
+        if not registration_code:
+            registration_code = prompt(
+                "Please provide your SCC registration code",
+                '123456789',
+                True
+            )
         if not registration_code:
             msg = 'No registration code provided.'
             msg += 'Proceeding without registration'
@@ -518,6 +532,7 @@ def register_instance():
             '-r',
             registration_code
         ]
+        print_startline("Attempting SCC registration")
         p = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
@@ -531,6 +546,7 @@ def register_instance():
                 print(msg)
                 return
         install_salt_deploy_script(email, registration_code)
+        print_endline("success")
         logging.info('Registration success')
 
 
@@ -700,9 +716,11 @@ def setup_salt_cloud(pubkey_name):
     # copy ssh private key to /var/lib/misc so it can be mapped into
     # Velum and salt-master containers
     logging.info("Copy ssh private key")
-    os.makedirs(_ssh_private_key_path())
+    if not os.path.isdir(_ssh_private_key_path()):
+        os.makedirs(_ssh_private_key_path())
     ssh_private_key_file = "{}/id_rsa".format(_ssh_private_key_path())
-    shutil.copy("/root/.ssh/id_rsa", ssh_private_key_file)
+    if not os.path.exists(ssh_private_key_file):
+        shutil.copy("/root/.ssh/id_rsa", ssh_private_key_file)
 
     # update salt pillar file
     logging.info("Update salt pillar file")
@@ -776,7 +794,7 @@ if __name__ == '__main__':
             arguments["--admin-email"] = make_email()
         if (not arguments["--admin-password"]):
             #TODO "meta" is out of scope here
-            arguments["--admin-password"] = meta.instance_id()
+            arguments["--admin-password"] = platform.get_instance_id()
 
         # validate arguments & display confirmables
         if (arguments["--gensslcert"]):
@@ -796,13 +814,21 @@ if __name__ == '__main__':
             sys.exit("Invalid argument '--admin-password'")
 
     # Register if byos and user desired
-    register_instance()
+    if (arguments["--wizard"] or (
+           (
+               arguments["--reg-email"]
+           ) and (
+               arguments["--reg-code"]
+           )
+        )):
+        register_instance(arguments["--reg-email"], arguments["--reg-code"])
 
     # last chance to back out
     if (arguments["--accept"]):
         print("\tConfirmation automatically accepted.")
     else:
         prompt_for_acceptance()
+
 
     if (not arguments["--gensslcert"]):
         # install user-supplied certificate

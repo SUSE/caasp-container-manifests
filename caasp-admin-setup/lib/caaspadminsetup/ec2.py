@@ -46,6 +46,12 @@ def create_public_key(key_name, public_key_data):
     client = boto3.client(
         service_name='ec2',
         region_name=_get_instance_region())
+    try:
+        client.describe_key_pairs(KeyNames=[key_name])
+        logging.info("Key pair {} already exists, skipping key pair creation".format(key_name))
+        return
+    except botocore.exceptions.ClientError:
+        pass
     client.import_key_pair(
         KeyName=key_name,
         PublicKeyMaterial=public_key_data
@@ -58,6 +64,12 @@ def setup_network_security(cluster_name):
         service_name='ec2',
         region_name=_get_instance_region()
     )
+    try:
+        client.describe_security_groups(GroupNames=[cluster_name])
+        logging.info("Key pair {} already exists, skipping security group creation".format(cluster_name))
+        return
+    except botocore.exceptions.ClientError:
+        pass
     response = client.create_security_group(
                    Description="Autocreated by SUSE CaaSP",
                    GroupName=cluster_name,
