@@ -1,4 +1,5 @@
 import boto3
+import botocore.exceptions
 import caaspadminsetup.utils as utils
 import ec2metadata
 import logging
