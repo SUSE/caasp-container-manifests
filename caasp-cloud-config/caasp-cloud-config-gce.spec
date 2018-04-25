@@ -17,7 +17,7 @@
 
 
 Name:           caasp-cloud-config-gce
-Version:        1.0.2
+Version:        1.1.0
 Release:        0
 License:        MIT
 Summary:        Configuration for CaaSP

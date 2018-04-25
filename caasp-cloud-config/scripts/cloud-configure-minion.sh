@@ -56,6 +56,11 @@ while [ -n "$1" ]; do
       SSH_KEY="$2"
       shift
     ;;
+    "-t")
+      test -z "$2" && die "-t requires an argument"
+      NTP_SERVER="$2"
+      shift
+    ;;
     "-k")
       KEEP_DEPLOY_DIR=yes
     ;;
@@ -140,6 +145,11 @@ if [ -n "$SSH_KEY" ]; then
   echo "Added provided public key to ${auth_keys_file}"
   chown "$target_user":users ${auth_keys_file}
   chmod 600 ${auth_keys_file}
+fi
+
+if [ -n "$NTP_SERVER" ]; then
+  echo "NTP=$NTP_SERVER" >> /etc/systemd/timesyncd.conf
+  timedatectl set-ntp true
 fi
 
 # Attempt SCC registration
