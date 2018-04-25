@@ -121,7 +121,7 @@ def get_salt_cloud_profile_config(
             "image": _get_cluser_node_image_id(),
             "ssh_user": "ec2-user",
             "script": "/etc/salt/cloud-configure-minion.sh",
-            "script_args": "-u {}".format(ssh_user),
+            "script_args": "-u {} -t {}".format(ssh_user, get_local_ipv4()),
             "block_device_mappings": [{
                 "DeviceName": "/dev/sda1",
                 "Ebs.VolumeSize": root_volume_size

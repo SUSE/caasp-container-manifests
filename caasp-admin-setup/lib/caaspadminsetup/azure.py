@@ -69,7 +69,7 @@ def get_salt_cloud_profile_config(
             "image": _get_cluster_node_image_id(),
             "location": _get_instance_location(),
             "script": "/etc/salt/cloud-configure-minion.sh",
-            "script_args": "-s \"{}\"".format(ssh_pub_key),
+            "script_args": "-s \"{}\" -t {}".format(ssh_pub_key, get_local_ipv4()),
             "ssh_username": ssh_user,
             "ssh_password": _generate_password(),
             "cleanup_disks": True,
