@@ -1,0 +1,14 @@
+[Unit]
+Description=Initialize Administration Node
+Conflicts=shutdown.target
+After=local-fs.target
+Before=admin-node-setup.service
+ConditionPathExists=!/var/lib/misc/caasp-admin-node-init-did-run
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=__ADMIN_NODE_SETUP_PATH__/activate.sh
+
+[Install]
+WantedBy=multi-user.target

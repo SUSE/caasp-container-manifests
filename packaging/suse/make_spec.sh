@@ -114,20 +114,22 @@ install -D -m 0755 admin-node-setup.sh %{buildroot}/%{_datadir}/%{name}/admin-no
 mkdir -p %{buildroot}/%{_unitdir}
 install -D -m 0644 admin-node-setup.service %{buildroot}/%{_unitdir}/
 sed -e "s#__ADMIN_NODE_SETUP_PATH__#%{_datadir}/%{name}#" -i %{buildroot}/%{_unitdir}/admin-node-setup.service
+install -D -m 0644 admin-node-init.service %{buildroot}/%{_unitdir}/
+sed -e "s#__ADMIN_NODE_SETUP_PATH__#%{_datadir}/%{name}#" -i %{buildroot}/%{_unitdir}/admin-node-init.service
 mkdir -p %{buildroot}/%{_sbindir}
 ln -s %{_sbindir}/service %{buildroot}/%{_sbindir}/rcadmin-node-setup
 
 %pre
-%service_add_pre admin-node-setup.service
+%service_add_pre admin-node-setup.service admin-node-init.service
 
 %post
-%service_add_post admin-node-setup.service
+%service_add_post admin-node-setup.service admin-node-init.service
 
 %preun
-%service_del_preun admin-node-setup.service
+%service_del_preun admin-node-setup.service admin-node-init.service
 
 %postun
-%service_del_postun admin-node-setup.service
+%service_del_postun admin-node-setup.service admin-node-init.service
 
 %files
 %defattr(-,root,root)
@@ -138,6 +140,7 @@ $dir /etc/caasp
 %dir /etc/caasp/haproxy
 %config(noreplace) /etc/caasp/haproxy/haproxy.cfg
 %{_sbindir}/rcadmin-node-setup
+%{_unitdir}/admin-node-init.service
 %{_unitdir}/admin-node-setup.service
 %{_datadir}/%{name}/*
 %changelog

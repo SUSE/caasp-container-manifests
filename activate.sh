@@ -3,6 +3,11 @@
 # this script WILL BE RUN ONLY ONCE, after the installation
 # this script WILL NOT RUN during/after upgrades
 
+DIDRUNFILE=/var/lib/misc/caasp-admin-node-init-did-run
+
+# Don't run this script a second time
+test -f ${DIDRUNFILE}  && exit 0
+
 # Make sure that the controller node looks for the local pause image
 # TODO: remove this as soon as possible. As an idea, we could use a systemd drop-in unit.
 if ! grep "pod-infra-container-image" /etc/kubernetes/kubelet &> /dev/null; then
@@ -32,3 +37,6 @@ echo "id: admin" > /etc/salt/minion.d/minion_id.conf
 # Disable swap
 # On ISO-based installs the script runs in a chroot and then the system is rebooted
 sed -i '/^#/! {/ swap / s/^/#/}' /etc/fstab
+
+# Mark that the script did run
+touch ${DIDRUNFILE}
