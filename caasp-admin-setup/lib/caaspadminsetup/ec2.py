@@ -72,9 +72,15 @@ def setup_network_security(cluster_name):
         region_name=_get_instance_region()
     )
     try:
-        client.describe_security_groups(GroupNames=[cluster_name])
-        logging.info("Key pair {} already exists, skipping security group creation".format(cluster_name))
-        return
+        grp = client.describe_security_groups(Filters=[
+            {
+                'Name': 'group-name',
+                'Values': [ cluster_name ]
+            }
+        ])
+        if grp['SecurityGroups']:
+            logging.info("Security group {} already exists, skipping security group creation".format(cluster_name))
+            return
     except botocore.exceptions.ClientError:
         pass
     response = client.create_security_group(
