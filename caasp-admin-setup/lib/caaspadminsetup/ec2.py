@@ -44,8 +44,8 @@ def get_instance_id():
 
 def have_permissions():
     if not boto3.Session().get_credentials():
-        print "This instance does not have session credentials."
-        print "Please attach an IAM role with sufficent permissions."
+        print("This instance does not have session credentials.")
+        print("Please attach an IAM role with EC2 API access permissions.")
         return False
     return True
 
@@ -75,11 +75,12 @@ def setup_network_security(cluster_name):
         grp = client.describe_security_groups(Filters=[
             {
                 'Name': 'group-name',
-                'Values': [ cluster_name ]
+                'Values': [cluster_name]
             }
         ])
         if grp['SecurityGroups']:
-            logging.info("Security group {} already exists, skipping security group creation".format(cluster_name))
+            logging.info("Security group {} already exists, "
+                         "skipping security group creation".format(cluster_name))
             return
     except botocore.exceptions.ClientError:
         pass
@@ -178,14 +179,14 @@ def get_database_pillars():
         }
     ]
     if utils.get_caasp_release_version().split('.')[0] == '2':
-      pillars += [
-        {
-            "name": prefix + "network_interfaces:0:DeviceIndex",
-            "value": "0"
-        },
-        {
-            "name": prefix + "network_interfaces:0:AssignPublicIpAddress",
-            "value": "False"
-        }
-      ]
+        pillars += [
+            {
+                "name": prefix + "network_interfaces:0:DeviceIndex",
+                "value": "0"
+            },
+            {
+                "name": prefix + "network_interfaces:0:AssignPublicIpAddress",
+                "value": "False"
+            }
+        ]
     return pillars

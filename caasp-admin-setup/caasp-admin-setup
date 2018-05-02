@@ -885,5 +885,5 @@ if __name__ == '__main__':
 
     print
     print("Setup is complete. Cluster nodes will be created with ssh access enabled")
-    print("for user 'root' of this host. If necessary, you can log into a node like this:")
+    print("for user 'root' of this host. If necessary, you can log into a node as follows:")
     print("ssh caasp@caasp-node-XXXXXXXX")

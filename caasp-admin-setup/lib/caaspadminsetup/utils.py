@@ -3,6 +3,7 @@ import logging
 import re
 import susepubliccloudinfoclient.infoserverrequests as ifsrequest
 import yaml
+import sys
 
 RELEASE_DATE = re.compile('^.*-v(\d{8})-.*')
 
@@ -99,8 +100,9 @@ def get_cluster_image_identifier(framework, region):
 
     if not target_image:
         logging.error('Could not determine image identifier for cluster node.')
-        logging.error('This implies that the pint server is unreachable or the data is incompleted, please report the issue, exiting.')
-        sys.exit('Pint lookup failed')
+        logging.error('This implies that the pint server is unreachable or the '
+                      'data is incomplete, please report the issue, exiting.')
+        sys.exit('pint lookup failed')
 
     logging.info('Image data for cluster node image: "%s"' % target_image)
     return target_image
