@@ -78,6 +78,7 @@ def get_cluster_image_identifier(framework, region):
     try:
         image_data = json.loads(image_info)
         available_images = image_data.get('images', [])
+        target_image = None
         target_image_date = 0
         for image in available_images:
             image_name = image.get('name')
@@ -95,6 +96,11 @@ def get_cluster_image_identifier(framework, region):
         logging.error('Could not load json data from pint: "%s"' % e.message)
         # This message will bubble up through salt
         return 'See /var/log/caasp_cloud_setup.log'
+
+    if not target_image:
+        logging.error('Could not determine image identifier for cluster node.')
+        logging.error('This implies that the pint server is unreachable or the data is incompleted, please report the issue, exiting.')
+        sys.exit('Pint lookup failed')
 
     logging.info('Image data for cluster node image: "%s"' % target_image)
     return target_image
