@@ -878,6 +878,6 @@ if __name__ == '__main__':
             print(file.read())
 
     print
-    print "Setup is complete. Cluster nodes will be created with ssh access enabled\n"
-    print "for user 'root' of this host. If necessary, you can log into a node like this:\n"
-    print "ssh caasp@caasp-node-XXXXXXXX"
+    print("Setup is complete. Cluster nodes will be created with ssh access enabled")
+    print("for user 'root' of this host. If necessary, you can log into a node like this:")
+    print("ssh caasp@caasp-node-XXXXXXXX")
