@@ -876,3 +876,8 @@ if __name__ == '__main__':
         # show fingerprints
         with open(_activate_script_artifact_path(), 'r') as file:
             print(file.read())
+
+    print
+    print "Setup is complete. Cluster nodes will be created with ssh access enabled\n"
+    print "for user 'root' of this host. If necessary, you can log into a node like this:\n"
+    print "ssh caasp@caasp-node-XXXXXXXX"
