@@ -764,6 +764,10 @@ if __name__ == '__main__':
     # load framework specfic functions
     platform = utils.load_platform_module(_get_framework_from_config())
 
+    # check framework permissions
+    if not platform.have_permissions():
+        sys.exit(2)
+
     # 'wizard' mode argument is optional, determine it based on
     # other required arguments if necessary
     if (arguments["--wizard"] or (

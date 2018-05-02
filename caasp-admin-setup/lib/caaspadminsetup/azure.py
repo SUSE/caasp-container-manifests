@@ -51,6 +51,10 @@ def get_local_ipv4():
 def get_instance_id():
     return socket.getfqdn()
 
+def have_permissions():
+    # currently user credentials are used in Azure, i.e. instance permissions
+    # are not relevant
+    return True
 
 def create_public_key(key_name, public_key_data):
     # not supported in Azure

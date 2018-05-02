@@ -42,6 +42,12 @@ def get_local_ipv4():
 def get_instance_id():
     return _get_from_metadata('instance-id')
 
+def have_permissions():
+    if not boto3.Session().get_credentials():
+        print "This instance does not have session credentials."
+        print "Please attach an IAM role with sufficent permissions."
+        return False
+    return True
 
 def create_public_key(key_name, public_key_data):
     client = boto3.client(

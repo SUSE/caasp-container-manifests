@@ -24,6 +24,9 @@ def get_local_ipv4():
 def get_instance_id():
     return _get_from_metadata('id')
 
+def have_permissions():
+    raise Exception('not yet implemented')
+
 
 def create_public_key(key_name, public_key_data):
     raise Exception('not yet implemented')
