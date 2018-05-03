@@ -119,8 +119,6 @@ spec:
   - name: salt-master
     image: sles12/salt-master:__TAG__
     env:
-    - name: MYSQL_UNIX_PORT
-      value: /var/run/mysql/mysql.sock
     - name: SALTAPI_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/saltapi-password
     - name: VELUM_INTERNAL_API_USERNAME_FILE
