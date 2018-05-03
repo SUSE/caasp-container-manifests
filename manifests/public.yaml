@@ -115,6 +115,38 @@ spec:
     volumeMounts:
     - mountPath: /infra-secrets
       name: infra-secrets
+  - name: velum-dashboard-init
+    image: sles12/velum:__TAG__
+    env:
+    - name: RAILS_ENV
+      value: production
+    - name: VELUM_SECRETS_DIR
+      value: /var/lib/misc/velum-secrets
+    - name: VELUM_DB_HOST
+      value:
+    - name: VELUM_DB_USERNAME
+      value: "velum"
+    - name: VELUM_DB_PASSWORD_FILE
+      value: /var/lib/misc/infra-secrets/mariadb-velum-password
+    - name: VELUM_DB_SOCKET
+      value: /var/run/mysql/mysql.sock
+    volumeMounts:
+    - mountPath: /etc/pki/ca.crt
+      name: ca-certificate
+      readOnly: True
+    - mountPath: /var/run/mysql
+      name: mariadb-unix-socket
+    - mountPath: /var/lib/misc/velum-secrets
+      name: velum-secrets
+    - mountPath: /var/lib/misc/infra-secrets
+      name: infra-secrets
+      readOnly: True
+    - mountPath: /etc/caasp/cpi
+      name: caasp-cpi-configs
+    - mountPath: /etc/caasp/pillar-seeds
+      name: caasp-pillar-seeds
+      readOnly: True
+    args: ["bin/init"]
   containers:
   - name: salt-master
     image: sles12/salt-master:__TAG__
@@ -277,7 +309,7 @@ spec:
     - mountPath: /etc/caasp/pillar-seeds
       name: caasp-pillar-seeds
       readOnly: True
-    args: ["bin/init"]
+    args: ["bin/run"]
   - name: velum-api
     image: sles12/velum:__TAG__
     env:
