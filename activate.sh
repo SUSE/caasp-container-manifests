@@ -13,7 +13,7 @@ else
 fi
 
 if ! grep "pod-infra-container-image" /etc/kubernetes/kubelet &> /dev/null; then
-  sed -i "s|^KUBELET_ARGS=\"|KUBELET_ARGS=\"--pod-infra-container-image=$DIST/pause:1.0.0 |" /etc/kubernetes/kubelet
+  sed -i "s|^KUBELET_ARGS=\"|KUBELET_ARGS=\"--pod-infra-container-image=$DIST/pause:__TAG__ |" /etc/kubernetes/kubelet
 fi
 
 # Make sure etcd listens on 0.0.0.0
