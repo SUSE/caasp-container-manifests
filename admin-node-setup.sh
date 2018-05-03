@@ -39,6 +39,12 @@ for i in $(ls $images_dir/sles*.tag $images_dir/kubic*.tag);do
 
     echo "$0: Setting $image_name:$tag into manifests"
     sed -i -e "s%$image_name:__TAG__%$image_name:$tag%g" $tmp_dir/*.yaml
+
+    if [[ $image_name =~ pause ]]; then
+      kubelet_config=/etc/kubernetes/kubelet
+      echo "$0: Setting $image_name:$tag into kubelet config"
+      sed -i -e "s%$image_name:__TAG__%$image_name:$tag%g" $kubelet_config
+    fi
 done
 
 # TODO: We also need to delete old manifest files, if/when
