@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter
+[
+  <!ENTITY % entities SYSTEM "entity-decl.ent">
+    %entities;
+]>
+<chapter version="5.0" xml:id="configuration"
+  xmlns="http://docbook.org/ns/docbook"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  xmlns:xlink="http://www.w3.org/1999/xlink">
+ <info>
+  <title>Public Cloud Setup</title>
+  <dm:docmanager xmlns:dm="urn:x-suse:ns:docmanager">
+   <dm:bugtracker></dm:bugtracker>
+   <dm:translation>yes</dm:translation>
+  </dm:docmanager>
+ </info>
+ <para>
+   For detailed information about the product please refer to the
+https://www.suse.com/documentation/suse-caasp-2 &productname; documentation.
+ </para>
+ <para>
+   The &productname; images published by SUSE in selected Public Cloud
+environments are provided as Bring Your Own Subscription (BYOS)
+images. &productname; instances need to be registered with the SUSE Customer
+Center (SCC) in order to receive bugfix and security updates. Images labeled
+with the <emphasis role="bold">cluster</emphasis> designation in the name are
+no intended to be started directly. The appropriate image to launch will be
+selected by the Administrative node. Administrative node images contain the
+<emphasis role="bold">admin</emphasis> designation in the image name.
+ </para>
+ <sect1 xml:id="instance-requirements">
+  <title>Instance Requirements</title>
+   <para>
+    Select an instance size for the Administrative node that meets the system
+requirements as documented in the &productname; documentation.
+    <variablelist>
+     <varlistentry>
+      <listitem>
+       <para>
+        Minimal main memory: 8GB
+       </para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <listitem>
+       <para>
+        Root volume size should be at least 40GB and is dependent on the size
+and number of containers running in the cluster. The default root volume size
+of the images is smaller than 40GB in all Public Cloud frameworks and you want
+to size the root volume size to meet your needs upon instance launch.
+       </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+ </sect1>
+ <sect1 xml:id="network-considerations">
+  <title>Network Considerations</title>
+   <para>
+    &productname; expects that DNS resolution is functional. In general Public
+Cloud providers provide a working DNS service the works with network internal
+names. You can also set up you own DNS resolution, please refer to the
+documentation of the Public Cloud provider of your choice to configure your own
+DNS service.
+   </para>
+   <para>
+    It is recommended that &productname; is setup to run in two subnets in one
+network segment, also referred to as VPC or VNET. The Administrative node
+should run in a subnet that is not accessible to the outside world and should
+be connected to your network via VPN or other means. Consider a security group
+that only allows ingress traffic on ports 22 (SSH) and 443 (https) for the
+Administrative node from outside the VPC. The administrative node must have
+access to the Internet through some route in order to access SCC to receive
+updates.
+   </para>
+   <para>
+    Depending on the applications running in your cluster you may consider
+exposing the subnet for the Cluster nodes to the outside world. Use a
+firewall/security-group that only allows incoming traffic on a port monitored
+by your application(s). It is common that containerized applications provide
+the backend for REST based applications with content served over https (port
+443) and thus you should only allow ingress traffic on port 443. As with the
+Administrative node cluster nodes must have access to the Internet to receive
+updates from the SUSE Customer Center.
+  </para>
+  <para>
+   Traffic between the two subnets should be allowed to flow
+freely. &productname; uses the following ports:
+   <emphasis role="bold">Administrative node</emphasis>
+   <variablelist>
+    <varlistentry>
+     <listitem>
+      <para>
+       ssh: 22
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       http: 80 (Redirects to 443, https)
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       ntp: 123 (In cases where the service provider has a time service the
+admin node image is configured to use the ntp service provided by the
+framework. Cluster nodes always point back to the admin node)
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       slapd: 389
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       https: 443
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       etcd: 2379
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       etcd: 2380
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       salt master: 4505
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       salt master: 4506
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+   <emphasis role="bold">Master node role</emphasis>
+   <variablelist>
+    <varlistentry>
+     <listitem>
+      <para>
+       ssh: 22
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       etcd: 2379
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       etcd: 2380
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       kubelet: 4198
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       haproxy: 6443
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       haproxy: 6444
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       flanneld: 8285 (UDP)
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       kubelet: 10250
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       kube-scheduler: 10251
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       kube-controller-manager: 10252
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       kubelet: 10255
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       kube-proxy: 10256
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       kube-proxy: 32000
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+   <emphasis role="bold">Worker node role</emphasis>
+   <variablelist>
+    <varlistentry>
+     <listitem>
+      <para>
+       ssh: 22
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       etcd: 2379
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       etcd: 2380
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       kubelet: 4194
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       flanneld: 8285 (UDP)
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       kubelet: 10250
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       kubelet: 10255
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       kube-proxy: 10256
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <listitem>
+      <para>
+       kube-proxy: 32000
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </para>
+ <sect1 xml:id="setup">
+  <title>Setup</title>
+   <para>
+    &productname; requires a chain of trust and therefore non of the
+&productname; containers are running upon first boot of the Administrative node
+instance. The cluster administrator needs to shh into the instance and run the
+<literal>caasp-admin-setup</literal> executable as the <literal>root</literal>
+user.
+   </para>
+   <para>
+    By default the <literal>caasp-admin-setup</literal> executable operates in
+<emphasis role="italic">wizard</emphasis> mode walking the user through the
+necessary steps. During this process your SCC credentials will be
+requested. Registration with SCC can be skipped. If this step is skipped during
+the admin node and the cluster nodes will not receive any updates. While
+registration to SCC can be performed after the initial setup with
+<literal>SUSEConnect</literal>, performing the registration during setup has
+the advantage that cluster nodes will automatically be registered with SCC as
+well. If you prefer to not run the <emphasis role="italic">wizard</emphasis> use
+<literal>caasp-admin-setup --help</literal> to obtain a list of the available
+command line arguments.
+  </para>
+  <para>
+   Once the <literal>caasp-admin-setup</literal> process is complete all
+&productname; will have been launched on the admin node instance and you can
+use your browser to access the Velum dashboard via
+<literal>https://</literal>. If you did not provide your own certificate a
+certificate was generated for you and the fingerprint was written to the
+terminal in which  <literal>caasp-admin-setup</literal> was executed. You can
+compare this fingerprint in your browser and establish the chain of trust.
+  </para>
+ </sect1>
+ <sect1 xml:id="configuration">
+  <title>Configuration</title>
+   <para>
+   </para>
+ </sct1>
+</chapter>
