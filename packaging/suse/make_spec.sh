@@ -57,7 +57,13 @@ Summary:        Manifest file templates for containers on controller node
 Url:            https://github.com/kubic-project/caasp-container-manifests
 Group:          System/Management
 Source:         ${SAFE_BRANCH}.tar.gz
+
+# If it is not SLE15, require container-feeder
+# Otherwise, we are using the SUSE Registry
+%if 0%{?sle_version} != 150000
 Requires:       container-feeder
+%endif
+
 # Require all the docker images
 Requires:       %{_base_image}-pause-image >= 2.0.0
 Requires:       %{_base_image}-mariadb-image >= 2.0.0
