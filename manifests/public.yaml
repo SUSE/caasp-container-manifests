@@ -57,7 +57,7 @@ spec:
   - name: salt-minion-key-generation
     image: sles12/salt-master:__TAG__
     command: ["sh", "-c", "umask 377;
-                           mkdir /salt-master-pki/minions/;
+                           mkdir -p /salt-master-pki/minions/;
                            temp_dir=`mktemp -d`;
                            if [ -f /salt-admin-minion-pki/minion.pub ] && [ -f /salt-admin-minion-pki/minion.pem ] && [ ! -f /salt-master-pki/minions/admin ]; then
                              cp /salt-admin-minion-pki/minion.pub /salt-master-pki/minions/admin;
@@ -71,7 +71,7 @@ spec:
                            if [ -f /salt-ca-minion-pki/minion.pub ] && [ -f /salt-ca-minion-pki/minion.pem ] && [ ! -f /salt-master-pki/minions/ca ]; then
                              cp /salt-ca-minion-pki/minion.pub /salt-master-pki/minions/ca;
                            fi;
-                           if [ ! -f /salt-ca-minion-pki/minion.pub ] || [ ! -f /tmp/ca.pem /salt-ca-minion-pki/minion.pem ]; then
+                           if [ ! -f /salt-ca-minion-pki/minion.pub ] || [ ! -f /tmp/ca.pem ] || [ ! -f /salt-ca-minion-pki/minion.pem ]; then
                              salt-key -u root --gen-keys=ca --gen-keys-dir $temp_dir;
                              cp $temp_dir/ca.pub /salt-master-pki/minions/ca;
                              mv $temp_dir/ca.pub /salt-ca-minion-pki/minion.pub;
@@ -89,8 +89,8 @@ spec:
   - name: salt-master-config
     image: sles12/velum:__TAG__
     command: ["sh", "-c", "umask 377;
-                           rmdir /salt-master-credentials/55-returner-credentials.conf;
-                           if ! grep mysql /salt-master-credentials/55-returner-credentials.conf; then
+                           [ -d /salt-master-credentials/55-returner-credentials.conf ] && rmdir /salt-master-credentials/55-returner-credentials.conf;
+                           if ! grep -q mysql /salt-master-credentials/55-returner-credentials.conf; then
                              echo \"mysql:\" > /salt-master-credentials/55-returner-credentials.conf;
                              echo -n \"  pass: \" >> /salt-master-credentials/55-returner-credentials.conf;
                              cat /infra-secrets/mariadb-salt-password >> /salt-master-credentials/55-returner-credentials.conf;
@@ -389,7 +389,19 @@ spec:
       value: "true"
     - name: SLAPD_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/openldap-password
+    - name: SLAPD_CONF_TEMPLATE
+      value: /etc/openldap/slapd.conf.default
+    - name: LDAP_CONF_TEMPLATE
+      value: /etc/openldap/ldap.conf.default
     volumeMounts:
+    # slapd.conf.default is copied to slapd.conf by the container entrypoint
+    - mountPath: /etc/openldap/slapd.conf.default
+      name: slapd-conf
+      readOnly: True
+    # same for ldap.conf.default
+    - mountPath: /etc/openldap/ldap.conf.default
+      name: ldap-conf
+      readOnly: True
     - mountPath: /etc/openldap/pki/openldap.crt
       name: openldap-certificate
       readOnly: True
@@ -529,6 +541,12 @@ spec:
   - name: salt-minion-ca-certificates
     hostPath:
       path: /etc/pki
+  - name: ldap-conf
+    hostPath:
+      path: /usr/share/caasp-container-manifests/config/ldap/ldap.conf
+  - name: slapd-conf
+    hostPath:
+      path: /usr/share/caasp-container-manifests/config/ldap/slapd.conf
   - name: openldap-certificate
     hostPath:
       path: /etc/pki/ldap.crt
