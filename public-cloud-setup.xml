@@ -25,8 +25,8 @@ environments are provided as Bring Your Own Subscription (BYOS)
 images. &productname; instances need to be registered with the SUSE Customer
 Center (SCC) in order to receive bugfix and security updates. Images labeled
 with the <emphasis role="bold">cluster</emphasis> designation in the name are
-no intended to be started directly. The appropriate image to launch will be
-selected by the Administrative node. Administrative node images contain the
+not intended to be started directly; they are deployed by the Administrative
+node. Administrative node images contain the
 <emphasis role="bold">admin</emphasis> designation in the image name.
  </para>
  <sect1 xml:id="instance-requirements">
@@ -47,8 +47,8 @@ requirements as documented in the &productname; documentation.
        <para>
         Root volume size should be at least 40GB and is dependent on the size
 and number of containers running in the cluster. The default root volume size
-of the images is smaller than 40GB in all Public Cloud frameworks and you want
-to size the root volume size to meet your needs upon instance launch.
+of the images is smaller than 40GB in all Public Cloud frameworks; you must
+resize the root volume to meet your needs upon instance launch.
        </para>
       </listitem>
      </varlistentry>
@@ -70,8 +70,8 @@ should run in a subnet that is not accessible to the outside world and should
 be connected to your network via VPN or other means. Consider a security group
 that only allows ingress traffic on ports 22 (SSH) and 443 (https) for the
 Administrative node from outside the VPC. The administrative node must have
-access to the Internet through some route in order to access SCC to receive
-updates.
+access to the Internet through some route in order to access SCC and receive
+updates, or be otherwise configured to receive updates (e.g. via SUSE Manager).
    </para>
    <para>
     Depending on the applications running in your cluster you may consider
@@ -80,8 +80,7 @@ firewall/security-group that only allows incoming traffic on a port monitored
 by your application(s). It is common that containerized applications provide
 the backend for REST based applications with content served over https (port
 443) and thus you should only allow ingress traffic on port 443. As with the
-Administrative node cluster nodes must have access to the Internet to receive
-updates from the SUSE Customer Center.
+Administrative node, cluster nodes must have access to a source of updates.
   </para>
   <para>
    Traffic between the two subnets should be allowed to flow
@@ -318,38 +317,38 @@ framework. Cluster nodes always point back to the admin node)
  <sect1 xml:id="setup">
   <title>Setup</title>
    <para>
-    &productname; requires a chain of trust and therefore non of the
+    &productname; requires a chain of trust and therefore none of the
 &productname; containers are running upon first boot of the Administrative node
-instance. The cluster administrator needs to shh into the instance and run the
+instance. The cluster administrator needs to ssh into the instance and run the
 <literal>caasp-admin-setup</literal> executable as the <literal>root</literal>
 user.
    </para>
    <para>
     By default the <literal>caasp-admin-setup</literal> executable operates in
-<emphasis role="italic">wizard</emphasis> mode walking the user through the
+<emphasis role="italic">wizard</emphasis> mode, walking the user through the
 necessary steps. During this process your SCC credentials will be
 requested. Registration with SCC can be skipped. If this step is skipped during
 the admin node and the cluster nodes will not receive any updates. While
 registration to SCC can be performed after the initial setup with
 <literal>SUSEConnect</literal>, performing the registration during setup has
 the advantage that cluster nodes will automatically be registered with SCC as
-well. If you prefer to not run the <emphasis role="italic">wizard</emphasis> use
-<literal>caasp-admin-setup --help</literal> to obtain a list of the available
-command line arguments.
+well. If you prefer to not run the <emphasis role="italic">wizard</emphasis>,
+use <literal>caasp-admin-setup --help</literal> to obtain a list of the
+available command line arguments.
   </para>
   <para>
    Once the <literal>caasp-admin-setup</literal> process is complete all
-&productname; will have been launched on the admin node instance and you can
-use your browser to access the Velum dashboard via
-<literal>https://</literal>. If you did not provide your own certificate a
-certificate was generated for you and the fingerprint was written to the
-terminal in which  <literal>caasp-admin-setup</literal> was executed. You can
-compare this fingerprint in your browser and establish the chain of trust.
+&productname; containers will be launched on the admin node instance. Use your
+web browser to access the Velum dashboard via <literal>https</literal>. If you
+did not provide your own certificate, a certificate was generated for you and
+the fingerprint was written to the terminal in which
+<literal>caasp-admin-setup</literal> was executed. You can compare this
+fingerprint in your browser to establish the chain of trust.
   </para>
  </sect1>
  <sect1 xml:id="configuration">
   <title>Configuration</title>
    <para>
    </para>
- </sct1>
+</sect1>
 </chapter>
