@@ -309,6 +309,15 @@ spec:
     - mountPath: /etc/caasp/pillar-seeds
       name: caasp-pillar-seeds
       readOnly: True
+    - mountPath: /srv/velum/PRODUCT
+      name: velum-dist-name
+      readOnly: True
+    - mountPath: /srv/velum/public
+      name: velum-static-pages
+      readOnly: True
+    - mountPath: /srv/velum/app/assets/images
+      name: velum-images
+      readOnly: True
     args: ["bin/run"]
   - name: velum-api
     image: sles12/velum:__TAG__
@@ -577,3 +586,12 @@ spec:
   - name: caasp-pillar-seeds
     hostPath:
       path: /etc/caasp/pillar-seeds
+  - name: velum-dist-name
+    hostPath:
+      path: /usr/share/velum/PRODUCT
+  - name: velum-static-pages
+    hostPath:
+      path: /usr/share/velum/public
+  - name: velum-images
+    hostPath:
+      path: /usr/share/velum/images
