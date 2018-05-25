@@ -345,10 +345,35 @@ the fingerprint was written to the terminal in which
 <literal>caasp-admin-setup</literal> was executed. You can compare this
 fingerprint in your browser to establish the chain of trust.
   </para>
+  <sect2>
+   <title>Amazon Web Services EC2</title>
+   <para>
+   </para>
+  </sect2>
  </sect1>
  <sect1 xml:id="configuration">
   <title>Configuration</title>
+  <para>
+  </para>
+  <sect2>
+   <title>Bootstrapping a Cluster</title>
    <para>
    </para>
-</sect1>
+   <sect3>
+    <title>Amazon Web Services EC2</title>
+    <para>
+    </para>
+   </sect3>
+  </sect2>
+ </sect1>
+ <sect1 xml:id="troubleshooting">
+  <title>Troubleshooting</title>
+  <para>
+  </para>
+  <sect2>
+   <title>Amazon Web Services EC2</title>
+   <para>
+   </para>
+  </sect2>
+ </sect1>
 </chapter>
