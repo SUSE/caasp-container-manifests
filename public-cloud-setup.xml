@@ -358,10 +358,45 @@ fingerprint in your browser to establish the chain of trust.
   <sect2>
    <title>Bootstrapping a Cluster</title>
    <para>
+    Within a Public Cloud environment, bootstrapping a &productname; cluster is
+performed in an automated manner. You must simply choose the instance type best
+suited to your intended workloads, size the cluster, and specify a few
+configuration details. The instances will be created, and automatically joined
+to the <literal>salt-master</literal>, skipping the
+<emphasis role="italic">pending</emphasis> state. At this point you can continue
+with the standard setup procedure.
+   </para>
+   <para>
+    In &productname; version 2.1, cluster size has a minimum of three nodes and
+    a maximum of 50 nodes.
    </para>
    <sect3>
     <title>Amazon Web Services EC2</title>
     <para>
+     Two configuration options are required in EC2:
+    </para>
+    <variablelist>
+     <varlistentry>
+      <listitem>
+       <para>
+        Subnet ID: the <emphasis role="italic">subnet</emphasis> where cluster
+        nodes will be attached to the network.
+       </para>
+      </listitem>
+      <listitem>
+       <para>
+        Security Group ID: the <emphasis role="italic">security group</emphasis>
+        defining network rules for the cluster nodes.
+       </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+    <para>
+     See the
+     <ulink url="https://aws.amazon.com/documentation/vpc/">
+      Amazon Virtual Private Cloud Documentation
+     </ulink>
+     for more information.
     </para>
    </sect3>
   </sect2>
