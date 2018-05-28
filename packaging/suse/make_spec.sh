@@ -42,7 +42,7 @@ cat <<EOF > ${NAME}.spec
 %endif
 
 %if 0%{?suse_version} == 1500 && !0%{?is_opensuse}
-  %define _base_image sles15
+  %define _base_image caasp
 %endif
 
 %if 0%{?is_opensuse} && 0%{?suse_version} > 1500
