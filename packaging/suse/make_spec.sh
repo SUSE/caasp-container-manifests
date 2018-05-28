@@ -60,7 +60,7 @@ Source:         ${SAFE_BRANCH}.tar.gz
 
 # If it is not SLE15, require container-feeder
 # Otherwise, we are using the SUSE Registry
-%if 0%{?sle_version} != 150000
+%if 0%{?sle_version} < 150000
 Requires:       container-feeder
 %endif
 
