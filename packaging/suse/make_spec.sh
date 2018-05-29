@@ -62,7 +62,6 @@ Source:         ${SAFE_BRANCH}.tar.gz
 # Otherwise, we are using the SUSE Registry
 %if 0%{?sle_version} < 150000
 Requires:       container-feeder
-%endif
 
 # Require all the docker images
 Requires:       %{_base_image}-pause-image >= 2.0.0
@@ -80,6 +79,7 @@ Requires:       %{_base_image}-sidecar-image >= 2.0.0
 Requires:       %{_base_image}-tiller-image >= 2.0.0
 Requires:       %{_base_image}-openldap-image >= 2.0.0
 Requires:       %{_base_image}-caasp-dex-image >= 2.0.0
+%endif
 # Require all  the things we mount from the host from the kubernetes-salt package
 Requires:       kubernetes-salt
 BuildArch:      noarch
