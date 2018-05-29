@@ -346,6 +346,77 @@ the fingerprint was written to the terminal in which
 fingerprint in your browser to establish the chain of trust.
   </para>
   <sect2>
+   <title>caasp-admin-setup detail</title>
+   <para>
+    The general purpose of the <literal>caasp-admin-setup</literal> is to
+collect all information needed to successfully start the &productname;
+containers. Parts of the executable are framework dependent, other parts are
+cloud framework independent. The framework dependent parts are described in the
+specific framework sections later.
+   </para>
+   <para>
+    When <literal>caasp-admin-setup</literal> is executed it determines which
+cluster nodes to use accoring to the cloud framework. For this operation to
+suceed outgoing traffic on port 443 to the Internet must be permitted. The code 
+will access the <literal>Public Cloud Information Tracker</literal> service
+operated by the SUSE. This service provides information about all images ever
+released to the Public Cloud by SUSE. The latest available cluster node image
+for this version of CaaSP will be used. This initiall outreach and image
+filtering introduces a small startup delay before the command line options are
+processed or the wizard mode starts.
+   </para>
+   <sect3>
+    <title>Providing SSL certificate and key</title>
+    <para>
+      You may choose to supply your own SSL certificate and key with the
+<literal>--ssl-crt</literal> and <literal>--ssl-key</literal> options or by
+answering the <literal>Would you like to use your own certificate from a known
+(public or self signed) Certificate Authority?</literal> with
+<literal>y</literal>.
+    </para>
+    <para>
+     In order to use your own SSL certificate and key you must opload the
+files to the admin node into a location of your choice. This location is then
+provided to the setup code. For example of your certificate is called 
+<emphasis role="italic">my-velum.crt</emphasis> and you uploaded it to
+<emphasis role="italic">/tmp</emphasis> then the
+<literal>caasp-admin-setup</literal> code expects <emphasis
+role="italic">/tmp/my-velum.crt</emphasis> as the location for the SSL
+certificate. The same concept applies to the SSL key. The certificate and key
+will be placed in the appropriate location.
+    </para>
+   </sect3>
+   <sect3>
+    <title>Velum Administrator credentials</title>
+    <para>
+     The setup code will ask for an e-mail address and a password if not
+supplied with the <literal>--admin-email</literal> and
+<literal>--admin-password</literal> arguments. These are the administrative
+credentials to log into the Velum dashboard. The e-mail used does not have to
+be an e-mail associated with your SCC account. Please do not forget the values
+you enter, as they cannot be recovered.
+    </para>
+   </sect3>
+   <sect3>
+    <title>Registering with SCC</title>
+    <para>
+     The setup code will ask for an e-mail address and the registration code.
+Use your SCC credentials thta provide access to the &productname; product in
+SCC. The admin node and all cluster nodes will get registered to SCC. The
+registration process requires access to the Internet on port 443. Alternatively
+you may use the <literal>--reg-email</literal> and
+<literal>--reg-code</literal> arguments. Registration with SCC is
+optional. However, without registration the system will not receive any updates
+unless specifically setup to receive updates via a different route such as SUSE
+Manager or a private SMT server. Registration after the initial setup also
+requires an explcit registration of each node in the cluster.
+    </para>
+   <sect3>
+   <para>
+    When all information is collected accept your selections/input with
+<literal>y</literal> to complete the initial setup setp.
+  </sect2>
+  <sect2>
    <title>Amazon Web Services EC2</title>
    <para>
    </para>
