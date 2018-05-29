@@ -64,6 +64,22 @@ Source:         ${SAFE_BRANCH}.tar.gz
 Requires:       container-feeder
 %endif
 
+# Require all the docker images
+Requires:       %{_base_image}-pause-image >= 2.0.0
+Requires:       %{_base_image}-mariadb-image >= 2.0.0
+Requires:       %{_base_image}-pv-recycler-node-image >= 2.0.0
+Requires:       %{_base_image}-salt-api-image >= 2.0.0
+Requires:       %{_base_image}-salt-master-image >= 2.0.0
+Requires:       %{_base_image}-salt-minion-image >= 2.0.0
+Requires:       %{_base_image}-velum-image >= 2.0.0
+Requires:       %{_base_image}-haproxy-image >= 2.0.0
+Requires:       %{_base_image}-flannel-image >= 2.0.0
+Requires:       %{_base_image}-dnsmasq-nanny-image >= 2.0.0
+Requires:       %{_base_image}-kubedns-image >= 2.0.0
+Requires:       %{_base_image}-sidecar-image >= 2.0.0
+Requires:       %{_base_image}-tiller-image >= 2.0.0
+Requires:       %{_base_image}-openldap-image >= 2.0.0
+Requires:       %{_base_image}-caasp-dex-image >= 2.0.0
 # Require all  the things we mount from the host from the kubernetes-salt package
 Requires:       kubernetes-salt
 BuildArch:      noarch
