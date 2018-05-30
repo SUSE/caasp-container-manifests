@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 umask 377;
 
 # wait until the file exists and has contents
