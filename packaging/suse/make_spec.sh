@@ -139,7 +139,12 @@ ln -s %{_sbindir}/service %{buildroot}/%{_sbindir}/rcadmin-node-setup
 
 %files
 %defattr(-,root,root)
-%doc LICENSE README.md
+%doc README.md
+%if 0%{?suse_version} < 1500
+%doc LICENSE
+%else
+%license LICENSE
+%endif
 %dir %{_datadir}/%{name}
 %dir /etc/caasp
 %dir /etc/caasp/haproxy
