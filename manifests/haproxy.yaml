@@ -41,6 +41,8 @@ spec:
           readOnly: True
         - name: velum-unix-socket
           mountPath: /var/run/puma
+        - name: velum-static-pages
+          mountPath: /etc/caasp/haproxy/errors
   volumes:
     - name: haproxy-cfg
       hostPath:
@@ -62,3 +64,6 @@ spec:
     - name: velum-unix-socket
       hostPath:
         path: /var/run/puma
+    - name: velum-static-pages
+      hostPath:
+        path: /usr/share/velum/static-pages
