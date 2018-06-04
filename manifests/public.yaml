@@ -318,6 +318,9 @@ spec:
     - mountPath: /srv/velum/public/favicon.ico
       name: velum-icon
       readOnly: True
+    - mountPath: /var/lib/misc/keyboard
+      name: yast-keyboard-configuration
+      readOnly: True
     args: ["bin/run"]
   - name: velum-api
     image: sles12/velum:__TAG__
@@ -595,3 +598,6 @@ spec:
   - name: velum-icon
     hostPath:
       path: /usr/share/velum/images/favicon.ico
+  - name: yast-keyboard-configuration
+    hostPath:
+      path: /etc/sysconfig/keyboard
