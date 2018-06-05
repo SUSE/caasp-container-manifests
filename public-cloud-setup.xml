@@ -357,7 +357,7 @@ specific framework sections later.
    <para>
     When <literal>caasp-admin-setup</literal> is executed it determines which
 cluster nodes to use accoring to the cloud framework. For this operation to
-suceed outgoing traffic on port 443 to the Internet must be permitted. The code 
+suceed outgoing traffic on port 443 to the Internet must be permitted. The code
 will access the <literal>Public Cloud Information Tracker</literal> service
 operated by the SUSE. This service provides information about all images ever
 released to the Public Cloud by SUSE. The latest available cluster node image
@@ -377,7 +377,7 @@ answering the <literal>Would you like to use your own certificate from a known
     <para>
      In order to use your own SSL certificate and key you must opload the
 files to the admin node into a location of your choice. This location is then
-provided to the setup code. For example of your certificate is called 
+provided to the setup code. For example of your certificate is called
 <emphasis role="italic">my-velum.crt</emphasis> and you uploaded it to
 <emphasis role="italic">/tmp</emphasis> then the
 <literal>caasp-admin-setup</literal> code expects <emphasis
@@ -451,13 +451,15 @@ with the standard setup procedure.
       <listitem>
        <para>
         Subnet ID: the <emphasis role="italic">subnet</emphasis> where cluster
-        nodes will be attached to the network.
+        nodes will be attached to the network, in the form
+        <literal>subnet-xxxxxxxx</literal>.
        </para>
       </listitem>
       <listitem>
        <para>
         Security Group ID: the <emphasis role="italic">security group</emphasis>
-        defining network rules for the cluster nodes.
+        defining network rules for the cluster nodes, in the form
+        <literal>sg-xxxxxxxx</literal>.
        </para>
       </listitem>
      </varlistentry>
