@@ -444,6 +444,15 @@ with the standard setup procedure.
    <sect3>
     <title>Amazon Web Services EC2</title>
     <para>
+     You may select from one of the predefined instance types, hand selected for
+general container workloads, or choose
+<emphasis role="italic">Other types...</emphasis> and enter any
+<emphasis role="italic">model</emphasis>, as defined at
+<ulink url="https://aws.amazon.com/ec2/instance-types/">
+ https://aws.amazon.com/ec2/instance-types/
+</ulink>
+    </para>
+    <para>
      Two configuration options are required in EC2:
     </para>
     <variablelist>
