@@ -109,7 +109,7 @@ sed -e "s|sles12/pause|%{_base_image}/pause|g" -i %{buildroot}/%{_datadir}/%{nam
 sed -e "s|pause:1.0.0|pause:0.1|g" -i %{buildroot}/%{_datadir}/%{name}/activate.sh
 %endif
 install -D -m 0755 gen-certs.sh %{buildroot}/%{_datadir}/%{name}/gen-certs.sh
-for dir in mysql salt/grains salt/minion.d-ca; do
+for dir in salt/grains salt/minion.d-ca; do
   install -d %{buildroot}/%{_datadir}/%{name}/config/\$dir
   install -D -m 0644 config/\$dir/* %{buildroot}/%{_datadir}/%{name}/config/\$dir
 done
