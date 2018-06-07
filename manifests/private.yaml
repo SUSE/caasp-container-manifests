@@ -38,17 +38,13 @@ spec:
       value: "true"
     - name: MYSQL_ROOT_PASSWORD_FILE
       value: /var/lib/misc/infra-secrets/mariadb-root-password
+    - name: MYSQLD_CONFIG
+      value: "skip-networking;max_allowed_packet=16M;innodb_log_file_size=128M"
     volumeMounts:
     - mountPath: /var/lib/mysql
       name: mariadb-data
     - mountPath: /var/run/mysql
       name: mariadb-unix-socket
-    - mountPath: /etc/my.cnf.d/skip-networking.cnf
-      name: mariadb-config-skip-networking
-      readOnly: True
-    - mountPath: /etc/my.cnf.d/max-allowed-packet.cnf
-      name: mariadb-config-max-allowed-packet
-      readOnly: True
     - mountPath: /var/lib/misc/infra-secrets
       name: infra-secrets
       readOnly: True
@@ -59,12 +55,6 @@ spec:
   - name: mariadb-unix-socket
     hostPath:
       path: /var/run/mysql
-  - name: mariadb-config-skip-networking
-    hostPath:
-      path: /usr/share/caasp-container-manifests/config/mysql/skip-networking.cnf
-  - name: mariadb-config-max-allowed-packet
-    hostPath:
-      path: /usr/share/caasp-container-manifests/config/mysql/max-allowed-packet.cnf
   - name: infra-secrets
     hostPath:
       path: /var/lib/misc/infra-secrets
