@@ -315,7 +315,7 @@ spec:
     - mountPath: /srv/velum/public
       name: velum-static-pages
       readOnly: True
-    - mountPath: /srv/velum/app/assets/images
+    - mountPath: /srv/velum/public/branding
       name: velum-images
       readOnly: True
     args: ["bin/run"]
