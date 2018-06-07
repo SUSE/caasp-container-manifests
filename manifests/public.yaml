@@ -589,9 +589,6 @@ spec:
   - name: velum-dist-name
     hostPath:
       path: /usr/share/velum/PRODUCT
-  - name: velum-static-pages
-    hostPath:
-      path: /usr/share/velum/public
   - name: velum-images
     hostPath:
       path: /usr/share/velum/images
