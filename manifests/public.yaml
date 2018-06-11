@@ -312,9 +312,6 @@ spec:
     - mountPath: /srv/velum/PRODUCT
       name: velum-dist-name
       readOnly: True
-    - mountPath: /srv/velum/public
-      name: velum-static-pages
-      readOnly: True
     - mountPath: /srv/velum/public/branding
       name: velum-images
       readOnly: True
