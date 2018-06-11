@@ -355,17 +355,27 @@ unless specifically setup to receive updates via a different route such as SUSE
 Manager or a private SMT server. Registration after the initial setup also
 requires an explcit registration of each node in the cluster.
     </para>
-   </sect3>
-  </sect2>
- </sect1>
- <sect1 xml:id="configuration">
-  <title>Configuration</title>
    <para>
     When all information is collected accept your selections/input with
 <literal>y</literal> to complete the initial setup setp.
   </para>
+   </sect3>
+  </sect2>
+ </sect1>
+ <sect1 xml:id="bootstrapping">
+  <title>Bootstrapping a Cluster</title>
+  <para>
+   To finalize the configuration and bootstrap the cluster, log into Velum
+   using your admininstration e-mail address and password. This will take you
+   to the <emphasis role="bold">Initial CaaS Platform Configuration</emphasis>
+   page. The field <emphasis role="bold">Internal Dashboard FQDN/IP</emphasis>
+   should be preset with the internal IP address of your controller host. You
+   may also choose to install Helm or change the configuration of the overlay
+   network. Clicking <emphasis role="bold">Next</emphasis> will take you to
+   the cloud framework specific configuration page.
+  </para>
   <sect2>
-   <title>Bootstrapping a Cluster</title>
+   <title>Configuration</title>
    <para>
     Within a Public Cloud environment, bootstrapping a &productname; cluster is
 performed in an automated manner. You must simply choose the instance type best
@@ -416,6 +426,15 @@ general container workloads, or choose
      </varlistentry>
     </variablelist>
     <para>
+     The defaults used for those two options are preset to the subnet ID of
+     the administration host and the security group ID that was automatically
+     created by <literal>caasp-admin-setup</literal>. You may choose to place
+     the cluster nodes in a different subnet and you can also use a custom
+     security group, but please bear in mind that traffic must be allowed
+     between the individual  cluster node and also between the admininstration
+     node and the cluser nodes.
+    </para>
+    <para>
      See the
      <link xlink:href="https://aws.amazon.com/documentation/vpc/">
       Amazon Virtual Private Cloud Documentation
@@ -423,7 +442,65 @@ general container workloads, or choose
      for more information.
     </para>
    </sect3>
+   <sect3>
+    <title>Microsoft Azure</title>
+    <para>
+    </para>
+   </sect3>
   </sect2>
+  <sect2>
+  <title>Perform the Bootstrap</title>
+   <para>
+    Clicking <emphasis role="bold">Next</emphasis> on the framework specific
+    page will start creating the cluster node instances and take you to the
+    discovery page. Once the instances are up and running, they will appear in
+    the list of <emphasis role="bold">Pending Nodes</emphasis>. Assign each
+    node a role (worker or master) and click <emphasis role="bold">Next
+    </emphasis>to get to the boostrap page.
+   </para>
+   <para>
+    On the boostrap page, there are two more configuration fields. One is
+    labelled <emphasis role="bold">External Kubernetes API FQDN</emphasis>.
+    This is supposed to be the full hostname of one of the master nodes, and
+    will be used in the configuration for <literal>kubectl</literal>, the
+    command line tool that allows you to control the kubernetes cluster.
+    It is possible to use <literal>kubectl</literal> from within the cluster,
+    i.e. on the administration node, which should work with the internal name
+    that is preset in the configuration field. If you intend to use
+    <literal>kubectl</literal> from outside the cluster, you can change this to
+    a hostname that resolves to the master node address on the system you want
+    to use <literal>kubectl</literal> on, either by accordingly configured DNS
+    or by adding the host to your <literal>/etc/hosts</literal>. You will
+    either need a VPN connection to the master node or attach an external IP
+    address to the master node.
+   </para>
+   <para>
+    The other configuration field is labellel <emphasis role="bold">External
+    Dashboard FQDN</emphasis>. This is the external hostname of your
+    administration host. When done configuring, click <emphasis role="bold">
+    Boostrap cluster</emphasis>. The bootstrap process may take a few minutes.
+    When finished, your cluster should be ready.
+   </para>
+  </sect2>
+ </sect1>
+ <sect1 xml:id="operating">
+  <title>Operating the Cluster</title>
+  <para>
+   As mentioned in the previous section, <literal>kubectl</literal> is the
+   tool to control the kubernetes cluster. In the dasboard page, after
+   bootstrapping, you can see a button labelled <emphasis role="bold">
+   kubectl config</emphasis> which is disabled in the cloud version of CaaSP,
+   since the fact that your cluster nodes do not have external IP addresses
+   makes it not straight-forward to retrieve the configuration file from the
+   node you elected to be the API node. Instead, clicking on it will show
+   you how you can create a <literal>kubectl</literal> config on the
+   admininstration host using <literal>caasp-cli</literal>. You may also
+   copy the generated <literal>kubectl</literal> to another machine to use
+   <literal>kubectl</literal> from there, but you will also need to copy
+   <literal>/etc/pki/ca.crt</literal> which can be passed to <literal>
+   kubectl</literal> via its <literal>--certificate-authority</literal>
+   parameter.
+  </para>
  </sect1>
  <sect1 xml:id="troubleshooting">
   <title>Troubleshooting</title>
