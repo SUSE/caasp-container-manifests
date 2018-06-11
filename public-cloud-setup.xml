@@ -61,8 +61,8 @@ resize the root volume to meet your needs upon instance launch.
   <title>Network Considerations</title>
    <para>
     &productname; expects that DNS resolution is functional. In general Public
-Cloud providers provide a working DNS service the works with network internal
-names. You can also set up you own DNS resolution, please refer to the
+Cloud providers provide a working DNS service that works with network internal
+names. You can also set up your own DNS resolution, please refer to the
 documentation of the Public Cloud provider of your choice to configure your own
 DNS service.
    </para>
@@ -83,7 +83,7 @@ firewall/security-group that only allows incoming traffic on a port monitored
 by your application(s). It is common that containerized applications provide
 the backend for REST based applications with content served over https (port
 443) and thus you should only allow ingress traffic on port 443. As with the
-Administrative node, cluster nodes must have access to a source of updates.
+Administrative node, cluster nodes must have access to a source for updates.
   </para>
   <para>
    Traffic between the two subnets should be allowed to flow
@@ -272,7 +272,7 @@ user.
 <emphasis role="italic">wizard</emphasis> mode, walking the user through the
 necessary steps. During this process your SCC credentials will be
 requested. Registration with SCC can be skipped. If this step is skipped during
-the admin node and the cluster nodes will not receive any updates. While
+setup the admin node and the cluster nodes will not receive any updates. While
 registration to SCC can be performed after the initial setup with
 <literal>SUSEConnect</literal>, performing the registration during setup has
 the advantage that cluster nodes will automatically be registered with SCC as
@@ -292,7 +292,7 @@ fingerprint in your browser to establish the chain of trust.
   <sect2>
    <title>caasp-admin-setup detail</title>
    <para>
-    The general purpose of the <literal>caasp-admin-setup</literal> is to
+    The general purpose of <literal>caasp-admin-setup</literal> is to
 collect all information needed to successfully start the &productname;
 containers. Parts of the executable are framework dependent, other parts are
 cloud framework independent. The framework dependent parts are described in the
@@ -303,11 +303,11 @@ specific framework sections later.
 cluster nodes to use accoring to the cloud framework. For this operation to
 suceed outgoing traffic on port 443 to the Internet must be permitted. The code
 will access the <literal>Public Cloud Information Tracker</literal> service
-operated by the SUSE. This service provides information about all images ever
+operated by SUSE. This service provides information about all images ever
 released to the Public Cloud by SUSE. The latest available cluster node image
-for this version of CaaSP will be used. This initiall outreach and image
-filtering introduces a small startup delay before the command line options are
-processed or the wizard mode starts.
+for this version of &productname; will be used. This initiall outreach and
+image filtering introduces a small startup delay before the command line
+options are processed or the wizard mode starts.
    </para>
    <sect3>
     <title>Providing SSL certificate and key</title>
@@ -321,7 +321,7 @@ answering the <literal>Would you like to use your own certificate from a known
     <para>
      In order to use your own SSL certificate and key you must opload the
 files to the admin node into a location of your choice. This location is then
-provided to the setup code. For example of your certificate is called
+provided to the setup code. For example, if your certificate is called
 <emphasis role="italic">my-velum.crt</emphasis> and you uploaded it to
 <emphasis role="italic">/tmp</emphasis> then the
 <literal>caasp-admin-setup</literal> code expects <emphasis
@@ -345,7 +345,7 @@ you enter, as they cannot be recovered.
     <title>Registering with SCC</title>
     <para>
      The setup code will ask for an e-mail address and the registration code.
-Use your SCC credentials thta provide access to the &productname; product in
+Use your SCC credentials that provide access to the &productname; product in
 SCC. The admin node and all cluster nodes will get registered to SCC. The
 registration process requires access to the Internet on port 443. Alternatively
 you may use the <literal>--reg-email</literal> and
@@ -358,8 +358,12 @@ requires an explcit registration of each node in the cluster.
    <para>
     When all information is collected accept your selections/input with
 <literal>y</literal> to complete the initial setup setp.
-  </para>
-   </sect3>
+  </sect2>
+  <sect2>
+   <title>Amazon Web Services EC2</title>
+   <para>
+    # Missing EC2 details cert generation if framework specific.
+   </para>
   </sect2>
  </sect1>
  <sect1 xml:id="bootstrapping">
@@ -408,7 +412,7 @@ general container workloads, or choose
      <term>Subnet ID</term>
       <listitem>
        <para>
-        The <emphasis role="italic">subnet</emphasis> where cluster
+        The <emphasis role="italic">subnet</emphasis> within which cluster
         nodes will be attached to the network, in the form
         <literal>subnet-xxxxxxxx</literal>.
        </para>
@@ -419,7 +423,7 @@ general container workloads, or choose
       <listitem>
        <para>
         The <emphasis role="italic">security group</emphasis>
-        defining network rules for the cluster nodes, in the form
+        defining network access rules for the cluster nodes, in the form
         <literal>sg-xxxxxxxx</literal>.
        </para>
       </listitem>
@@ -441,6 +445,9 @@ general container workloads, or choose
      </link>
      for more information.
     </para>
+    # Missing information needs explanation about what to enter for the
+    # 3 form fields CaaSP needs for cluster boot strap. @jgleissner can you
+please take a stab at this.
    </sect3>
    <sect3>
     <title>Microsoft Azure</title>
