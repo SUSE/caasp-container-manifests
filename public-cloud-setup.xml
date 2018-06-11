@@ -355,15 +355,11 @@ unless specifically setup to receive updates via a different route such as SUSE
 Manager or a private SMT server. Registration after the initial setup also
 requires an explcit registration of each node in the cluster.
     </para>
-   <para>
-    When all information is collected accept your selections/input with
+    <para>
+     When all information is collected accept your selections/input with
 <literal>y</literal> to complete the initial setup setp.
-  </sect2>
-  <sect2>
-   <title>Amazon Web Services EC2</title>
-   <para>
-    # Missing EC2 details cert generation if framework specific.
-   </para>
+    </para>
+   </sect3>
   </sect2>
  </sect1>
  <sect1 xml:id="bootstrapping">
@@ -445,9 +441,6 @@ general container workloads, or choose
      </link>
      for more information.
     </para>
-    # Missing information needs explanation about what to enter for the
-    # 3 form fields CaaSP needs for cluster boot strap. @jgleissner can you
-please take a stab at this.
    </sect3>
    <sect3>
     <title>Microsoft Azure</title>
