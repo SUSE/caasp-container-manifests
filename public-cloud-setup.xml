@@ -4,7 +4,7 @@
   <!ENTITY % entities SYSTEM "entity-decl.ent">
     %entities;
 ]>
-<chapter version="5.0" xml:id="configuration"
+<chapter version="5.0" xml:id="public.cloud"
   xmlns="http://docbook.org/ns/docbook"
   xmlns:xi="http://www.w3.org/2001/XInclude"
   xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -36,6 +36,7 @@ node. Administrative node images contain the
 requirements as documented in the &productname; documentation.
     <variablelist>
      <varlistentry>
+      <term>Memory</term>
       <listitem>
        <para>
         Minimal main memory: 8GB
@@ -43,6 +44,7 @@ requirements as documented in the &productname; documentation.
       </listitem>
      </varlistentry>
      <varlistentry>
+      <term>Volume Size</term>
       <listitem>
        <para>
         Root volume size should be at least 40GB and is dependent on the size
@@ -53,6 +55,7 @@ resize the root volume to meet your needs upon instance launch.
       </listitem>
      </varlistentry>
     </variablelist>
+   </para>
  </sect1>
  <sect1 xml:id="network-considerations">
   <title>Network Considerations</title>
@@ -85,235 +88,176 @@ Administrative node, cluster nodes must have access to a source of updates.
   <para>
    Traffic between the two subnets should be allowed to flow
 freely. &productname; uses the following ports:
+  </para>
+  <para>
    <emphasis role="bold">Administrative node</emphasis>
-   <variablelist>
-    <varlistentry>
-     <listitem>
-      <para>
-       ssh: 22
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       http: 80 (Redirects to 443, https)
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       ntp: 123 (In cases where the service provider has a time service the
+   <itemizedlist>
+    <listitem>
+     <para>
+      ssh: 22
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      http: 80 (Redirects to 443, https)
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      ntp: 123 (In cases where the service provider has a time service the
 admin node image is configured to use the ntp service provided by the
 framework. Cluster nodes always point back to the admin node)
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       slapd: 389
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       https: 443
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       etcd: 2379
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       etcd: 2380
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       salt master: 4505
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       salt master: 4506
-      </para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      slapd: 389
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      https: 443
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      etcd: 2379
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      etcd: 2380
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      salt master: 4505
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      salt master: 4506
+     </para>
+    </listitem>
+   </itemizedlist>
    <emphasis role="bold">Master node role</emphasis>
-   <variablelist>
-    <varlistentry>
-     <listitem>
-      <para>
-       ssh: 22
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       etcd: 2379
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       etcd: 2380
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       kubelet: 4198
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       haproxy: 6443
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       haproxy: 6444
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       flanneld: 8285 (UDP)
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       kubelet: 10250
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       kube-scheduler: 10251
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       kube-controller-manager: 10252
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       kubelet: 10255
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       kube-proxy: 10256
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       kube-proxy: 32000
-      </para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
+   <itemizedlist>
+    <listitem>
+     <para>
+      ssh: 22
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      etcd: 2379
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      etcd: 2380
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      kubelet: 4198
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      haproxy: 6443
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      haproxy: 6444
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      flanneld: 8285 (UDP)
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      kubelet: 10250
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      kube-scheduler: 10251
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      kube-controller-manager: 10252
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      kubelet: 10255
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      kube-proxy: 10256
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      kube-proxy: 32000
+     </para>
+    </listitem>
+   </itemizedlist>
    <emphasis role="bold">Worker node role</emphasis>
-   <variablelist>
-    <varlistentry>
-     <listitem>
-      <para>
-       ssh: 22
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       etcd: 2379
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       etcd: 2380
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       kubelet: 4194
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       flanneld: 8285 (UDP)
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       kubelet: 10250
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       kubelet: 10255
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       kube-proxy: 10256
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <listitem>
-      <para>
-       kube-proxy: 32000
-      </para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
+   <itemizedlist>
+    <listitem>
+     <para>
+      ssh: 22
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      etcd: 2379
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      etcd: 2380
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      kubelet: 4194
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      flanneld: 8285 (UDP)
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      kubelet: 10250
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      kubelet: 10255
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      kube-proxy: 10256
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      kube-proxy: 32000
+     </para>
+    </listitem>
+   </itemizedlist>
   </para>
+ </sect1>
  <sect1 xml:id="setup">
   <title>Setup</title>
    <para>
@@ -411,20 +355,14 @@ unless specifically setup to receive updates via a different route such as SUSE
 Manager or a private SMT server. Registration after the initial setup also
 requires an explcit registration of each node in the cluster.
     </para>
-   <sect3>
-   <para>
-    When all information is collected accept your selections/input with
-<literal>y</literal> to complete the initial setup setp.
-  </sect2>
-  <sect2>
-   <title>Amazon Web Services EC2</title>
-   <para>
-   </para>
+   </sect3>
   </sect2>
  </sect1>
  <sect1 xml:id="configuration">
   <title>Configuration</title>
-  <para>
+   <para>
+    When all information is collected accept your selections/input with
+<literal>y</literal> to complete the initial setup setp.
   </para>
   <sect2>
    <title>Bootstrapping a Cluster</title>
@@ -448,25 +386,29 @@ with the standard setup procedure.
 general container workloads, or choose
 <emphasis role="italic">Other types...</emphasis> and enter any
 <emphasis role="italic">model</emphasis>, as defined at
-<ulink url="https://aws.amazon.com/ec2/instance-types/">
+<link xlink:href="https://aws.amazon.com/ec2/instance-types/">
  https://aws.amazon.com/ec2/instance-types/
-</ulink>
+</link>
     </para>
     <para>
      Two configuration options are required in EC2:
     </para>
     <variablelist>
      <varlistentry>
+     <term>Subnet ID</term>
       <listitem>
        <para>
-        Subnet ID: the <emphasis role="italic">subnet</emphasis> where cluster
+        The <emphasis role="italic">subnet</emphasis> where cluster
         nodes will be attached to the network, in the form
         <literal>subnet-xxxxxxxx</literal>.
        </para>
       </listitem>
+     </varlistentry>
+     <varlistentry>
+     <term>Security Group ID</term>
       <listitem>
        <para>
-        Security Group ID: the <emphasis role="italic">security group</emphasis>
+        The <emphasis role="italic">security group</emphasis>
         defining network rules for the cluster nodes, in the form
         <literal>sg-xxxxxxxx</literal>.
        </para>
@@ -475,9 +417,9 @@ general container workloads, or choose
     </variablelist>
     <para>
      See the
-     <ulink url="https://aws.amazon.com/documentation/vpc/">
+     <link xlink:href="https://aws.amazon.com/documentation/vpc/">
       Amazon Virtual Private Cloud Documentation
-     </ulink>
+     </link>
      for more information.
     </para>
    </sect3>
