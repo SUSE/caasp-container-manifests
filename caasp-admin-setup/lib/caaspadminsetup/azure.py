@@ -66,7 +66,11 @@ def setup_network_security(cluster_name):
 
 
 def get_salt_cloud_profile_config(
-        profile_name, root_volume_size, ssh_user, ssh_pub_key):
+        profile_name,
+        root_volume_size,
+        ssh_user,
+        ssh_pub_key,
+        ssh_private_key_file):
     config = {
         profile_name:  {
             "provider": "azure",

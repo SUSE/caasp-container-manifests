@@ -27,7 +27,7 @@ def _get_instance_subnet_id():
     return _get_from_metadata('subnet-id')
 
 
-def _get_cluser_node_image_id():
+def _get_cluster_node_image_id():
     region = _get_instance_region()
     image_data = utils.get_cluster_image_identifier('amazon', region)
     image_to_use = image_data.get('id')
@@ -127,11 +127,15 @@ def setup_network_security(cluster_name):
 
 
 def get_salt_cloud_profile_config(
-        profile_name, root_volume_size, ssh_user, ssh_pub_key):
+        profile_name,
+        root_volume_size,
+        ssh_user,
+        ssh_pub_key,
+        ssh_private_key_file):
     config = {
         profile_name:  {
             "provider": "ec2",
-            "image": _get_cluser_node_image_id(),
+            "image": _get_cluster_node_image_id(),
             "ssh_user": "ec2-user",
             "script": "/etc/salt/cloud-configure-minion.sh",
             "script_args": "-u {} -t {}".format(ssh_user, get_local_ipv4()),
@@ -167,7 +171,7 @@ def get_database_pillars():
     pillars = [
         {
             "name": prefix + "image",
-            "value": _get_cluser_node_image_id()
+            "value": _get_cluster_node_image_id()
         },
         {
             "name": prefix + "network_interfaces:0:SubnetId",
