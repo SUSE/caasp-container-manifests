@@ -313,7 +313,10 @@ spec:
       name: velum-dist-name
       readOnly: True
     - mountPath: /srv/velum/public/branding
-      name: velum-images
+      name: velum-branding
+      readOnly: True
+    - mountPath: /srv/velum/public/favicon.ico
+      name: velum-icon
       readOnly: True
     args: ["bin/run"]
   - name: velum-api
@@ -586,6 +589,9 @@ spec:
   - name: velum-dist-name
     hostPath:
       path: /usr/share/velum/PRODUCT
-  - name: velum-images
+  - name: velum-branding
     hostPath:
       path: /usr/share/velum/images
+  - name: velum-icon
+    hostPath:
+      path: /usr/share/velum/images/favicon.ico
