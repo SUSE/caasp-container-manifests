@@ -445,7 +445,100 @@ general container workloads, or choose
    <sect3>
     <title>Microsoft Azure</title>
     <para>
+     In Azure, you need to configure credentials for access to the Azure
+     framework so instances can be created, as well as parameters for the
+     cluster node instances themselves. The credentials refer to
+     authentication via a so-called service principal. See
+     <link xlink:href="https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli">
+      https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli
+     </link>
+     for more information on how you can create a service principal.
     </para>
+    <variablelist>
+     <varlistentry>
+     <term>Subscription ID</term>
+      <listitem>
+       <para>
+        The subscription ID of your Azure account.
+       </para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+     <term>Tenant ID</term>
+      <listitem>
+       <para>
+        The tenant ID of your service principal.
+       </para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+     <term>Application ID</term>
+      <listitem>
+       <para>
+        The application ID of your service principal.
+       </para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+     <term>Client Secret</term>
+      <listitem>
+       <para>
+        The password of your service principal.
+       </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+    <para>
+     Below the <emphasis role="bold">Service Principal Authentication</emphasis>
+     box you will find the <emphasis role="bold">Instance Type</emphasis>
+     configuration. You may select from one of the predefined instance types,
+     hand selected for general container workloads, or choose
+     <emphasis role="italic">Other types...</emphasis> and enter any
+     <emphasis role="italic">size</emphasis>, as defined at
+     <link xlink:href="https://docs.microsoft.com/en-us/azure/cloud-services/cloud-services-sizes-specs">
+      https://docs.microsoft.com/en-us/azure/cloud-services/cloud-services-sizes-specs
+     </link>
+     Choose the <emphasis role="bold">Cluster size</emphasis> using the
+     slider.
+    </para>
+    <para>
+     The remaining configuration parameters are the <emphasis role="bold">
+     Resource Scopes</emphasis>:
+    </para>
+    <variablelist>
+     <varlistentry>
+     <term>Resource Group</term>
+      <listitem>
+       <para>
+        The Resource Group in which all resources should be created.
+       </para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+     <term>Storage Account</term>
+      <listitem>
+       <para>
+        The Storage Account that should be used for storing the OS disks.
+       </para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+     <term>Network</term>
+      <listitem>
+       <para>
+        The virtual network the cluster nodes should be put in.
+       </para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+     <term>Subnet</term>
+      <listitem>
+       <para>
+        A subnet in the above virtual network.
+       </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
    </sect3>
   </sect2>
   <sect2>
