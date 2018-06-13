@@ -445,12 +445,12 @@ general container workloads, or choose
    <sect3>
     <title>Microsoft Azure</title>
     <para>
-     In Azure, you need to configure credentials for access to the Azure
+     You need to configure credentials for access to the Azure
      framework so instances can be created, as well as parameters for the
      cluster node instances themselves. The credentials refer to
-     authentication via a so-called service principal. See
-     <link xlink:href="https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli">
-      https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli
+     authentication via a service principal. See
+     <link xlink:href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-create-service-principal-portal">
+      https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-create-service-principal-portal
      </link>
      for more information on how you can create a service principal.
     </para>
@@ -467,7 +467,7 @@ general container workloads, or choose
      <term>Tenant ID</term>
       <listitem>
        <para>
-        The tenant ID of your service principal.
+        The tenant ID of your service principal, also known as the Active Directory ID.
        </para>
       </listitem>
      </varlistentry>
@@ -483,7 +483,7 @@ general container workloads, or choose
      <term>Client Secret</term>
       <listitem>
        <para>
-        The password of your service principal.
+        The key value or password of your service principal.
        </para>
       </listitem>
      </varlistentry>
@@ -495,15 +495,16 @@ general container workloads, or choose
      hand selected for general container workloads, or choose
      <emphasis role="italic">Other types...</emphasis> and enter any
      <emphasis role="italic">size</emphasis>, as defined at
-     <link xlink:href="https://docs.microsoft.com/en-us/azure/cloud-services/cloud-services-sizes-specs">
-      https://docs.microsoft.com/en-us/azure/cloud-services/cloud-services-sizes-specs
+     <link xlink:href="https://docs.microsoft.com/en-us/azure/virtual-machines/linux/sizes/">
+      https://docs.microsoft.com/en-us/azure/virtual-machines/linux/sizes/
      </link>
-     Choose the <emphasis role="bold">Cluster size</emphasis> using the
+     Set the <emphasis role="bold">Cluster size</emphasis> using the
      slider.
     </para>
     <para>
-     The remaining configuration parameters are the <emphasis role="bold">
-     Resource Scopes</emphasis>:
+     The parameters in <emphasis role="bold"> Resource Scopes</emphasis>
+     define attributes of the cluster instances, as required for Azure
+     Resource Manager:
     </para>
     <variablelist>
      <varlistentry>
@@ -519,6 +520,10 @@ general container workloads, or choose
       <listitem>
        <para>
         The Storage Account that should be used for storing the OS disks.
+        See <link xlink:href="https://docs.microsoft.com/en-us/azure/storage/common/storage-create-storage-account">
+        https://docs.microsoft.com/en-us/azure/storage/common/storage-create-storage-account
+        </link>
+        for more information about Azure Storage Accounts.
        </para>
       </listitem>
      </varlistentry>
@@ -535,6 +540,10 @@ general container workloads, or choose
       <listitem>
        <para>
         A subnet in the above virtual network.
+        See <link xlink:href="https://docs.microsoft.com/en-us/azure/virtual-network/">
+        https://docs.microsoft.com/en-us/azure/virtual-network/
+        </link>
+        for more information about Azure Virtual Networks.
        </para>
       </listitem>
      </varlistentry>
