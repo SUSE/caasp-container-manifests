@@ -24,8 +24,8 @@ def _get_instance_location():
 
 
 def _get_instance_network():
-    zone = _get_from_metadata('network')
-    return zone.split('/')[3]
+    network = _get_from_metadata('network')
+    return network.split('/')[3]
 
 
 def get_local_ipv4():
