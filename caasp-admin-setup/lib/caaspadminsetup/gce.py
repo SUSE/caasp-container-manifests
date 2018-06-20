@@ -15,6 +15,8 @@ def _get_cluster_node_image_id():
 def _get_from_metadata(key, category='instance'):
     meta = gcemetadata.GCEMetadata()
     meta.set_data_category(category)
+    # make sure we get network related data from primary interface
+    meta.set_net_device('0')
     return meta.get(key)
 
 
