@@ -29,6 +29,8 @@ Conflicts:      otherproviders(caasp-cloud-config)
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
 BuildArch:      noarch
+BuildRequires:  salt
+Requires:       salt
 
 %description
 Configuration for CaaSP set up and operation in the Public Cloud

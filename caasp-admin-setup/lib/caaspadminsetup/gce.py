@@ -1,6 +1,7 @@
 import caaspadminsetup.utils as utils
-import gcemetadata
+import gcemetadata.gcemetadata as gcemetadata
 import logging
+import re
 
 
 def _get_cluster_node_image_id():
@@ -11,10 +12,22 @@ def _get_cluster_node_image_id():
     return image_to_use
 
 
-def _get_from_metadata(key):
+def _get_from_metadata(key, category='instance'):
     meta = gcemetadata.GCEMetadata()
-    meta.set_data_category('instance')
+    meta.set_data_category(category)
+    # make sure we get network related data from primary interface
+    meta.set_net_device('0')
     return meta.get(key)
+
+
+def _get_instance_location():
+    zone = _get_from_metadata('zone')
+    return zone.split('/')[3]
+
+
+def _get_instance_network():
+    network = _get_from_metadata('network')
+    return network.split('/')[3]
 
 
 def get_local_ipv4():
@@ -24,21 +37,77 @@ def get_local_ipv4():
 def get_instance_id():
     return _get_from_metadata('id')
 
+
 def have_permissions():
-    raise Exception('not yet implemented')
+    scopes = _get_from_metadata('scopes')
+    pattern = re.compile("auth/cloud-platform")
+    if not pattern.search(scopes):
+        print("This instance does not have the required API scopes configured.")
+        print("Please attach a service account to this instance that includes")
+        print("the roles 'Compute Admin' and 'Service Account Actor'.")
+        return False
+    return True
 
 
 def create_public_key(key_name, public_key_data):
-    raise Exception('not yet implemented')
+    # not used in GCE
+    return
 
 
-def get_salt_cloud_profile_config(image, root_volume_size):
-    raise Exception('not yet implemented')
+def get_salt_cloud_profile_config(
+        profile_name,
+        root_volume_size,
+        ssh_user,
+        ssh_pub_key,
+        ssh_private_key_file):
+    config = {
+        profile_name:  {
+            "provider": "gce",
+            "image": _get_cluster_node_image_id(),
+            "location": _get_instance_location(),
+            "network": _get_instance_network(),
+            "external_ip": "None",
+            "script": "/etc/salt/cloud-configure-minion.sh",
+            "ssh_interface": "private_ips",
+            "ssh_username": ssh_user,
+            "ssh_keyfile": ssh_private_key_file,
+            "use_persistent_disk": False,
+            "metadata": '{"sshKeys": "caasp: '+ssh_pub_key+'"}'
+        }
+    }
+    return config
 
 
 def get_salt_cloud_provider_config(key_name, private_key_file):
-    raise Exception('not yet implemented')
+    config = {
+        "gce": {
+            "driver": "gce",
+            "project": _get_from_metadata(key="project-id", category="project"),
+            "service_account_email_address": "",
+            "service_account_private_key": "",
+            "minion": {
+                "master": get_local_ipv4()
+            }
+        }
+    }
+    return config
 
 
 def setup_network_security(cluster_name):
-    raise Exception('not yet implemented')
+    # not used in GCE
+    return
+
+
+def get_database_pillars():
+    prefix = "cloud:profiles:cluster_node:"
+    pillars = [
+        {
+            "name": prefix + "image",
+            "value": _get_cluster_node_image_id()
+        },
+        {
+            "name": prefix + "network",
+            "value": _get_instance_network()
+        },
+    ]
+    return pillars
