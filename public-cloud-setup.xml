@@ -289,6 +289,21 @@ the fingerprint was written to the terminal in which
 <literal>caasp-admin-setup</literal> was executed. You can compare this
 fingerprint in your browser to establish the chain of trust.
   </para>
+  <para>
+   Depending on the Cloud Service Provider framework your administration
+   node runs in, additional configuration may be required. In Microsoft
+   Azure, there is no NTP service available and the instance does not have
+   an external NTP service preconfigured. Set one or more NTP server you
+   want to use in <literal>/etc/ntp.conf</literal> and restart the NTP
+   service: <literal>systemctl restart ntpd.service</literal>
+  </para>
+  <para>
+   No manual NTP configuration is required on the cluster nodes, as they
+   synchronize time with the admininstration node. See
+   <link xlink:href="https://www.suse.com/documentation/sles-12/book_sle_admin/data/cha_netz_xntp.html">
+    https://www.suse.com/documentation/sles-12/book_sle_admin/data/cha_netz_xntp.html
+   </link> for more information about NTP configuration.
+  </para>
   <sect2>
    <title>caasp-admin-setup detail</title>
    <para>
