@@ -82,7 +82,8 @@ def get_salt_cloud_profile_config(
             "ssh_password": _generate_password(),
             "cleanup_disks": True,
             "cleanup_vhds": True,
-            "cleanup_interfaces": True
+            "cleanup_interfaces": True,
+            "os_disk_size_gb": root_volume_size
         }
     }
     return config

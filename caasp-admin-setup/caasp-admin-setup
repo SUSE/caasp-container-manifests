@@ -736,7 +736,7 @@ def setup_salt_cloud(pubkey_name):
     cloud_pillar = salt_pillar['cloud']
     cloud_pillar['profiles'] = platform.get_salt_cloud_profile_config(
         profile_name="cluster_node",
-        root_volume_size=30,
+        root_volume_size=40,
         ssh_user="caasp",
         ssh_pub_key=pub_key_data,
         ssh_private_key_file=ssh_private_key_file
