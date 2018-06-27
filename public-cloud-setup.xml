@@ -23,10 +23,10 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
   Subscription (BYOS) images. &amp;productname; instances need to
   be registered with the SUSE Customer Center (SCC) in order to
   receive bugfix and security updates. Images labeled with the
-  <emphasis role="bold">cluster</emphasis>designation in the name
+  <emphasis role="bold">cluster</emphasis> designation in the name
   are not intended to be started directly; they are deployed by the
   Administrative node. Administrative node images contain the
-  <emphasis role="bold">admin</emphasis>designation in the image
+  <emphasis role="bold">admin</emphasis> designation in the image
   name.</para>
   <sect1 xml:id="instance-requirements">
     <title>Instance Requirements</title>
@@ -35,9 +35,9 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
     API. In Microsoft Azure, all security credentials will be
     collected during setup. In Google Compute Engine, the instance
     must be launched with an IAM role including
-    <emphasis role="literal">Compute Admin</emphasis>and
+    <emphasis role="literal">Compute Admin</emphasis> and
     <emphasis role="literal">Service Account
-    Actor</emphasis>scopes.</para>
+    Actor</emphasis> scopes.</para>
     <para>Select an instance size for the Administrative node that
     meets the system requirements as documented in the
     &amp;productname; documentation.
@@ -203,11 +203,11 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
     none of the administrative services are running when an
     instance is launched. The cluster administrator needs to ssh
     into the instance and run the
-    <literal>caasp-admin-setup</literal>executable as the
+    <literal>caasp-admin-setup</literal> executable as the
     <literal>root</literal>user.</para>
     <para>By default the
-    <literal>caasp-admin-setup</literal>executable operates in
-    <emphasis role="italic">wizard</emphasis>mode, walking you
+    <literal>caasp-admin-setup</literal> executable operates in
+    <emphasis role="italic">wizard</emphasis> mode, walking you
     through the necessary steps. During this process your SCC
     credentials will be requested. Registration with SCC can be
     skipped. If this step is skipped during setup the admin node
@@ -219,39 +219,39 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
     automatically be registered with SCC as well. If you prefer not
     to run the
     <emphasis role="italic">wizard</emphasis>, use
-    <literal>caasp-admin-setup --help</literal>to obtain a list of
+    <literal>caasp-admin-setup --help</literal> to obtain a list of
     the available command line arguments.</para>
     <para>Once the
-    <literal>caasp-admin-setup</literal>process is complete all
+    <literal>caasp-admin-setup</literal> process is complete all
     &amp;productname; containers will be launched on the admin node
     instance. Use your web browser to access the Velum dashboard
     via
     <literal>https</literal>. If you did not provide your own
     certificate, a certificate was generated for you and the
     fingerprint was written to the terminal in which
-    <literal>caasp-admin-setup</literal>was executed. You can
+    <literal>caasp-admin-setup</literal> was executed. You can
     compare this fingerprint in your browser to establish the chain
     of trust.</para>
     <para>Microsoft Azure does not provide a time protocol service.
     Please refer to
     <link xlink:href="https://www.suse.com/documentation/sles-12/book_sle_admin/data/cha_netz_xntp.html">
-    SUSE Linux Enterprise Server documentation</link>for more
+    SUSE Linux Enterprise Server documentation</link> for more
     information about NTP configuration. No manual NTP
     configuration is required on the cluster nodes, they
     synchronize time with the admininstration node.</para>
     <sect2>
       <title>caasp-admin-setup detail</title>
       <para>The general purpose of
-      <literal>caasp-admin-setup</literal>is to collect all
+      <literal>caasp-admin-setup</literal> is to collect all
       information needed to successfully start the
       &amp;productname; containers.</para>
       <para>When
-      <literal>caasp-admin-setup</literal>is executed it determines
+      <literal>caasp-admin-setup</literal> is executed it determines
       which cluster node image to use according to the cloud
       framework. For this operation to succeed outgoing traffic on
       port 443 to the Internet must be permitted. The code will
       access the
-      <literal>Public Cloud Information Tracker</literal>service
+      <literal>Public Cloud Information Tracker</literal> service
       operated by SUSE. This service provides information about all
       images ever released to the Public Cloud by SUSE. The latest
       available cluster node image for this version of
@@ -263,22 +263,22 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
         <title>Providing SSL certificate and key</title>
         <para>You may choose to supply your own SSL certificate and
         key for initial access the dashboard, with the
-        <literal>--ssl-crt</literal>and
-        <literal>--ssl-key</literal>options or by answering the
+        <literal>--ssl-crt</literal> and
+        <literal>--ssl-key</literal> options or by answering the
         question
         <literal>Would you like to use your own certificate from a
         known (public or self signed) Certificate
-        Authority?</literal>with
+        Authority?</literal> with
         <literal>y</literal>.</para>
         <para>In order to use your own SSL certificate and key you
         must upload the files to the admin node into a location of
         your choice. This location is then provided to the setup
         code. For example, if your certificate is called
-        <emphasis role="italic">my-velum.crt</emphasis>and you
+        <emphasis role="italic">my-velum.crt</emphasis> and you
         uploaded it to
-        <emphasis role="italic">/tmp</emphasis>then the
-        <literal>caasp-admin-setup</literal>code expects
-        <emphasis role="italic">/tmp/my-velum.crt</emphasis>as the
+        <emphasis role="italic">/tmp</emphasis> then the
+        <literal>caasp-admin-setup</literal> code expects
+        <emphasis role="italic">/tmp/my-velum.crt</emphasis> as the
         location for the SSL certificate. The same concept applies
         to the SSL key. The certificate and key will be placed in
         the appropriate locations on the admin node.</para>
@@ -288,8 +288,8 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
         <para>Velum is the name of the administrative dashboard web
         interface. The setup code will ask for an e-mail address
         and a password if not supplied with the
-        <literal>--admin-email</literal>and
-        <literal>--admin-password</literal>arguments. These are the
+        <literal>--admin-email</literal> and
+        <literal>--admin-password</literal> arguments. These are the
         administrative credentials to log into the Velum dashboard.
         The e-mail used does not have to be an e-mail associated
         with your SCC account. Please do not forget the values you
@@ -303,8 +303,8 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
         node and all cluster nodes will get registered to SCC. The
         registration process requires access to the Internet on
         port 443. Alternatively you may use the
-        <literal>--reg-email</literal>and
-        <literal>--reg-code</literal>arguments. Registration with
+        <literal>--reg-email</literal> and
+        <literal>--reg-code</literal> arguments. Registration with
         SCC is optional. However, without registration the system
         will not receive any updates unless specifically setup to
         receive updates via a different route such as a private SMT
@@ -312,7 +312,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
         an explcit registration of each node in the cluster.</para>
         <para>When all information is collected, accept your
         selections/input with
-        <literal>y</literal>to complete the initial setup.</para>
+        <literal>y</literal> to complete the initial setup.</para>
       </sect3>
     </sect2>
   </sect1>
@@ -322,13 +322,13 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
     log into Velum using your admininstrative e-mail address and
     password. This will take you to the
     <emphasis role="bold">Initial CaaS Platform
-    Configuration</emphasis>page. The field
+    Configuration</emphasis> page. The field
     <emphasis role="bold">Internal Dashboard
     FQDN/IP</emphasis>should be preset with the internal IP address
     of your administrative host. You may also choose to install
     Helm or change the configuration of the overlay network.
     Clicking
-    <emphasis role="bold">Next</emphasis>will take you to the cloud
+    <emphasis role="bold">Next</emphasis> will take you to the cloud
     framework specific configuration page.</para>
     <sect2>
       <title>Configuration</title>
@@ -338,7 +338,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
       to your intended workloads, size the cluster, and specify a
       few configuration details. The instances will be created, and
       automatically joined to the cluster, skipping the
-      <emphasis role="italic">pending</emphasis>state. At this
+      <emphasis role="italic">pending</emphasis> state. At this
       point you can continue with the standard setup
       procedure.</para>
       <para>In &amp;productname; version 2.1, cluster size has a
@@ -348,7 +348,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
         <para>You may select from one of the predefined instance
         types, hand selected for general container workloads, or
         choose
-        <emphasis role="italic">Other types...</emphasis>and enter
+        <emphasis role="italic">Other types...</emphasis> and enter
         any
         <emphasis role="italic">instance type</emphasis>, as
         defined at
@@ -360,7 +360,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
             <term>Subnet ID</term>
             <listitem>
               <para>The
-              <emphasis role="italic">subnet</emphasis>within which
+              <emphasis role="italic">subnet</emphasis> within which
               cluster nodes will be attached to the network, in the
               form
               <literal>subnet-xxxxxxxx</literal>.</para>
@@ -371,7 +371,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
             <listitem>
               <para>The
               <emphasis role="italic">security
-              group</emphasis>defining network access rules for the
+              group</emphasis> defining network access rules for the
               cluster nodes, in the form
               <literal>sg-xxxxxxxx</literal>.</para>
             </listitem>
@@ -399,7 +399,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
         credentials refer to authentication via a service
         principal. See
         <link xlink:href="https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-create-service-principal-portal">
-        https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-create-service-principal-portal</link>for
+        https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-create-service-principal-portal</link> for
         more information on how you can create a service
         principal.</para>
         <variablelist>
@@ -434,21 +434,21 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
         </variablelist>
         <para>Below the
         <emphasis role="bold">Service Principal
-        Authentication</emphasis>box you will find the
+        Authentication</emphasis> box you will find the
         <emphasis role="bold">Instance
-        Type</emphasis>configuration. You may select from one of
+        Type</emphasis> configuration. You may select from one of
         the predefined instance types, hand selected for general
         container workloads, or choose
-        <emphasis role="italic">Other types...</emphasis>and enter
+        <emphasis role="italic">Other types...</emphasis> and enter
         any
         <emphasis role="italic">size</emphasis>, as defined at
         <link xlink:href="https://docs.microsoft.com/en-us/azure/virtual-machines/linux/sizes/">
         https://docs.microsoft.com/en-us/azure/virtual-machines/linux/sizes/</link>Set
         the
-        <emphasis role="bold">Cluster size</emphasis>using the
+        <emphasis role="bold">Cluster size</emphasis> using the
         slider.</para>
         <para>The parameters in
-        <emphasis role="bold">Resource Scopes</emphasis>define
+        <emphasis role="bold">Resource Scopes</emphasis> define
         attributes of the cluster instances, as required for Azure
         Resource Manager:</para>
         <variablelist>
@@ -482,7 +482,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
               <para>A subnet in the previously defined virtual
               network. See
               <link xlink:href="https://docs.microsoft.com/en-us/azure/virtual-network/">
-              https://docs.microsoft.com/en-us/azure/virtual-network/</link>for
+              https://docs.microsoft.com/en-us/azure/virtual-network/</link> for
               more information about Azure Virtual Networks.</para>
             </listitem>
           </varlistentry>
@@ -493,7 +493,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
         <para>You may select from one of the predefined instance
         types, hand selected for general container workloads, or
         choose
-        <emphasis role="italic">Other types...</emphasis>and enter
+        <emphasis role="italic">Other types...</emphasis> and enter
         any
         <emphasis role="italic">machine type</emphasis>, as defined
         at
@@ -519,20 +519,20 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
         </variablelist>
         <para>See the
         <link xlink:href="https://cloud.google.com/vpc/docs/vpc">
-        GCE Network Documentation</link>for more
+        GCE Network Documentation</link> for more
         information.</para>
       </sect3>
     </sect2>
     <sect2>
       <title>Perform the Bootstrap</title>
       <para>Clicking
-      <emphasis role="bold">Next</emphasis>on the framework
+      <emphasis role="bold">Next</emphasis> on the framework
       specific page will start creating the cluster node instances
       and take you to the discovery page. Once the instances are up
       and running, they will appear in the list of
       <emphasis role="bold">Nodes Found</emphasis>. Assign each
       node a role (worker or master) and click
-      <emphasis role="bold">Next</emphasis>to get to the bootstrap
+      <emphasis role="bold">Next</emphasis> to get to the bootstrap
       page.</para>
       <para>On the bootstrap page, there are two more configuration
       fields. One is labeled
@@ -558,8 +558,8 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
     <literal>kubecfg</literal>, that defines parameters to access a
     kubernetes cluster. This configuration file can be generated on
     the admin node. Click
-    <emphasis role="bold">kubectl config</emphasis>to see
+    <emphasis role="bold">kubectl config</emphasis> to see
     instructions on how to generate the
-    <literal>kubeconfig</literal>file.</para>
+    <literal>kubeconfig</literal> sfile.</para>
   </sect1>
 </chapter>
