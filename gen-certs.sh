@@ -9,10 +9,15 @@ CITY=${CITY:-Nuremberg}
 STATE=${STATE:-Bavaria}
 COUNTRY=${COUNTRY:-DE}
 
-DIR="/etc/pki"
+DIR="${DIR:-/etc/pki}"
 CERTS="$DIR/_certs"
 PRIVATEDIR="$DIR/private"
 WORK="$DIR/_work"
+
+
+random_serial() {
+    xxd -l 16 -p /dev/random
+}
 
 genca() {
     [ -f $PRIVATEDIR/ca.key ] && [ -f $DIR/ca.crt ] && return
@@ -85,11 +90,16 @@ basicConstraints = critical, CA:FALSE
 keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
 EOF
 
+    random_serial > $WORK/serial
+
     rm -f $WORK/index.txt $WORK/index.txt.attr
     touch $WORK/index.txt $WORK/index.txt.attr
-    echo 1000 > $WORK/serial
 
-    openssl req -batch -config $WORK/ca.cfg -sha256 -new -x509 -days 3650 -extensions v3_ca -key $PRIVATEDIR/ca.key -out $DIR/ca.crt
+    openssl req -batch -config $WORK/ca.cfg \
+                -sha256 -new -x509 -days 3650 \
+                -extensions v3_ca \
+                -key $PRIVATEDIR/ca.key \
+                -out $DIR/ca.crt
 }
 
 gencert() {
