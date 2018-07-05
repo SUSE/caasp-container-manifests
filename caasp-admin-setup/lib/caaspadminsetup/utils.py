@@ -5,7 +5,7 @@ import susepubliccloudinfoclient.infoserverrequests as ifsrequest
 import yaml
 import sys
 
-RELEASE_DATE = re.compile('^.*-v(\d{8})-.*')
+RELEASE_DATE = re.compile('^.*-v(\d{8})-*.*')
 
 
 def get_caasp_release_version():
