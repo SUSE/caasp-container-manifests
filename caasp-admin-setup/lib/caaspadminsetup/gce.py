@@ -63,7 +63,6 @@ def get_salt_cloud_profile_config(
     config = {
         profile_name:  {
             "provider": "gce",
-            "image": _get_cluster_node_image_id(),
             "location": _get_instance_location(),
             "network": _get_instance_network(),
             "external_ip": "None",
@@ -72,7 +71,19 @@ def get_salt_cloud_profile_config(
             "ssh_username": ssh_user,
             "ssh_keyfile": ssh_private_key_file,
             "use_persistent_disk": False,
-            "metadata": '{"sshKeys": "caasp: '+ssh_pub_key+'"}'
+            "metadata": '{"sshKeys": "caasp: '+ssh_pub_key+'"}',
+            "ex_disks_gce_struct":
+            [
+                {
+                    "boot": True,
+                    "autoDelete": True,
+                    "initializeParams":
+                    {
+                        "sourceImage": _get_cluster_node_image_id(),
+                        "diskSizeGb": root_volume_size
+                    }
+                }
+            ]
         }
     }
     return config
