@@ -8,7 +8,7 @@ def _get_cluster_node_image_id():
     region = None  # All images are global
     image_data = utils.get_cluster_image_identifier('google', region)
     image_to_use = image_data.get('name')
-    if not image_to_use.startswith('project/'):
+    if not image_to_use.startswith('projects/'):
         # not a custom image, set project prefix
         if utils.get_from_config('procurement_flavor') == 'byos':
             project = 'suse-byos-cloud'
