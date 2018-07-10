@@ -1,7 +1,11 @@
 DESTDIR=
 ver = $(shell rpm -q --specfile --qf '%{NAME}-%{VERSION}\n' caasp-admin-setup.spec)
+setup_ver = $(shell python ./setup.py --fullname)
 ifneq ($(DESTDIR),)
 DESTDIR_ARG=--root="$(DESTDIR)"
+endif
+ifneq ($(ver), $(setup_ver))
+  $(error setup.py and caasp-admin-setup.spec versions differ)
 endif
 
 tar:
