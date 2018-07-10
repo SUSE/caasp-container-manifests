@@ -121,10 +121,6 @@ def get_database_pillars():
     prefix = "cloud:profiles:cluster_node:"
     pillars = [
         {
-            "name": prefix + "image",
-            "value": _get_cluster_node_image_id()
-        },
-        {
             "name": prefix + "network",
             "value": _get_instance_network()
         },
