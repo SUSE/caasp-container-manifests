@@ -63,7 +63,7 @@ def get_cluster_image_identifier(framework, region):
     name_filter += ',name~' + version.replace('.', '-')
     # The cluster image we choose depends on the admin node version,
     # thus we cannot just query for active images. We need to get all
-    # images an dthen process accordingly.
+    # images and then process accordingly.
     try:
         image_info = ifsrequest.get_image_data(
             framework,

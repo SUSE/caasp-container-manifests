@@ -19,16 +19,9 @@ def _generate_password():
 
 
 def _get_cluster_node_image_id():
-    # use user set cluster node image if any
-    image_to_use = utils.get_from_config("cluster_image")
-    if not image_to_use:
-        # construct URN from procurement flavor and OS release; image IDs from
-        # pint currently do not work in ARM
-        offer = "SUSE-CaaSP-Cluster"
-        if utils.get_from_config("procurement_flavor") == "byos":
-            offer += "-BYOS"
-        sku = utils.get_caasp_release_version()
-        image_to_use = "SUSE|{}|{}|latest".format(offer, sku)
+    region = _get_instance_location()
+    image_data = utils.get_cluster_image_identifier('microsoft', region)
+    image_to_use = image_data.get('urn').replace(':', '|')
     logging.info('Using cluster node image with name: "%s"' % image_to_use)
     return image_to_use
 
