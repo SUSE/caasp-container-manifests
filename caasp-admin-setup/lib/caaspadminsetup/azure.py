@@ -21,7 +21,16 @@ def _generate_password():
 def _get_cluster_node_image_id():
     region = _get_instance_location()
     image_data = utils.get_cluster_image_identifier('microsoft', region)
-    image_to_use = image_data.get('urn').replace(':', '|')
+    # in salt-cloud image IDs may be in URN or VHD blob URI notation; the
+    # latter may be used for custom images
+    if image_data.get('urn'):
+        image_to_use = image_data.get('urn').replace(':', '|')
+    else:
+        # warn if 'name' is not a URI
+        if not image_data.get('name').startswith('http'):
+           logging.warning('Custom image ID is not a VHD blob URI.')
+           logging.warning('Cluster node instance creation will likely fail.')
+        image_to_use = image_data.get('name')
     logging.info('Using cluster node image with name: "%s"' % image_to_use)
     return image_to_use
 

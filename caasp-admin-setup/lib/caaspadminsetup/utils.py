@@ -49,6 +49,8 @@ def get_cluster_image_identifier(framework, region):
         image_data = {}
         image_data['id'] = cluster_image
         image_data['name'] = cluster_image
+        if framework == 'microsoft' and cluster_image.count(':') == 3:
+            image_data['urn'] = cluster_image
         msg = 'Using cluster image from configuration. '
         msg += 'Image data for cluster node image: "%s"'
         logging.info(msg % image_data)
