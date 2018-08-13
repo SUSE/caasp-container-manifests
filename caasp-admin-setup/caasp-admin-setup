@@ -176,7 +176,9 @@ def _activate_script_path():
 
 # https://github.com/kubic-project/caasp-container-manifests/blob/master/activate.sh#L36-L37
 def _activate_script_artifact_path():
-    return "/etc/issue.d/90-velum.conf"
+    if utils.get_caasp_release_version()[0] == '2':
+        return "/etc/issue.d/90-velum.conf"
+    return "/run/issue.d/80-velum.conf"
 
 
 # https://build.opensuse.org/package/view_file/openSUSE:Factory/etcd/etcd.spec?expand=1
