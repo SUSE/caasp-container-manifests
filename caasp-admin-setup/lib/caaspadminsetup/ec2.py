@@ -81,6 +81,7 @@ def setup_network_security(cluster_name):
         if grp['SecurityGroups']:
             logging.info("Security group {} already exists, "
                          "skipping security group creation".format(cluster_name))
+            _cluster_security_group_id = grp['SecurityGroups'][0]['GroupId']
             return
     except botocore.exceptions.ClientError:
         pass
