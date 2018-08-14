@@ -570,7 +570,7 @@ def enable_services():
 def get_velum_container_id():
     client = docker.Client()
     containers = client.containers(filters={
-        'name': 'velum-dashboard',
+        'name': 'velum-dashboard_velum',
         'status': 'running'
     })
     if (len(containers) > 0):
