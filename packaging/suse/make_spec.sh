@@ -41,13 +41,12 @@ cat <<EOF > ${NAME}.spec
   %define _base_image sles12
 %endif
 
-%if 0%{?suse_version} == 1500 && !0%{?is_opensuse}
-  %define _base_image caasp
-%endif
-
 %if 0%{?is_opensuse} && 0%{?suse_version} > 1500
   %define _base_image kubic
 %endif
+
+# For SLE15 we will apply a patch to use the suse registry
+# However, we leave the _base_image technique for backwards compatibility
 
 Name:           $NAME
 Version:        $VERSION
@@ -84,6 +83,7 @@ Requires:       %{_base_image}-caasp-dex-image >= 2.0.0
 Requires:       kubernetes-salt
 BuildArch:      noarch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+Patch0:         set_caasp_images.patch
 
 %description
 Manifest file templates will instruct kubelet service to bring up salt
@@ -91,22 +91,31 @@ and velum containers on a controller node.
 
 %prep
 %setup -q -n ${NAME}-${SAFE_BRANCH}
+# caasp based on sle15
+%if 0%{?suse_version} == 1500 && !0%{?is_opensuse}
+%patch0 -p1
+%endif
 
 %build
 
 %install
 for file in manifests/*.yaml; do
   install -D -m 0644 \$file %{buildroot}/%{_datadir}/%{name}/\$file
+%if 0%{?suse_version} != 1500 || 0%{?is_opensuse}
+  # Not SLE15
   # fix image name
   sed -e "s|image:[ ]*sles12/\(.*\):|image: %{_base_image}/\1:|g" -i %{buildroot}/%{_datadir}/%{name}/\$file
 done
+%endif
 install -D -m 0644 config/haproxy/haproxy.cfg %{buildroot}/etc/caasp/haproxy/haproxy.cfg
 install -D -m 0755 activate.sh %{buildroot}/%{_datadir}/%{name}/activate.sh
+%if 0%{?suse_version} != 1500 || 0%{?is_opensuse}
 # fix image name in activate
 sed -e "s|sles12/pause|%{_base_image}/pause|g" -i %{buildroot}/%{_datadir}/%{name}/activate.sh
 %if 0%{?suse_version} >= 1500
 # Adjust pause image version in activate
 sed -e "s|pause:1.0.0|pause:0.1|g" -i %{buildroot}/%{_datadir}/%{name}/activate.sh
+%endif
 %endif
 install -D -m 0755 gen-certs.sh %{buildroot}/%{_datadir}/%{name}/gen-certs.sh
 for dir in salt/grains salt/minion.d-ca; do
