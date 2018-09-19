@@ -1,0 +1,178 @@
+diff --git a/activate.sh b/activate.sh
+index ccd9d84..c002ece 100755
+--- a/activate.sh
++++ b/activate.sh
+@@ -11,7 +11,7 @@ test -f ${DIDRUNFILE}  && exit 0
+ # Make sure that the controller node looks for the local pause image
+ # TODO: remove this as soon as possible. As an idea, we could use a systemd drop-in unit.
+ if ! grep "pod-infra-container-image" /etc/kubernetes/kubelet &> /dev/null; then
+-  sed -i 's|^KUBELET_ARGS="|KUBELET_ARGS="--pod-infra-container-image=sles12/pause:1.0.0 |' /etc/kubernetes/kubelet
++  sed -i 's|^KUBELET_ARGS="|KUBELET_ARGS="--pod-infra-container-image=registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/pause:1.0.0 |' /etc/kubernetes/kubelet
+ fi
+ 
+ # Make sure etcd listens on 0.0.0.0
+diff --git a/manifests/haproxy.yaml b/manifests/haproxy.yaml
+index d10f01c..9718ad5 100644
+--- a/manifests/haproxy.yaml
++++ b/manifests/haproxy.yaml
+@@ -19,7 +19,7 @@ spec:
+       operator: "Exists"
+   containers:
+     - name: haproxy
+-      image: sles12/haproxy:__TAG__
++      image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/haproxy:1.6.0
+       resources:
+         requests:
+           memory: 128Mi
+diff --git a/manifests/private.yaml b/manifests/private.yaml
+index 19e76ca..b78ee85 100644
+--- a/manifests/private.yaml
++++ b/manifests/private.yaml
+@@ -21,7 +21,7 @@ spec:
+   hostNetwork: False
+   initContainers:
+   - name: mariadb-secrets
+-    image: sles12/velum:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/velum:0.0
+     command: ["sh", "-c", "umask 377;
+                            if [ ! -f /infra-secrets/mariadb-root-password ]; then
+                              head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/mariadb-root-password;
+@@ -32,7 +32,7 @@ spec:
+       name: infra-secrets
+   containers:
+   - name: velum-mariadb
+-    image: sles12/mariadb:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/mariadb:10.0
+     env:
+     - name: MYSQL_DISABLE_REMOTE_ROOT
+       value: "true"
+diff --git a/manifests/public.yaml b/manifests/public.yaml
+index d83e6c8..946f588 100644
+--- a/manifests/public.yaml
++++ b/manifests/public.yaml
+@@ -21,7 +21,7 @@ spec:
+   hostNetwork: True
+   initContainers:
+   - name: mariadb-user-secrets
+-    image: sles12/mariadb:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/mariadb:10.0 
+     command: ["/setup-mysql.sh"]
+     env:
+     - name: ENV
+@@ -35,7 +35,7 @@ spec:
+       name: setup-mysql
+       readOnly: True
+   - name: openldap-secrets
+-    image: sles12/velum:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/velum:0.0
+     command: ["sh", "-c", "umask 377;
+                            if [ ! -f /infra-secrets/openldap-password ]; then
+                              head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/openldap-password;
+@@ -45,7 +45,7 @@ spec:
+     - mountPath: /infra-secrets
+       name: infra-secrets
+   - name: saltapi-secrets
+-    image: sles12/velum:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/velum:0.0
+     command: ["sh", "-c", "umask 377;
+                            if [ ! -f /infra-secrets/saltapi-password ]; then
+                              head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/saltapi-password;
+@@ -55,7 +55,7 @@ spec:
+     - mountPath: /infra-secrets
+       name: infra-secrets
+   - name: salt-minion-key-generation
+-    image: sles12/salt-master:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/salt-master:2018.3.0
+     command: ["sh", "-c", "umask 377;
+                            mkdir /salt-master-pki/minions/;
+                            temp_dir=`mktemp -d`;
+@@ -87,7 +87,7 @@ spec:
+     - mountPath: /salt-admin-minion-pki
+       name: salt-admin-minion-pki
+   - name: salt-master-config
+-    image: sles12/velum:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/velum:0.0
+     command: ["sh", "-c", "umask 377;
+                            rmdir /salt-master-credentials/55-returner-credentials.conf;
+                            if ! grep mysql /salt-master-credentials/55-returner-credentials.conf; then
+@@ -103,7 +103,7 @@ spec:
+     - mountPath: /salt-master-credentials
+       name: salt-master-credentials
+   - name: velum-internal-api
+-    image: sles12/velum:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/velum:0.0
+     command: ["sh", "-c", "umask 377;
+                            if [ ! -f /infra-secrets/velum-internal-api-username ]; then
+                              head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/velum-internal-api-username;
+@@ -116,7 +116,7 @@ spec:
+     - mountPath: /infra-secrets
+       name: infra-secrets
+   - name: velum-dashboard-init
+-    image: sles12/velum:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/velum:0.0
+     env:
+     - name: RAILS_ENV
+       value: production
+@@ -149,7 +149,7 @@ spec:
+     args: ["bin/init"]
+   containers:
+   - name: salt-master
+-    image: sles12/salt-master:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/salt-master:2018.3.0
+     env:
+     - name: MYSQL_UNIX_PORT
+       value: /var/run/mysql/mysql.sock
+@@ -199,7 +199,7 @@ spec:
+       name: public-cloud-config
+       readOnly: True
+   - name: salt-api
+-    image: sles12/salt-api:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/salt-api:2018.3.0
+     volumeMounts:
+     - mountPath: /etc/pki/salt-api.crt
+       name: salt-api-certificate
+@@ -218,7 +218,7 @@ spec:
+     - mountPath: /var/run/salt/master
+       name: salt-sock-dir
+   - name: salt-minion-ca
+-    image: sles12/salt-minion:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/salt-minion:2018.3.0
+     volumeMounts:
+     - mountPath: /etc/pki
+       name: salt-minion-ca-certificates
+@@ -236,7 +236,7 @@ spec:
+     - mountPath: /etc/salt/pki/minion
+       name: salt-ca-minion-pki
+   - name: velum-dashboard
+-    image: sles12/velum:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/velum:0.0
+     env:
+     - name: RAILS_ENV
+       value: production
+@@ -320,7 +320,7 @@ spec:
+       readOnly: True
+     args: ["bin/run"]
+   - name: velum-api
+-    image: sles12/velum:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/velum:0.0
+     env:
+     - name: RAILS_ENV
+       value: production
+@@ -390,7 +390,7 @@ spec:
+       readOnly: True
+     args: ["bundle", "exec", "puma", "-C", "config/puma.rb"]
+   - name: openldap
+-    image: sles12/openldap:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/openldap:10.0
+     env:
+     - name: SLAPD_DOMAIN
+       value: "infra.caasp.local"
+@@ -418,7 +418,7 @@ spec:
+     - mountPath: /etc/openldap/slapd.d
+       name: openldap-config
+   - name: velum-event-processor
+-    image: sles12/velum:__TAG__
++    image: registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/velum:0.0
+     env:
+     - name: WORKER_ID
+       value: worker1
