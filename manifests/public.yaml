@@ -198,6 +198,11 @@ spec:
     - mountPath: /srv/pillar
       name: public-cloud-config
       readOnly: True
+    # This mount path must match the file location on the physical nodes or the salt module
+    # would break either in the container or the physical nodes.
+    - mountPath: /usr/share/caasp-container-manifests/config/registry/registry-config.yaml
+      name: registry-config
+      readOnly: True
   - name: salt-api
     image: sles12/salt-api:__TAG__
     volumeMounts:
@@ -235,6 +240,11 @@ spec:
       readOnly: True
     - mountPath: /etc/salt/pki/minion
       name: salt-ca-minion-pki
+    # This mount path must match the file location on the physical nodes or the salt module
+    # would break either in the container or the physical nodes.
+    - mountPath: /usr/share/caasp-container-manifests/config/registry/registry-config.yaml
+      name: registry-config
+      readOnly: True
   - name: velum-dashboard
     image: sles12/velum:__TAG__
     env:
@@ -595,3 +605,6 @@ spec:
   - name: yast-keyboard-configuration
     hostPath:
       path: /etc/sysconfig/keyboard
+  - name: registry-config
+    hostPath:
+      path: /usr/share/caasp-container-manifests/config/registry/registry-config.yaml

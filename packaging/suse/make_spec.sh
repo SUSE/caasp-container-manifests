@@ -101,13 +101,16 @@ for file in manifests/*.yaml; do
   # fix image name
   sed -e "s|image:[ ]*sles12/\(.*\):|image: %{_base_image}/\1:|g" -i %{buildroot}/%{_datadir}/%{name}/\$file
 done
+# Install registry-configuration file
+install -d %{buildroot}/%{_datadir}/%{name}/config/registry
+install -D -m 0644 config/registry/registry-config.yaml %{buildroot}/%{_datadir}/%{name}/config/registry/registry-config.yaml
 install -D -m 0644 config/haproxy/haproxy.cfg %{buildroot}/etc/caasp/haproxy/haproxy.cfg
 install -D -m 0755 activate.sh %{buildroot}/%{_datadir}/%{name}/activate.sh
 # fix image name in activate
 sed -e "s|sles12/pause|%{_base_image}/pause|g" -i %{buildroot}/%{_datadir}/%{name}/activate.sh
 %if 0%{?suse_version} >= 1500
-# Adjust pause image version in activate
-sed -e "s|pause:1.0.0|pause:0.1|g" -i %{buildroot}/%{_datadir}/%{name}/activate.sh
+# adjust the use_registry variable
+sed -e "s|use_registry: false|use_registry: true|g" -i %{buildroot}/%{_datadir}/%{name}/config/registry/registry-config.yaml
 %endif
 install -D -m 0755 gen-certs.sh %{buildroot}/%{_datadir}/%{name}/gen-certs.sh
 for dir in salt/grains salt/minion.d-ca; do
