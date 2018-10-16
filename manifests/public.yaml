@@ -309,6 +309,9 @@ spec:
     - mountPath: /etc/caasp/pillar-seeds
       name: caasp-pillar-seeds
       readOnly: True
+    - mountPath: /var/lib/misc/keyboard
+      name: yast-keyboard-configuration
+      readOnly: True
     args: ["bin/run"]
   - name: velum-api
     image: sles12/velum:__TAG__
@@ -577,3 +580,6 @@ spec:
   - name: caasp-pillar-seeds
     hostPath:
       path: /etc/caasp/pillar-seeds
+  - name: yast-keyboard-configuration
+    hostPath:
+      path: /etc/sysconfig/keyboard
