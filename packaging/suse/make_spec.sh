@@ -85,6 +85,7 @@ Requires:       %{_base_image}-caasp-dex-image >= 2.0.0
 Requires:       kubernetes-salt
 BuildArch:      noarch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+Patch0:         0001-patch-in-version-numbers-for-images.patch
 
 %description
 Manifest file templates will instruct kubelet service to bring up salt
@@ -92,6 +93,15 @@ and velum containers on a controller node.
 
 %prep
 %setup -q -n ${NAME}-${SAFE_BRANCH}
+
+%if 0%{?suse_version} >= 1500
+# Without container-feeder we don't have the tag information available on the admin node anymore
+# That is why hotpatching the tags in won't work anymore (admin-node-setup.sh).
+# Once there is another way to get the correct tags for each image this patch should be removed.
+# Until then it has to be kept up-to-date with versions of images currently available in the
+# internal registry.
+%patch0 -p1
+%endif
 
 %build
 
@@ -101,13 +111,16 @@ for file in manifests/*.yaml; do
   # fix image name
   sed -e "s|image:[ ]*sles12/\(.*\):|image: %{_base_image}/\1:|g" -i %{buildroot}/%{_datadir}/%{name}/\$file
 done
+# Install registry-configuration file
+install -d %{buildroot}/%{_datadir}/%{name}/config/registry
+install -D -m 0644 config/registry/registry-config.yaml %{buildroot}/%{_datadir}/%{name}/config/registry/registry-config.yaml
 install -D -m 0644 config/haproxy/haproxy.cfg %{buildroot}/etc/caasp/haproxy/haproxy.cfg
 install -D -m 0755 activate.sh %{buildroot}/%{_datadir}/%{name}/activate.sh
 # fix image name in activate
 sed -e "s|sles12/pause|%{_base_image}/pause|g" -i %{buildroot}/%{_datadir}/%{name}/activate.sh
 %if 0%{?suse_version} >= 1500
-# Adjust pause image version in activate
-sed -e "s|pause:1.0.0|pause:0.1|g" -i %{buildroot}/%{_datadir}/%{name}/activate.sh
+# adjust the use_registry variable
+sed -e "s|use_registry: false|use_registry: true|g" -i %{buildroot}/%{_datadir}/%{name}/config/registry/registry-config.yaml
 %endif
 install -D -m 0755 gen-certs.sh %{buildroot}/%{_datadir}/%{name}/gen-certs.sh
 for dir in salt/grains salt/minion.d-ca; do

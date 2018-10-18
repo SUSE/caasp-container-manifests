@@ -1,0 +1,10 @@
+# This file defines whether to use container-feeder packaged images or a
+# registry.
+#
+# If use_registry is set to false, the system should use container-feeder images
+# and ignore the host and namespace.
+#
+# namespace: denotes the root namespace under which all images can be found.
+use_registry: false
+host: registry.suse.de
+namespace: devel/casp/3.0/controllernode/images_container_base/sles12
