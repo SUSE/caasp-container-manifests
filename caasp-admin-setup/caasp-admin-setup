@@ -76,6 +76,7 @@ import caaspadminsetup.utils as utils
 from docopt import docopt
 from email.utils import parseaddr
 from OpenSSL import crypto
+from psutil import virtual_memory
 
 scc_error_exp = re.compile('^error', re.IGNORECASE)
 
@@ -769,6 +770,9 @@ if __name__ == '__main__':
     logging.info('Command line arguments: "{}"'.format(arguments))
     if not os.getuid() == 0:
         sys.exit("Root permissions required; please rerun as root.")
+
+    if virtual_memory().total< 8000000000:
+        sys.exit("Admin node requires at least 8 GB of memory; please use a larger instance type.")
 
     # load framework specfic functions
     platform = utils.load_platform_module(_get_framework_from_config())
