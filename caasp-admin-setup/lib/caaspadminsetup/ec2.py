@@ -175,11 +175,11 @@ def get_database_pillars():
             "value": _get_cluster_node_image_id()
         },
         {
-            "name": prefix + "network_interfaces:0:SubnetId",
+            "name": prefix + "subnet",
             "value": _get_instance_subnet_id()
         },
         {
-            "name": prefix + "network_interfaces:0:SecurityGroupId",
+            "name": prefix + "security_group",
             "value": _cluster_security_group_id
         }
     ]
@@ -192,6 +192,14 @@ def get_database_pillars():
             {
                 "name": prefix + "network_interfaces:0:AssignPublicIpAddress",
                 "value": "False"
+            },
+            {
+                "name": prefix + "network_interfaces:0:SubnetId",
+                "value": _get_instance_subnet_id()
+            },
+            {
+                "name": prefix + "network_interfaces:0:SecurityGroupId",
+                "value": _cluster_security_group_id
             }
         ]
     return pillars
