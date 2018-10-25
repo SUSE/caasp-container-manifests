@@ -771,8 +771,8 @@ if __name__ == '__main__':
     if not os.getuid() == 0:
         sys.exit("Root permissions required; please rerun as root.")
 
-    if virtual_memory().total < 8000000000:
-        sys.exit("Admin node requires at least 8 GB of memory; please use a larger instance type.")
+    if virtual_memory().total < 7000000000:
+        sys.exit("Admin node requires at least 7 GB of memory; please use a larger instance type.")
 
     # load framework specfic functions
     platform = utils.load_platform_module(_get_framework_from_config())
