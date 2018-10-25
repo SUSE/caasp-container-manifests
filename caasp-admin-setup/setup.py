@@ -18,7 +18,7 @@ if __name__ == '__main__':
         license='MIT',
         author='SUSE Public Cloud Team',
         author_email='public-cloud-dev@susecloud.net',
-        version='1.6.1',
+        version='1.6.2',
         packages=setuptools.find_packages('lib'),
         package_dir={
             '': 'lib',
