@@ -9,9 +9,6 @@ fi
 # Turn off current swaps if any
 /usr/sbin/swapoff -a
 
-# switch deprecated --config flag in kubelet
-sed -i -e "s/--config=/--pod-manifest-path=/g" /etc/kubernetes/kubelet
-
 # Update manifest files
 kube_dir=/etc/kubernetes/manifests
 manifest_dir=/usr/share/caasp-container-manifests/manifests
