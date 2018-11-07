@@ -80,6 +80,7 @@ def get_salt_cloud_profile_config(
             "ssh_keyfile": ssh_private_key_file,
             "use_persistent_disk": False,
             "metadata": '{"sshKeys": "caasp: '+ssh_pub_key+'"}',
+            "tags": '[ "caasp" ]',
             "ex_disks_gce_struct":
             [
                 {
