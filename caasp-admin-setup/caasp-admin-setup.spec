@@ -17,7 +17,7 @@
 
 
 Name:           caasp-admin-setup
-Version:        1.6.2
+Version:        1.6.3
 Release:        0
 License:        MIT
 Summary:        Setup the CaaSP Admin Node
