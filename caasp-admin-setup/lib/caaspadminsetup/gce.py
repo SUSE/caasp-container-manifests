@@ -52,7 +52,7 @@ def have_permissions():
     if not pattern.search(scopes):
         print("This instance does not have the required API scopes configured.")
         print("Please attach a service account to this instance that includes")
-        print("the roles 'Compute Admin' and 'Service Account Actor'.")
+        print("the roles 'Compute Admin' and 'Service Account User'.")
         return False
     return True
 
