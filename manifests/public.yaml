@@ -541,7 +541,7 @@ spec:
       path: /usr/share/salt/kubernetes
   - name: salt-sock-dir
     hostPath:
-      path: /var/run/salt/master/sock-dir
+      path: /var/run/salt/master
   - name: salt-minion-ca-cache
     hostPath:
       path: /var/lib/misc/salt/cache/salt-minion-ca
