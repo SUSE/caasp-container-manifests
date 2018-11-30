@@ -133,3 +133,8 @@ Velum SHA256 fingerprint: $VELUM_CRT_FINGERPRINT_SHA256
 EOF
 # Call issue-generator to use the new issue.d snippet
 /usr/sbin/issue-generator
+
+# Configure path to salt master socket files
+# Required for salt-cloud to send cloud events through the master
+test -f /etc/salt/master || \
+  echo "sock_dir: /var/run/salt/master/sock-dir" > /etc/salt/master
