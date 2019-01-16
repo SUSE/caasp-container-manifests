@@ -6,5 +6,5 @@
 #
 # namespace: denotes the root namespace under which all images can be found.
 use_registry: false
-host: registry.suse.de
-namespace: devel/casp/3.0/controllernode/images_container_base/sles12
+host: registry.suse.com
+namespace: sles12
