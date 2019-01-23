@@ -308,6 +308,9 @@ spec:
     - mountPath: /var/lib/ca-certificates/ca-bundle.pem
       name: ca-bundle
       readOnly: True
+    - mountPath: /var/lib/ca-certificates/openssl
+      name: ca-dir
+      readOnly: True
     - mountPath: /var/run/mysql
       name: mariadb-unix-socket
     - mountPath: /var/run/puma
@@ -394,6 +397,9 @@ spec:
       readOnly: True
     - mountPath: /var/lib/ca-certificates/ca-bundle.pem
       name: ca-bundle
+      readOnly: True
+    - mountPath: /var/lib/ca-certificates/openssl
+      name: ca-dir
       readOnly: True
     - mountPath: /var/run/mysql
       name: mariadb-unix-socket
@@ -575,6 +581,9 @@ spec:
   - name: ca-bundle
     hostPath:
       path: /var/lib/ca-certificates/ca-bundle.pem
+  - name: ca-dir
+    hostPath:
+      path: /var/lib/ca-certificates/openssl
   - name: salt-minion-ca-grains
     hostPath:
       path: /usr/share/caasp-container-manifests/config/salt/grains/ca
