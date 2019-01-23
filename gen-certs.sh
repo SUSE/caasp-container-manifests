@@ -102,6 +102,11 @@ EOF
                 -out $DIR/ca.crt
 }
 
+trustca() {
+    ln -s $DIR/ca.crt /etc/pki/trust/anchors/
+    update-ca-certificates
+}
+
 gencert() {
     [ -f $PRIVATEDIR/$1.key ] && [ -f $DIR/$1.crt ] && return
 
@@ -170,6 +175,7 @@ all_hostnames=$(echo "$(hostname) $(hostname --fqdn) $(hostnamectl --transient) 
 
 set -e
 genca
+trustca
 gencert "velum" "Velum" "$all_hostnames" "$(ip_addresses)"
 gencert "salt-api" "salt-api.infra.caasp.local" "" "127.0.0.1"
 gencert "ldap" "OpenLDAP" "ldap.infra.caasp.local" "$(ip_addresses)"
