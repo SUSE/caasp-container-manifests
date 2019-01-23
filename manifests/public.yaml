@@ -163,6 +163,9 @@ spec:
     - mountPath: /etc/pki/ca.crt
       name: ca-certificate
       readOnly: True
+    - mountPath: /var/lib/ca-certificates/ca-bundle.pem
+      name: ca-bundle
+      readOnly: True
     - mountPath: /etc/salt/master.d/50-master.conf
       name: salt-master-config-master-conf
       readOnly: True
@@ -302,6 +305,9 @@ spec:
     - mountPath: /etc/pki/ca.crt
       name: ca-certificate
       readOnly: True
+    - mountPath: /var/lib/ca-certificates/ca-bundle.pem
+      name: ca-bundle
+      readOnly: True
     - mountPath: /var/run/mysql
       name: mariadb-unix-socket
     - mountPath: /var/run/puma
@@ -385,6 +391,9 @@ spec:
     volumeMounts:
     - mountPath: /etc/pki/ca.crt
       name: ca-certificate
+      readOnly: True
+    - mountPath: /var/lib/ca-certificates/ca-bundle.pem
+      name: ca-bundle
       readOnly: True
     - mountPath: /var/run/mysql
       name: mariadb-unix-socket
@@ -563,6 +572,9 @@ spec:
   - name: ca-certificate
     hostPath:
       path: /etc/pki/ca.crt
+  - name: ca-bundle
+    hostPath:
+      path: /var/lib/ca-certificates/ca-bundle.pem
   - name: salt-minion-ca-grains
     hostPath:
       path: /usr/share/caasp-container-manifests/config/salt/grains/ca
