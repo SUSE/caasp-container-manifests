@@ -11,6 +11,7 @@ fi
 
 # Update manifest files
 kube_dir=/etc/kubernetes/manifests
+kubelet_config=/etc/kubernetes/kubelet
 manifest_dir=/usr/share/caasp-container-manifests/manifests
 images_dir=/usr/share/suse-docker-images/native
 
@@ -23,6 +24,33 @@ if [ ! -d $manifest_dir ]; then
     echo "$manifest_dir does not exist" >&2
     echo "manifest files are expected to be there" >&2
     exit -2
+fi
+
+# We disable the servers of the kubelet as those are not needed on the admin node
+source $kubelet_config
+SERVER_ENABLED=true
+HEALTHZ_ENABLED=true
+# Check if the servers are already disabled
+for i in $KUBELET_ARGS; do
+    case $i in
+        "--enable-server=false")
+            SERVER_ENABLED=false
+        ;;
+        "--healthz-port=0")
+            HEALTHZ_ENABLED=false
+        ;;
+    esac
+done
+
+if [ "$SERVER_ENABLED" == true ]; then
+    KUBELET_ARGS="$KUBELET_ARGS --enable-server=false"
+fi
+if [ "$HEALTHZ_ENABLED" == true ]; then
+    KUBELET_ARGS="$KUBELET_ARGS --healthz-port=0"
+fi
+
+if [ "$SERVER_ENABLED" == true ] || [ "$HEALTHZ_ENABLED" == true ]; then
+    sed -i -e "s@^KUBELET_ARGS=\".*\"\$@KUBELET_ARGS=\"$KUBELET_ARGS\"@g" "$kubelet_config"
 fi
 
 tmp_dir=$(mktemp -d)
