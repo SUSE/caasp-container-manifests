@@ -163,8 +163,8 @@ spec:
     - mountPath: /etc/pki/ca.crt
       name: ca-certificate
       readOnly: True
-    - mountPath: /var/lib/ca-certificates/ca-bundle.pem
-      name: ca-bundle
+    - mountPath: /var/lib/ca-certificates/
+      name: ca-bundle-dir
       readOnly: True
     - mountPath: /etc/salt/master.d/50-master.conf
       name: salt-master-config-master-conf
@@ -305,8 +305,8 @@ spec:
     - mountPath: /etc/pki/ca.crt
       name: ca-certificate
       readOnly: True
-    - mountPath: /var/lib/ca-certificates/ca-bundle.pem
-      name: ca-bundle
+    - mountPath: /var/lib/ca-certificates/
+      name: ca-bundle-dir
       readOnly: True
     - mountPath: /var/lib/ca-certificates/openssl
       name: ca-dir
@@ -395,8 +395,8 @@ spec:
     - mountPath: /etc/pki/ca.crt
       name: ca-certificate
       readOnly: True
-    - mountPath: /var/lib/ca-certificates/ca-bundle.pem
-      name: ca-bundle
+    - mountPath: /var/lib/ca-certificates/
+      name: ca-bundle-dir
       readOnly: True
     - mountPath: /var/lib/ca-certificates/openssl
       name: ca-dir
@@ -578,9 +578,9 @@ spec:
   - name: ca-certificate
     hostPath:
       path: /etc/pki/ca.crt
-  - name: ca-bundle
+  - name: ca-bundle-dir
     hostPath:
-      path: /var/lib/ca-certificates/ca-bundle.pem
+      path: /var/lib/ca-certificates/
   - name: ca-dir
     hostPath:
       path: /var/lib/ca-certificates/openssl
