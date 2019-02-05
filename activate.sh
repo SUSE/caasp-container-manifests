@@ -11,7 +11,14 @@ test -f ${DIDRUNFILE}  && exit 0
 # Make sure that the controller node looks for the local pause image
 # TODO: remove this as soon as possible. As an idea, we could use a systemd drop-in unit.
 if ! grep "pod-infra-container-image" /etc/kubernetes/kubelet &> /dev/null; then
-  sed -i 's|^KUBELET_ARGS="|KUBELET_ARGS="--pod-infra-container-image=sles12/pause:1.0.0 |' /etc/kubernetes/kubelet
+  CAASP_VERSION="$(cat /etc/os-release  | grep PRETTY_NAME | cut -d'=' -f2 | sed 's/[^0-9]//g')"
+  # If caasp is 40 we need to use registry images
+  if [ "$CAASP_VERSION" -eq "40" ]; then
+    sed -i 's|^KUBELET_ARGS="|KUBELET_ARGS="--pod-infra-container-image=registry.suse.de/devel/casp/head/containers/sle-12-sp3/container/caasp/v4/pause:0.1 |' /etc/kubernetes/kubelet
+  else
+  # for caasp < 40 we don't use registry
+    sed -i 's|^KUBELET_ARGS="|KUBELET_ARGS="--pod-infra-container-image=sles12/pause:1.0.0 |' /etc/kubernetes/kubelet
+  fi
 fi
 
 # Make sure etcd listens on 0.0.0.0
