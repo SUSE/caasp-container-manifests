@@ -72,7 +72,9 @@ listen velum
         bind 0.0.0.0:443 ssl crt /etc/pki/private/velum-bundle.pem ca-file /var/lib/ca-certificates/ca-bundle.pem
         mode http
         acl path_autoyast path_reg ^/autoyast$
+        acl path_internal_api path_beg /internal-api
         option forwardfor
+        http-request deny if path_internal_api
         http-request set-header X-Forwarded-Proto https
         redirect scheme https code 302 if !{ ssl_fc } !path_autoyast
         default-server inter 10s fall 3
