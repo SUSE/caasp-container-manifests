@@ -1,0 +1,896 @@
+#!/usr/bin/python
+#
+# Copyright (c) 2018 SUSE Linux GmbH
+#
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND TREATIES.
+# IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED, PERFORMED,
+# DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT NOVELL'S PRIOR WRITTEN
+# CONSENT.  USE OR EXPLOITATION OF THIS WORK WITHOUT AUTHORIZATION COULD
+# SUBJECT THE PERPETRATOR TO CRIMINAL AND CIVIL LIABILITY.
+#
+# SUSE PROVIDES THE WORK "AS IS," WITHOUT ANY EXPRESS OR IMPLIED WARRANTY,
+# INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE AUTHORS OF THE WORK, AND
+# THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT LIABLE FOR ANY CLAIM, DAMAGES, OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE,
+# ARISING FROM, OUT OF, OR IN CONNECTION WITH THE WORK OR THE USE OR OTHER
+# DEALINGS IN THE WORK.
+
+"""
+SUSE CaaS Platform: Administrative Setup
+
+Must be run as root!
+* Set up SSL certificate for HTTPS-based Admin Dashboard.
+* Start CaaSP Admin services.
+* Create Administrative credentials.
+
+Usage:
+  caasp-admin-setup [--wizard]
+  caasp-admin-setup ((--ssl-crt=<certificate-file> --ssl-key=<private-key-file>)
+                        | --gensslcert)
+                    [--admin-email=<email>]
+                    [--admin-password=<password>]
+                    [--accept]
+                    [--reg-email=<email>]
+                    [--reg-code=<reg_code>]
+  caasp-admin-setup -h | --help
+
+Options:
+  --accept                      Make the specified changes without
+                                confirmation. (Intended for automated use.)
+  --admin-email=<email>         Email address used for login to Admin
+                                Dashboard. default: user@lfqdn
+  --admin-password=<password>   Password used for login to Admin Dashboard.
+                                default: randomly-generated
+  --gensslcert                  Generate a self-signed certificate for SSL, and
+                                display the fingerprint for local confirmation.
+  -h --help                     Show this screen.
+  --reg-email=<email>           E-mail address to register with SCC.
+  --reg-code=<reg_code>         Registration code for SCC.
+  --ssl-crt=<certificate-file>  Path of local file to install as SSL
+                                certificate for HTTPS server.
+  --ssl-key=<private-key-file>  Path of local file to install as private key
+                                for HTTPS server.
+  --wizard                      Step-by-step prompts for SSL configuration and
+                                administrative credentials.
+                                Default behavior when no arguments are
+                                supplied.
+"""
+
+from __future__ import print_function
+from builtins import input
+import docker  # https://github.com/docker/docker-py/blob/1.10.6/docs/api.md
+import fileinput
+import logging
+import netifaces
+import os
+import re
+import salt.client
+import shutil
+import socket
+import subprocess
+import sys
+import time
+import yaml
+import caaspadminsetup.utils as utils
+from docopt import docopt
+from email.utils import parseaddr
+from OpenSSL import crypto
+from psutil import virtual_memory
+
+scc_error_exp = re.compile('^error', re.IGNORECASE)
+
+salt_deploy_script_tmpl = '/usr/share/caasp-cloud-config/'
+salt_deploy_script_tmpl += 'cloud-configure-minion.sh'
+salt_deploy_script_dest = '/etc/salt/cloud-configure-minion.sh'
+
+log_filename = '/var/log/caasp_cloud_setup.log'
+try:
+    # importing salt (presumably) sets up some logging
+    # clear handler or our logging won't work
+    logging.getLogger('').handlers = []
+    logging.basicConfig(
+        filename=log_filename,
+        level=logging.INFO,
+        format='%(asctime)s %(levelname)s:%(message)s'
+    )
+except IOError:
+    print('Could not open log file "', log_filename, '" for writing.')
+    print('Proceeding without log creation')
+
+
+# TODO: Migrate this out to a separate library
+# TODO: Python module for Azure metadata
+class AbstractMetadata:
+    def __init__(self, config_path):
+        self.framework = self._cloud_config(config_path)
+        if (self.framework == "ec2"):
+            self.meta = self._load_ec2()
+        elif (self.framework == "gce"):
+            self.meta = self.load_gce()
+        else:
+            self.meta = None
+
+    @staticmethod
+    def _cloud_config(config_path):
+        with open(config_path) as config_file:
+            config = yaml.load(config_file.read())
+        return config['cloud']['framework']
+
+    @staticmethod
+    def _load_ec2():
+        import ec2metadata
+        return ec2metadata.EC2Metadata()
+
+    @staticmethod
+    def _load_gce():
+        import gcemetadata.gcemetadata as gcemetadata
+        return gcemetadata.GCEMetadata()
+
+    def local_ipv4(self):
+        ip_address = None
+        if self.framework == "ec2":
+            ip_address = self.meta.get("local-ipv4")
+        elif self.framework == "gce":
+            self.meta.set_data_category("instance")
+            ip_address = self.meta.get("ip")
+        else:
+            ip_address = netifaces.ifaddresses(
+                'eth0')[netifaces.AF_INET][0]['addr']
+
+        logging.info('Instance IP: "{}"'.format(ip_address))
+        return ip_address
+
+    def instance_id(self):
+        instance_id = None
+        if self.framework == "ec2":
+            instance_id = self.meta.get("instance-id")
+        elif self.framework == "gce":
+            self.meta.set_data_category("instance")
+            instance_id = self.meta.get("id")
+        else:
+            instance_id = socket.getfqdn()
+
+        logging.info('Instance ID: "{}"'.format(instance_id))
+        return instance_id
+
+
+def _get_framework_from_config():
+    return utils.get_from_config('framework')
+
+
+# https://github.com/kubic-project/caasp-container-manifests/blob/master/public.yaml#L381-L383
+def _velum_ssl_crt_path():
+    return "/etc/pki/velum.crt"
+
+
+# https://github.com/kubic-project/caasp-container-manifests/blob/master/public.yaml#L384-L386
+def _velum_ssl_key_path():
+    return "/etc/pki/private/velum.key"
+
+
+# https://github.com/kubic-project/caasp-container-manifests/blob/master/packaging/suse/make_spec.sh
+# https://build.suse.de/package/view_file/Devel:CASP:1.0:ControllerNode/caasp-container-manifests/caasp-container-manifests.spec?expand=1
+def _activate_script_path():
+    return "/usr/share/caasp-container-manifests/activate.sh"
+
+
+# https://github.com/kubic-project/caasp-container-manifests/blob/master/activate.sh#L36-L37
+def _activate_script_artifact_path():
+    if utils.get_caasp_release_version()[0] == '2':
+        return "/etc/issue.d/90-velum.conf"
+    return "/run/issue.d/80-velum.conf"
+
+
+# https://build.opensuse.org/package/view_file/openSUSE:Factory/etcd/etcd.spec?expand=1
+def _etcd_config_path():
+    return "/etc/sysconfig/etcd"
+
+
+def _salt_cloud_config_path():
+    return "/var/lib/misc/salt-cloud"
+
+
+def _ssh_private_key_path():
+    return "/var/lib/misc/ssh-private-key"
+
+
+def _services():
+    return ["etcd", "kubelet", "salt-minion"]
+
+
+def print_startline(statement):
+    print(
+        "\t{}...".format(statement),
+        end=''
+    )
+    sys.stdout.flush()
+
+
+def print_endline(statement):
+    print(
+        " {}.".format(statement)
+    )
+    sys.stdout.flush()
+
+
+def log_start_task(statement):
+    print_startline(statement)
+    logging.info(statement)
+
+
+def make_email():
+    email = "{user}@{fqdn}".format(
+        user="caasp-admin",
+        fqdn=socket.getfqdn()
+    )
+    logging.info('Generated e-mail: "{}"'.format(email))
+    return email
+
+
+def prompt(statement, default, hide=False):
+    response = input("\n{} [ {} ] > ".format(statement, default))
+    if (response == ""):
+        response = default
+    answer = response
+    if hide:
+        answer = '*******'
+    logging.info('Q&A: "{} : {}"'.format(statement, answer))
+    return response
+
+
+def confirmation_prompt(statement, default=False):
+    if default:
+        default_answer = '(Y/n)'
+    else:
+        default_answer = '(y/N)'
+    response = input("\n{} {} > ".format(statement, default_answer))
+    logging.info('Q&A: "{} : {}"'.format(statement, response))
+    if default and not response:
+        return True
+    return (response.lower() in ['y', 'yes'])
+
+
+def prompt_for_upload_cert():
+    return confirmation_prompt(
+        "Would you like to use your own certificate from a known "
+        "(public or self signed) Certificate Authority?"
+    )
+
+
+def prompt_for_acceptance():
+    response = confirmation_prompt(
+        "Please confirm the above settings are correct. "
+        "Proceed with system changes?"
+    )
+    if (not response):
+        sys.exit("Cancelled.")
+
+
+def validate(
+            value,
+            validating_function,
+            success_statement,
+            failure_statement,
+            log_statement=None
+        ):
+    if validating_function(value):
+        if success_statement:
+            print("\t" + success_statement)
+            if log_statement:
+                logging.info(log_statement)
+            else:
+                logging.info(success_statement)
+        return value
+    else:
+        if failure_statement:
+            print(failure_statement)
+            logging.info(failure_statement)
+        return None
+
+
+def wait_for_file_stability(path, tries=12, interval=5):
+    start_size = os.path.getsize(path)
+    end_size = 0
+    while ((end_size != start_size) and tries > 0):
+        start_size = os.path.getsize(path)
+        time.sleep(interval)
+        end_size = os.path.getsize(path)
+        print(".", end='')
+        tries = tries - 1
+    upload_complete = end_size == start_size
+    logging.info('Upload complete: "{}"'.format(upload_complete))
+    return upload_complete
+
+
+def crypto_file_test(path, crypto_function):
+    file_test = validate(
+        path,
+        os.path.isfile,
+        None,
+        "'{}' was not found.".format(path)
+    )
+    if (not file_test):
+        return False
+    # wait for file size to stabilize ... e.g. wait for upload to finish
+    size_test = validate(
+        path,
+        wait_for_file_stability,
+        None,
+        "'{}' is still changing; please wait for the upload to complete."
+    )
+    if not (size_test):
+        return False
+    # now... test the file
+    try:
+        crypto_function(
+            crypto.FILETYPE_PEM,
+            open(path).read()
+        )
+        logging.info('Valid: "{}"'.format(path))
+        return True
+    except Exception:
+        logging.info('Invalid: "{}"'.format(path))
+        return False
+
+
+def ssl_cert_test(path):
+    return crypto_file_test(path, crypto.load_certificate)
+
+
+def validate_ssl_cert(path):
+    return validate(
+        path,
+        ssl_cert_test,
+        "Using '{}' as SSL certificate.".format(path),
+        "'{}' was not a valid SSL certificate.".format(path)
+    )
+
+
+def ssl_key_test(path):
+    return crypto_file_test(path, crypto.load_privatekey)
+
+
+def validate_ssl_key(path):
+    return validate(
+        path,
+        ssl_key_test,
+        "Using '{}' as server private key.".format(path),
+        "'{}' was not a valid private key.".format(path)
+    )
+
+
+def email_test(address):
+    email = parseaddr(address)[1]
+    return ("@" in email)
+
+
+def validate_email(address):
+    return validate(
+        address,
+        email_test,
+        "Setting admin dashboard login to: '{}'".format(address),
+        (
+            "You did not input a valid email address; "
+            "please use the format 'user@hostname.domain'"
+        )
+    )
+
+
+def password_test(password):
+    # https://github.com/kubic-project/velum/blob/master/config/initializers/devise.rb#L168
+    return (len(password) >= 8 and len(password) <= 128)
+
+
+def validate_password(password):
+    failed_msg = "Please enter a password of at least 8 but no more "
+    failed_msg += "than 128 characters."
+    return validate(
+        password,
+        password_test,
+        "Setting admin dashboard password to: {}".format(password),
+        failed_msg,
+        "Setting admin dashboard password to: *******"
+    )
+
+
+def prompt_for_ssl_cert_path():
+    default = "/tmp/server.crt"
+    statement = (
+        "Please upload the SSL certificate file to this system, "
+        "then enter the local path."
+    )
+    return validate_ssl_cert(prompt(statement, default))
+
+
+def prompt_for_ssl_key_path():
+    default = "/tmp/server.key"
+    statement = (
+        "Please upload the server's private key to this system, "
+        "then enter the local path."
+    )
+    return validate_ssl_key(prompt(statement, default))
+
+
+def prompt_for_admin_email():
+    default = make_email()
+    statement = "Email address for login to Admin Dashboard?"
+    return validate_email(prompt(statement, default))
+
+
+def prompt_for_admin_password(default):
+    statement = "Password for login to Admin Dashboard (len: 8 - 128 chars)?"
+    return validate_password(prompt(statement, default, hide=True))
+
+
+def install_salt_deploy_script(email, registration_code, server=""):
+    suseconnect_opts = "-e " + email + " -r " + registration_code
+    if server:
+        suseconnect_opts += " -s "+server
+    content = open(salt_deploy_script_tmpl, 'r').read()
+    with open(salt_deploy_script_dest, mode='w', ) as dst_file:
+        os.chmod(salt_deploy_script_dest, 0o600)
+        dst_file.write(content.replace(
+            'SUSECONNECT_OPTS=',
+            'SUSECONNECT_OPTS="{}"'.format(suseconnect_opts)
+        ))
+
+
+def install_ssl_file(source_path, dest_path):
+    log_start_task("Changing file ownership to root")
+    os.chown(source_path, 0, 0)
+    print_endline("Done")
+
+    log_start_task("Limiting file permissions")
+    os.chmod(source_path, 0o600)
+    print_endline("Done")
+
+    log_start_task("Moving file to system path")
+    shutil.move(source_path, dest_path)
+    print_endline("Done")
+
+
+def install_ssl_crt(source_file_path):
+    print("Installing SSL certificate:")
+    install_ssl_file(source_file_path, _velum_ssl_crt_path())
+
+
+def install_ssl_key(source_file_path):
+    print("Installer server private key:")
+    install_ssl_file(source_file_path, _velum_ssl_key_path())
+
+
+def configure_etcd(ip_address):
+    logging.info(
+        'Cofiguring etcd, initial IP address: "{}"'.format(ip_address)
+    )
+
+    advertise_regex = re.compile(
+        '^#?ETCD_INITIAL_ADVERTISE_PEER_URLS=".*"$'
+    )
+    advertise_config = (
+        'ETCD_INITIAL_ADVERTISE_PEER_URLS="http://{}:2380"'
+    ).format(ip_address)
+
+    cluster_regex = re.compile(
+        '^#?ETCD_INITIAL_CLUSTER=".*"$'
+    )
+    cluster_config = (
+        'ETCD_INITIAL_CLUSTER="default=http://{}:2380"'
+    ).format(ip_address)
+
+    etcd_config = fileinput.FileInput(_etcd_config_path(), inplace=True)
+    for line in etcd_config:
+        if advertise_regex.match(line.strip()):
+            print(advertise_regex.sub(advertise_config, line), end='')
+        elif cluster_regex.match(line.strip()):
+            print(cluster_regex.sub(cluster_config, line), end='')
+        else:
+            print(line, end='')
+    etcd_config.close()
+
+
+def register_instance(email=None, registration_code=None):
+    """Collect SCC credentials and register the system"""
+    flavor = utils.get_from_config('procurement_flavor')
+    if flavor != 'byos':
+        # On-demand, nothing to do automatic registration
+        return
+    if not email:
+        wants_registration = confirmation_prompt(
+            "Would you like to register the system with the "
+            "SUSE Customer Center (SCC) to receive updates? "
+            "(e-mail and registration code required)", True
+        )
+    else:
+        wants_registration = True
+    if wants_registration:
+        if not email:
+            email = prompt(
+               "Please provide the e-mail associated with your SCC account",
+                'name@company.com'
+            )
+        if not email_test(email):
+            msg = 'Invalid e-mail provided "{}"'.format(email)
+            msg += 'Proceeding without registration'
+            logging.info(msg)
+            print(msg)
+            return
+        if not registration_code:
+            registration_code = prompt(
+                "Please provide your SCC registration code",
+                '123456789',
+                True
+            )
+        if not registration_code:
+            msg = 'No registration code provided.'
+            msg += 'Proceeding without registration'
+            logging.info(msg)
+            print(msg)
+            return
+        cmd = [
+            '/usr/sbin/SUSEConnect',
+            '-e',
+            email,
+            '-r',
+            registration_code
+        ]
+        print_startline("Attempting SCC registration")
+        p = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        res = p.communicate()
+        for entry in res:
+            if scc_error_exp.match(entry.decode()):
+                msg = 'SCC registration failed, please register the system'
+                msg += 'with SUSEConnect -e email -r regcode'
+                logging.info(msg)
+                print(msg)
+                return
+        install_salt_deploy_script(email, registration_code)
+        print_endline("success")
+        logging.info('Registration success')
+
+
+def enable_services():
+    for service in _services():
+        log_start_task("Enabling {} service".format(service))
+        subprocess.check_call(
+            ["systemctl", "enable", "{}.service".format(service)]
+        )
+        print_endline("Done")
+
+        log_start_task("Starting {} service".format(service))
+        subprocess.check_call(
+            ["systemctl", "start", "{}.service".format(service)]
+        )
+        print_endline("Done")
+
+
+def get_velum_container_id():
+    client = docker.Client()
+    containers = client.containers(filters={
+        'name': 'velum-dashboard_velum',
+        'status': 'running'
+    })
+    if (len(containers) > 0):
+        return containers[0]['Id']
+    else:
+        return None
+
+
+def velum_db_ready():
+    client = docker.Client()
+    task = client.exec_create(
+        container=get_velum_container_id(),
+        cmd='entrypoint.sh bundle exec rails runner bin/check_db.rb'
+    )
+    result = re.match(
+        'DB_READY',
+        client.exec_start(task['Id'])
+    )
+    if (result):
+        return True
+    else:
+        return None
+
+
+def fetch_salt_pillar():
+    try:
+        caller = salt.client.Caller()
+        data = caller.function("pillar.items")
+    except Exception:
+        return None
+    return data
+
+
+def wait_for(command, tries=120, interval=5):
+    result = None
+    while (result is None and tries > 0):
+        time.sleep(interval)
+        result = command()
+        print(".", end='')
+        tries = tries - 1
+    return result
+
+
+def wait_for_velum():
+    print_startline("Waiting for dashboard to start")
+    velum_container_id = wait_for(get_velum_container_id)
+    if (not velum_container_id):
+        raise EnvironmentError('Dashboard container failed to start in time.')
+    print_endline("Running")
+    print_startline("Verifying dashboard database is ready")
+    velum_db_is_ready = wait_for(velum_db_ready)
+    if (not velum_db_is_ready):
+        raise EnvironmentError('Dashboard database failed to respond in time.')
+    print_endline("Ready")
+
+
+def wait_for_salt_master():
+    print_startline("Waiting for salt-master to be ready")
+    pillar_data = wait_for(fetch_salt_pillar)
+    if (not pillar_data):
+        raise EnvironmentError('Salt master failed to start in time.')
+    print_endline("Ready")
+
+
+def create_admin_user(container_id, username, password):
+    logging.info('Create admin user in container: {}'.format(container_id))
+    print_startline("Setting dashboard credentials")
+    velum_task = (
+        "entrypoint.sh rake velum:create_user[{username},{password}]"
+    ).format(
+        username=username,
+        password=password
+    )
+    client = docker.Client()
+    velum_task = client.exec_create(
+        container=container_id,
+        cmd=velum_task
+    )
+    print(client.exec_start(velum_task['Id']))
+
+
+def create_pillar(container_id, pillar, value):
+    logging.info(
+        "Adding extended pillar '{}' with value '{}' in container: {}".format(
+            pillar,
+            value,
+            container_id
+        )
+    )
+    velum_task = (
+        "entrypoint.sh rake velum:create_pillar['{}','{}']".format(
+            pillar,
+            value
+        )
+    )
+    client = docker.Client()
+    velum_task = client.exec_create(
+        container=container_id,
+        cmd=velum_task
+    )
+    print(client.exec_start(velum_task['Id']))
+
+
+def create_framework_public_key(pubkey_name):
+    log_start_task("Upload ssh public key to cloud framework")
+    ssh_pubkey = open('/var/lib/misc/ssh-public-key/id_rsa.pub', 'r').read()
+    platform.create_public_key(
+        key_name=pubkey_name,
+        public_key_data=ssh_pubkey
+    )
+    print_endline("Done")
+
+
+def init_framework(cluster_name):
+    # use ssh public key generated by activate.sh to create framework key
+    create_framework_public_key(cluster_name)
+
+    log_start_task("Set up network security in framework")
+    platform.setup_network_security(cluster_name)
+    print_endline("Done")
+
+
+def create_database_pillars():
+    log_start_task("Create cloud pillars in database")
+    # create the framework pillar
+    create_pillar(
+        get_velum_container_id(),
+        "cloud:framework",
+        _get_framework_from_config()
+    )
+    # create framwork specific pillars
+    pillars = platform.get_database_pillars()
+    for pillar in pillars:
+        create_pillar(
+            get_velum_container_id(),
+            pillar['name'],
+            pillar['value']
+        )
+    # create dashboard pillar so we can pre-populate it with the internal IP
+    create_pillar(
+        get_velum_container_id(),
+        "dashboard",
+        platform.get_local_ipv4()
+    )
+    print_endline("Done")
+
+
+def setup_salt_cloud(pubkey_name):
+    log_start_task("Prepare salt-cloud configuration")
+
+    # copy ssh private key to /var/lib/misc so it can be mapped into
+    # Velum and salt-master containers
+    logging.info("Copy ssh private key")
+    if not os.path.isdir(_ssh_private_key_path()):
+        os.makedirs(_ssh_private_key_path())
+    ssh_private_key_file = "{}/id_rsa".format(_ssh_private_key_path())
+    if not os.path.exists(ssh_private_key_file):
+        shutil.copy("/root/.ssh/id_rsa", ssh_private_key_file)
+
+    # update salt pillar file
+    logging.info("Update salt pillar file")
+    pub_key_data = open(
+        '/var/lib/misc/ssh-public-key/id_rsa.pub', 'r').read().rstrip()
+    salt_pillar = yaml.load(open(utils.get_cloud_config_path(), 'r').read())
+    cloud_pillar = salt_pillar['cloud']
+    cloud_pillar['profiles'] = platform.get_salt_cloud_profile_config(
+        profile_name="cluster_node",
+        root_volume_size=40,
+        ssh_user="caasp",
+        ssh_pub_key=pub_key_data,
+        ssh_private_key_file=ssh_private_key_file
+    )
+    cloud_pillar['providers'] = platform.get_salt_cloud_provider_config(
+        key_name=pubkey_name,
+        private_key_file=ssh_private_key_file
+    )
+    pillar_file = open(utils.get_cloud_config_path(), 'w')
+    yaml.safe_dump(
+        salt_pillar, pillar_file, default_flow_style=False, width=4196
+    )
+    logging.info("{} written".format(utils.get_cloud_config_path()))
+    print_endline("Done")
+
+
+if __name__ == '__main__':
+    if '--set-cluster-node-img' in sys.argv:
+        arg_index = sys.argv.index('--set-cluster-node-img')
+        cluster_image = sys.argv[arg_index + 1]
+        pillar = utils.get_cloud_config_path()
+        with open(pillar, 'a') as config_file:
+            config_file.write('  cluster_image: %s\n' % cluster_image)
+        config_file.close()
+        del(sys.argv[arg_index + 1])
+        del(sys.argv[arg_index])
+    arguments = docopt(__doc__)
+    logging.info('Command line arguments: "{}"'.format(arguments))
+    if not os.getuid() == 0:
+        sys.exit("Root permissions required; please rerun as root.")
+
+    if virtual_memory().total < 7000000000:
+        sys.exit("Admin node requires at least 7 GB of memory; please use a larger instance type.")
+
+    # load framework specfic functions
+    platform = utils.load_platform_module(_get_framework_from_config())
+
+    # check framework permissions
+    if not platform.have_permissions():
+        sys.exit(2)
+
+    # 'wizard' mode argument is optional, determine it based on
+    # other required arguments if necessary
+    if (arguments["--wizard"] or (
+                (
+                    not arguments["--ssl-crt"]
+                ) and (
+                    not arguments["--gensslcert"]
+                )
+            )):
+        arguments["--wizard"] = True
+        if prompt_for_upload_cert():
+            while (not arguments["--ssl-crt"]):
+                arguments["--ssl-crt"] = prompt_for_ssl_cert_path()
+            while (not arguments["--ssl-key"]):
+                arguments["--ssl-key"] = prompt_for_ssl_key_path()
+        else:
+            arguments["--gensslcert"] = True
+        while (not arguments["--admin-email"]):
+            arguments["--admin-email"] = prompt_for_admin_email()
+        while (not arguments["--admin-password"]):
+            arguments["--admin-password"] = prompt_for_admin_password(
+                platform.get_instance_id()
+            )
+    else:
+        # argument-driven mode
+        # set defaults
+        if (not arguments["--admin-email"]):
+            arguments["--admin-email"] = make_email()
+        if (not arguments["--admin-password"]):
+            #TODO "meta" is out of scope here
+            arguments["--admin-password"] = platform.get_instance_id()
+
+        # validate arguments & display confirmables
+        if (arguments["--gensslcert"]):
+            print(
+                "\tA self-signed certificate will be generated; "
+                "the fingerprint will be displayed for local verification."
+            )
+        else:
+            if (not validate_ssl_cert(arguments["--ssl-crt"])):
+                sys.exit("Invalid argument '--ssl-crt'")
+            if (not validate_ssl_key(arguments["--ssl-key"])):
+                sys.exit("Invalid argument '--ssl-key'")
+
+        if (not validate_email(arguments["--admin-email"])):
+            sys.exit("Invalid argument '--admin-email'")
+        if (not validate_password(arguments["--admin-password"])):
+            sys.exit("Invalid argument '--admin-password'")
+
+    # Register if byos and user desired
+    if (arguments["--wizard"] or (
+           (
+               arguments["--reg-email"]
+           ) and (
+               arguments["--reg-code"]
+           )
+        )):
+        register_instance(arguments["--reg-email"], arguments["--reg-code"])
+
+    # last chance to back out
+    if (arguments["--accept"]):
+        print("\tConfirmation automatically accepted.")
+    else:
+        prompt_for_acceptance()
+
+
+    if (not arguments["--gensslcert"]):
+        # install user-supplied certificate
+        install_ssl_crt(arguments["--ssl-crt"])
+        install_ssl_key(arguments["--ssl-key"])
+
+    # copy deploy script if necessary (i.e. registration was skipped)
+    if not os.path.isfile(salt_deploy_script_dest):
+        shutil.copyfile(salt_deploy_script_tmpl, salt_deploy_script_dest)
+        # make it only root readable in case admin decides to fill in
+        # registration code later
+        os.chmod(salt_deploy_script_dest, 0o600)
+
+    # activate CaaSP
+    subprocess.check_call(_activate_script_path())
+    configure_etcd(platform.get_local_ipv4())
+
+    # do preparation in framework
+    cluster_name = 'caasp-{}'.format(socket.gethostname())
+    init_framework(cluster_name)
+
+    # generate salt-cloud configuration files
+    setup_salt_cloud(cluster_name)
+
+    # start CaaSP services
+    enable_services()
+    wait_for_velum()
+    create_admin_user(
+        get_velum_container_id(),
+        arguments["--admin-email"],
+        arguments["--admin-password"]
+    )
+    wait_for_salt_master()
+    create_database_pillars()
+
+    # change motd
+    if os.path.isfile("/etc/motd.done"):
+        os.rename("/etc/motd.done", "/etc/motd")
+
+    if (arguments["--gensslcert"]):
+        # show fingerprints
+        with open(_activate_script_artifact_path(), 'r') as file:
+            print(file.read())
+
+    print
+    print("Setup is complete. Cluster nodes will be created with ssh access enabled")
+    print("for user 'root' of this host. If necessary, you can log into a node as follows:")
+    print("ssh caasp@caasp-node-XXXXXXXX")
