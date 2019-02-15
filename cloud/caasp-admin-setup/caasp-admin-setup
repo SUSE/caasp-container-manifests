@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Copyright (c) 2018 SUSE Linux GmbH
 #
@@ -59,7 +59,6 @@ Options:
 
 from __future__ import print_function
 from builtins import input
-import docker  # https://github.com/docker/docker-py/blob/1.10.6/docs/api.md
 import fileinput
 import logging
 import netifaces
@@ -72,6 +71,7 @@ import subprocess
 import sys
 import time
 import yaml
+import docker
 import caaspadminsetup.utils as utils
 from docopt import docopt
 from email.utils import parseaddr
@@ -569,7 +569,7 @@ def enable_services():
 
 
 def get_velum_container_id():
-    client = docker.Client()
+    client = docker.APIClient()
     containers = client.containers(filters={
         'name': 'velum-dashboard_velum',
         'status': 'running'
@@ -581,14 +581,14 @@ def get_velum_container_id():
 
 
 def velum_db_ready():
-    client = docker.Client()
+    client = docker.APIClient()
     task = client.exec_create(
         container=get_velum_container_id(),
         cmd='entrypoint.sh bundle exec rails runner bin/check_db.rb'
     )
     result = re.match(
         'DB_READY',
-        client.exec_start(task['Id'])
+        client.exec_start(task['Id']).decode('utf-8')
     )
     if (result):
         return True
@@ -645,7 +645,7 @@ def create_admin_user(container_id, username, password):
         username=username,
         password=password
     )
-    client = docker.Client()
+    client = docker.APIClient()
     velum_task = client.exec_create(
         container=container_id,
         cmd=velum_task
@@ -667,7 +667,7 @@ def create_pillar(container_id, pillar, value):
             value
         )
     )
-    client = docker.Client()
+    client = docker.APIClient()
     velum_task = client.exec_create(
         container=container_id,
         cmd=velum_task
