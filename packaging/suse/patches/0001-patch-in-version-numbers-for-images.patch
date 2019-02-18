@@ -18,7 +18,7 @@ index ada52aa..24f4144 100644
    containers:
      - name: haproxy
 -      image: sles12/haproxy:__TAG__
-+      image: sles12/haproxy:1.6.0
++      image: caasp/v4/haproxy:1.6.0
        resources:
          requests:
            memory: 128Mi
@@ -31,7 +31,7 @@ index 19e76ca..1ae9973 100644
    initContainers:
    - name: mariadb-secrets
 -    image: sles12/velum:__TAG__
-+    image: sles12/velum:0.0
++    image: caasp/v4/velum:0.0
      command: ["sh", "-c", "umask 377;
                             if [ ! -f /infra-secrets/mariadb-root-password ]; then
                               head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/mariadb-root-password;
@@ -40,7 +40,7 @@ index 19e76ca..1ae9973 100644
    containers:
    - name: velum-mariadb
 -    image: sles12/mariadb:__TAG__
-+    image: sles12/mariadb:10.0
++    image: caasp/v4/mariadb:10.0
      env:
      - name: MYSQL_DISABLE_REMOTE_ROOT
        value: "true"
@@ -53,7 +53,7 @@ index 0c4cab8..37d3051 100644
    initContainers:
    - name: mariadb-user-secrets
 -    image: sles12/mariadb:__TAG__
-+    image: sles12/mariadb:10.0
++    image: caasp/v4/mariadb:10.0
      command: ["/setup-mysql.sh"]
      env:
      - name: ENV
@@ -62,7 +62,7 @@ index 0c4cab8..37d3051 100644
        readOnly: True
    - name: openldap-secrets
 -    image: sles12/velum:__TAG__
-+    image: sles12/velum:0.0
++    image: caasp/v4/velum:0.0
      command: ["sh", "-c", "umask 377;
                             if [ ! -f /infra-secrets/openldap-password ]; then
                               head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/openldap-password;
@@ -71,7 +71,7 @@ index 0c4cab8..37d3051 100644
        name: infra-secrets
    - name: saltapi-secrets
 -    image: sles12/velum:__TAG__
-+    image: sles12/velum:0.0
++    image: caasp/v4/velum:0.0
      command: ["sh", "-c", "umask 377;
                             if [ ! -f /infra-secrets/saltapi-password ]; then
                               head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/saltapi-password;
@@ -80,7 +80,7 @@ index 0c4cab8..37d3051 100644
        name: infra-secrets
    - name: salt-minion-key-generation
 -    image: sles12/salt-master:__TAG__
-+    image: sles12/salt-master:2018.3.0
++    image: caasp/v4/salt-master:2018.3.0
      command: ["sh", "-c", "umask 377;
                             mkdir /salt-master-pki/minions/;
                             temp_dir=`mktemp -d`;
@@ -89,7 +89,7 @@ index 0c4cab8..37d3051 100644
        name: salt-admin-minion-pki
    - name: salt-master-config
 -    image: sles12/velum:__TAG__
-+    image: sles12/velum:0.0
++    image: caasp/v4/velum:0.0
      command: ["sh", "-c", "umask 377;
                             rmdir /salt-master-credentials/55-returner-credentials.conf;
                             if ! grep mysql /salt-master-credentials/55-returner-credentials.conf; then
@@ -98,7 +98,7 @@ index 0c4cab8..37d3051 100644
        name: salt-master-credentials
    - name: velum-internal-api
 -    image: sles12/velum:__TAG__
-+    image: sles12/velum:0.0
++    image: caasp/v4/velum:0.0
      command: ["sh", "-c", "umask 377;
                             if [ ! -f /infra-secrets/velum-internal-api-username ]; then
                               head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/velum-internal-api-username;
@@ -107,7 +107,7 @@ index 0c4cab8..37d3051 100644
        name: infra-secrets
    - name: velum-dashboard-init
 -    image: sles12/velum:__TAG__
-+    image: sles12/velum:0.0
++    image: caasp/v4/velum:0.0
      env:
      - name: RAILS_ENV
        value: production
@@ -116,7 +116,7 @@ index 0c4cab8..37d3051 100644
    containers:
    - name: salt-master
 -    image: sles12/salt-master:__TAG__
-+    image: sles12/salt-master:2018.3.0
++    image: caasp/v4/salt-master:2018.3.0
      env:
      - name: MYSQL_UNIX_PORT
        value: /var/run/mysql/mysql.sock
@@ -125,7 +125,7 @@ index 0c4cab8..37d3051 100644
        readOnly: True
    - name: salt-api
 -    image: sles12/salt-api:__TAG__
-+    image: sles12/salt-api:2018.3.0
++    image: caasp/v4/salt-api:2018.3.0
      volumeMounts:
      - mountPath: /etc/pki/salt-api.crt
        name: salt-api-certificate
@@ -134,7 +134,7 @@ index 0c4cab8..37d3051 100644
        name: salt-sock-dir
    - name: salt-minion-ca
 -    image: sles12/salt-minion:__TAG__
-+    image: sles12/salt-minion:2018.3.0
++    image: caasp/v4/salt-minion:2018.3.0
      volumeMounts:
      - mountPath: /etc/pki
        name: salt-minion-ca-certificates
@@ -143,7 +143,7 @@ index 0c4cab8..37d3051 100644
        readOnly: True
    - name: velum-dashboard
 -    image: sles12/velum:__TAG__
-+    image: sles12/velum:0.0
++    image: caasp/v4/velum:0.0
      env:
      - name: RAILS_ENV
        value: production
@@ -152,7 +152,7 @@ index 0c4cab8..37d3051 100644
      args: ["bin/run"]
    - name: velum-api
 -    image: sles12/velum:__TAG__
-+    image: sles12/velum:0.0
++    image: caasp/v4/velum:0.0
      env:
      - name: RAILS_ENV
        value: production
@@ -161,7 +161,7 @@ index 0c4cab8..37d3051 100644
      args: ["bundle", "exec", "puma", "-C", "config/puma.rb"]
    - name: openldap
 -    image: sles12/openldap:__TAG__
-+    image: sles12/openldap:10.0
++    image: caasp/v4/openldap:10.0
      env:
      - name: SLAPD_DOMAIN
        value: "infra.caasp.local"
@@ -170,7 +170,7 @@ index 0c4cab8..37d3051 100644
        name: openldap-config
    - name: velum-event-processor
 -    image: sles12/velum:__TAG__
-+    image: sles12/velum:0.0
++    image: caasp/v4/velum:0.0
      env:
      - name: WORKER_ID
        value: worker1
