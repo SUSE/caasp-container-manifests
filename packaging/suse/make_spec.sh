@@ -43,7 +43,7 @@ cat <<EOF > ${NAME}.spec
 
 %if 0%{?suse_version} == 1500 && !0%{?is_opensuse}
   # Use the sles12 images from the registry
-  %define _base_image registry.suse.com/sles12
+  %define _base_image registry.suse.com/caasp/v4
 %endif
 
 %if 0%{?is_opensuse} && 0%{?suse_version} > 1500
