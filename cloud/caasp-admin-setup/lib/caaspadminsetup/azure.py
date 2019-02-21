@@ -58,8 +58,17 @@ def get_instance_id():
     return socket.getfqdn()
 
 def have_permissions():
-    # currently user credentials are used in Azure, i.e. instance permissions
-    # are not relevant
+    try:
+        from msrestazure.azure_active_directory import MSIAuthentication
+        credentials = MSIAuthentication()
+    except ImportError:
+        print("MSI authentication support not available on this system.")
+        return False
+    except requests.exceptions.HTTPError:
+        print("This instance does not have session credentials.")
+        print("Please enable system assgined identity on this VM with role 'Contributor'")
+        print("and scope of the resource group you want to use for this cluster.")
+        return False
     return True
 
 def create_public_key(key_name, public_key_data):
@@ -86,9 +95,7 @@ def get_salt_cloud_profile_config(
             "script_args": "-s \"{}\" -t {}".format(ssh_pub_key, get_local_ipv4()),
             "ssh_username": ssh_user,
             "ssh_password": _generate_password(),
-            "cleanup_disks": True,
-            "cleanup_vhds": True,
-            "cleanup_interfaces": True,
+            "bootstrap_interface": "private",
             "os_disk_size_gb": root_volume_size
         }
     }
@@ -98,6 +105,9 @@ def get_salt_cloud_profile_config(
 def get_salt_cloud_provider_config(key_name, private_key_file):
     config = {
         "azure": {
+            "cleanup_disks": True,
+            "cleanup_vhds": True,
+            "cleanup_interfaces": True,
             "driver": "azurearm",
             "minion": {
                 "master": get_local_ipv4()
