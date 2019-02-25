@@ -423,10 +423,12 @@ def prompt_for_admin_password(default):
     return validate_password(prompt(statement, default, hide=True))
 
 
-def install_salt_deploy_script(email, registration_code, server=""):
-    suseconnect_opts = "-e " + email + " -r " + registration_code
+def install_salt_deploy_script(registration_code, email=None, server=None):
+    suseconnect_opts = " -r " + registration_code
+    if email:
+        suseconnect_opts += " -e " + email
     if server:
-        suseconnect_opts += " -s "+server
+        suseconnect_opts += " -s " + server
     content = open(salt_deploy_script_tmpl, 'r').read()
     with open(salt_deploy_script_dest, mode='w', ) as dst_file:
         os.chmod(salt_deploy_script_dest, 0o600)
@@ -496,7 +498,7 @@ def register_instance(email=None, registration_code=None):
     if flavor != 'byos':
         # On-demand, nothing to do automatic registration
         return
-    if not email:
+    if not registration_code:
         wants_registration = confirmation_prompt(
             "Would you like to register the system with the "
             "SUSE Customer Center (SCC) to receive updates? "
@@ -505,17 +507,17 @@ def register_instance(email=None, registration_code=None):
     else:
         wants_registration = True
     if wants_registration:
-        if not email:
+        if not email and not registration_code:
             email = prompt(
                "Please provide the e-mail associated with your SCC account",
                 'name@company.com'
             )
-        if not email_test(email):
-            msg = 'Invalid e-mail provided "{}"'.format(email)
-            msg += 'Proceeding without registration'
-            logging.info(msg)
-            print(msg)
-            return
+            if not email_test(email):
+                msg = 'Invalid e-mail provided "{}"'.format(email)
+                msg += 'Proceeding without registration'
+                logging.info(msg)
+                print(msg)
+                return
         if not registration_code:
             registration_code = prompt(
                 "Please provide your SCC registration code",
@@ -530,11 +532,11 @@ def register_instance(email=None, registration_code=None):
             return
         cmd = [
             '/usr/sbin/SUSEConnect',
-            '-e',
-            email,
             '-r',
             registration_code
         ]
+        if email:
+            cmd += [ '-e', email ]
         print_startline("Attempting SCC registration")
         p = subprocess.Popen(
             cmd,
@@ -548,7 +550,7 @@ def register_instance(email=None, registration_code=None):
                 logging.info(msg)
                 print(msg)
                 return
-        install_salt_deploy_script(email, registration_code)
+        install_salt_deploy_script(registration_code, email)
         print_endline("success")
         logging.info('Registration success')
 
@@ -831,13 +833,7 @@ if __name__ == '__main__':
             sys.exit("Invalid argument '--admin-password'")
 
     # Register if byos and user desired
-    if (arguments["--wizard"] or (
-           (
-               arguments["--reg-email"]
-           ) and (
-               arguments["--reg-code"]
-           )
-        )):
+    if (arguments["--wizard"] or arguments["--reg-code"]):
         register_instance(arguments["--reg-email"], arguments["--reg-code"])
 
     # last chance to back out
