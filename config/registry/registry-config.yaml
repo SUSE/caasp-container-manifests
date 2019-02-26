@@ -5,6 +5,6 @@
 # and ignore the host and namespace.
 #
 # namespace: denotes the root namespace under which all images can be found.
-use_registry: false
+use_registry: true
 host: registry.suse.com
-namespace: sles12
+namespace: caasp/v4

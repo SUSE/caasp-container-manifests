@@ -21,7 +21,7 @@ spec:
   hostNetwork: True
   initContainers:
   - name: mariadb-user-secrets
-    image: sles12/mariadb:__TAG__
+    image: registry.suse.com/caasp/v4/mariadb:__TAG__
     command: ["/setup-mysql.sh"]
     env:
     - name: ENV
@@ -35,7 +35,7 @@ spec:
       name: setup-mysql
       readOnly: True
   - name: openldap-secrets
-    image: sles12/velum:__TAG__
+    image: registry.suse.com/caasp/v4/velum:__TAG__
     command: ["sh", "-c", "umask 377;
                            if [ ! -f /infra-secrets/openldap-password ]; then
                              head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/openldap-password;
@@ -45,7 +45,7 @@ spec:
     - mountPath: /infra-secrets
       name: infra-secrets
   - name: saltapi-secrets
-    image: sles12/velum:__TAG__
+    image: registry.suse.com/caasp/v4/velum:__TAG__
     command: ["sh", "-c", "umask 377;
                            if [ ! -f /infra-secrets/saltapi-password ]; then
                              head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/saltapi-password;
@@ -55,7 +55,7 @@ spec:
     - mountPath: /infra-secrets
       name: infra-secrets
   - name: salt-minion-key-generation
-    image: sles12/salt-master:__TAG__
+    image: registry.suse.com/caasp/v4/salt-master:__TAG__
     command: ["sh", "-c", "umask 377;
                            mkdir /salt-master-pki/minions/;
                            temp_dir=`mktemp -d`;
@@ -87,7 +87,7 @@ spec:
     - mountPath: /salt-admin-minion-pki
       name: salt-admin-minion-pki
   - name: salt-master-config
-    image: sles12/velum:__TAG__
+    image: registry.suse.com/caasp/v4/velum:__TAG__
     command: ["sh", "-c", "umask 377;
                            rmdir /salt-master-credentials/55-returner-credentials.conf;
                            if ! grep mysql /salt-master-credentials/55-returner-credentials.conf; then
@@ -103,7 +103,7 @@ spec:
     - mountPath: /salt-master-credentials
       name: salt-master-credentials
   - name: velum-internal-api
-    image: sles12/velum:__TAG__
+    image: registry.suse.com/caasp/v4/velum:__TAG__
     command: ["sh", "-c", "umask 377;
                            if [ ! -f /infra-secrets/velum-internal-api-username ]; then
                              head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/velum-internal-api-username;
@@ -116,7 +116,7 @@ spec:
     - mountPath: /infra-secrets
       name: infra-secrets
   - name: velum-dashboard-init
-    image: sles12/velum:__TAG__
+    image: registry.suse.com/caasp/v4/velum:__TAG__
     env:
     - name: RAILS_ENV
       value: production
@@ -152,7 +152,7 @@ spec:
     args: ["bin/init"]
   containers:
   - name: salt-master
-    image: sles12/salt-master:__TAG__
+    image: registry.suse.com/caasp/v4/salt-master:__TAG__
     env:
     - name: MYSQL_UNIX_PORT
       value: /var/run/mysql/mysql.sock
@@ -210,7 +210,7 @@ spec:
       name: registry-config
       readOnly: True
   - name: salt-api
-    image: sles12/salt-api:__TAG__
+    image: registry.suse.com/caasp/v4/salt-api:__TAG__
     volumeMounts:
     - mountPath: /etc/pki/salt-api.crt
       name: salt-api-certificate
@@ -232,7 +232,7 @@ spec:
     - mountPath: /var/run/salt/master
       name: salt-sock-dir
   - name: salt-minion-ca
-    image: sles12/salt-minion:__TAG__
+    image: registry.suse.com/caasp/v4/salt-minion:__TAG__
     volumeMounts:
     - mountPath: /etc/pki
       name: salt-minion-ca-certificates
@@ -255,7 +255,7 @@ spec:
       name: registry-config
       readOnly: True
   - name: velum-dashboard
-    image: sles12/velum:__TAG__
+    image: registry.suse.com/caasp/v4/velum:__TAG__
     env:
     - name: RAILS_ENV
       value: production
@@ -345,7 +345,7 @@ spec:
       readOnly: True
     args: ["bin/run"]
   - name: velum-api
-    image: sles12/velum:__TAG__
+    image: registry.suse.com/caasp/v4/velum:__TAG__
     env:
     - name: RAILS_ENV
       value: production
@@ -421,7 +421,7 @@ spec:
       readOnly: True
     args: ["bundle", "exec", "puma", "-C", "config/puma.rb"]
   - name: openldap
-    image: sles12/openldap:__TAG__
+    image: registry.suse.com/caasp/v4/openldap:__TAG__
     env:
     - name: SLAPD_DOMAIN
       value: "infra.caasp.local"
@@ -449,7 +449,7 @@ spec:
     - mountPath: /etc/openldap/slapd.d
       name: openldap-config
   - name: velum-event-processor
-    image: sles12/velum:__TAG__
+    image: registry.suse.com/caasp/v4/velum:__TAG__
     env:
     - name: WORKER_ID
       value: worker1

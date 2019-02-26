@@ -21,7 +21,7 @@ spec:
   hostNetwork: False
   initContainers:
   - name: mariadb-secrets
-    image: sles12/velum:__TAG__
+    image: registry.suse.com/caasp/v4/velum:__TAG__
     command: ["sh", "-c", "umask 377;
                            if [ ! -f /infra-secrets/mariadb-root-password ]; then
                              head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/mariadb-root-password;
@@ -32,7 +32,7 @@ spec:
       name: infra-secrets
   containers:
   - name: velum-mariadb
-    image: sles12/mariadb:__TAG__
+    image: registry.suse.com/caasp/v4/mariadb:__TAG__
     env:
     - name: MYSQL_DISABLE_REMOTE_ROOT
       value: "true"
