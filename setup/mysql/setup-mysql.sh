@@ -28,8 +28,10 @@ salt_passwd=`cat /infra-secrets/mariadb-salt-password`
 
 mysql $mysql_flags -f <<EOF
   CREATE SCHEMA IF NOT EXISTS velum_$ENV;
-  CREATE USER velum@localhost IDENTIFIED BY "$velum_passwd";
-  CREATE USER salt@localhost IDENTIFIED BY "$salt_passwd";
+  CREATE USER IF NOT EXISTS velum@localhost;
+  SET PASSWORD FOR          velum@localhost = PASSWORD( "$velum_passwd" );
+  CREATE USER IF NOT EXISTS salt@localhost;
+  SET PASSWORD FOR          salt@localhost = PASSWORD( "$salt_passwd" );
   GRANT ALL PRIVILEGES ON velum_$ENV.* TO velum@localhost;
   GRANT SELECT,INSERT,DELETE ON velum_$ENV.* TO salt@localhost;
   FLUSH PRIVILEGES;
