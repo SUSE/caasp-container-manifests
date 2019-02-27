@@ -69,7 +69,7 @@ if [[ ! -f "/etc/caasp/haproxy/haproxy.cfg" && -f "/etc/haproxy/haproxy.cfg" ]];
 
 listen velum
         bind 0.0.0.0:80
-        bind 0.0.0.0:443 ssl crt /etc/pki/private/velum-bundle.pem ca-file /etc/pki/ca.crt
+        bind 0.0.0.0:443 ssl crt /etc/pki/private/velum-bundle.pem ca-file /var/lib/ca-certificates/ca-bundle.pem
         mode http
         acl path_autoyast path_reg ^/autoyast$
         option forwardfor
@@ -80,7 +80,7 @@ listen velum
         server velum unix@/var/run/puma/dashboard.sock
 
 listen velum-api
-        bind 127.0.0.1:443 ssl crt /etc/pki/private/velum-bundle.pem ca-file /etc/pki/ca.crt
+        bind 127.0.0.1:443 ssl crt /etc/pki/private/velum-bundle.pem ca-file /var/lib/ca-certificates/ca-bundle.pem
         mode http
         option forwardfor
         http-request set-header X-Forwarded-Proto https

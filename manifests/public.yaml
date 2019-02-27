@@ -134,6 +134,9 @@ spec:
     - mountPath: /etc/pki/ca.crt
       name: ca-certificate
       readOnly: True
+    - mountPath: /var/lib/ca-certificates/
+      name: ca-bundle-dir
+      readOnly: True
     - mountPath: /var/run/mysql
       name: mariadb-unix-socket
     - mountPath: /var/lib/misc/velum-secrets
@@ -162,6 +165,9 @@ spec:
     volumeMounts:
     - mountPath: /etc/pki/ca.crt
       name: ca-certificate
+      readOnly: True
+    - mountPath: /var/lib/ca-certificates/
+      name: ca-bundle-dir
       readOnly: True
     - mountPath: /etc/salt/master.d/50-master.conf
       name: salt-master-config-master-conf
@@ -214,6 +220,9 @@ spec:
       readOnly: True
     - mountPath: /etc/pki/ca.crt
       name: ca-certificate
+      readOnly: True
+    - mountPath: /var/lib/ca-certificates/
+      name: ca-bundle-dir
       readOnly: True
     - mountPath: /etc/salt/master.d/50-api.conf
       name: salt-api-config-api-conf
@@ -302,6 +311,12 @@ spec:
     - mountPath: /etc/pki/ca.crt
       name: ca-certificate
       readOnly: True
+    - mountPath: /var/lib/ca-certificates/
+      name: ca-bundle-dir
+      readOnly: True
+    - mountPath: /var/lib/ca-certificates/openssl
+      name: ca-dir
+      readOnly: True
     - mountPath: /var/run/mysql
       name: mariadb-unix-socket
     - mountPath: /var/run/puma
@@ -385,6 +400,12 @@ spec:
     volumeMounts:
     - mountPath: /etc/pki/ca.crt
       name: ca-certificate
+      readOnly: True
+    - mountPath: /var/lib/ca-certificates/
+      name: ca-bundle-dir
+      readOnly: True
+    - mountPath: /var/lib/ca-certificates/openssl
+      name: ca-dir
       readOnly: True
     - mountPath: /var/run/mysql
       name: mariadb-unix-socket
@@ -482,6 +503,9 @@ spec:
     - mountPath: /etc/pki/ca.crt
       name: ca-certificate
       readOnly: True
+    - mountPath: /var/lib/ca-certificates/
+      name: ca-bundle-dir
+      readOnly: True
     - mountPath: /var/run/mysql
       name: mariadb-unix-socket
     - mountPath: /var/lib/misc/velum-secrets
@@ -563,6 +587,12 @@ spec:
   - name: ca-certificate
     hostPath:
       path: /etc/pki/ca.crt
+  - name: ca-bundle-dir
+    hostPath:
+      path: /var/lib/ca-certificates/
+  - name: ca-dir
+    hostPath:
+      path: /var/lib/ca-certificates/openssl
   - name: salt-minion-ca-grains
     hostPath:
       path: /usr/share/caasp-container-manifests/config/salt/grains/ca

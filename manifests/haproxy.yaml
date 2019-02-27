@@ -32,6 +32,9 @@ spec:
         - name: ca-certificate
           mountPath: /etc/pki/ca.crt
           readOnly: True
+        - mountPath: /var/lib/ca-certificates/
+          name: ca-bundle-dir
+          readOnly: True
         - name: kubernetes-proxy-bundle-certificate
           mountPath: /etc/pki/private/kube-apiserver-proxy-bundle.pem
           readOnly: True
@@ -52,6 +55,9 @@ spec:
       hostPath:
         path: /etc/pki/ca.crt
         type: FileOrCreate
+    - name: ca-bundle-dir
+      hostPath:
+        path: /var/lib/ca-certificates/
     - name: kubernetes-proxy-bundle-certificate
       hostPath:
         path: /etc/pki/private/kube-apiserver-proxy-bundle.pem
