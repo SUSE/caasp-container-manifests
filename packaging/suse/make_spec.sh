@@ -37,19 +37,6 @@ cat <<EOF > ${NAME}.spec
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-%if 0%{?suse_version} == 1315 && !0%{?is_opensuse}
-  %define _base_image sles12
-%endif
-
-%if 0%{?suse_version} == 1500 && !0%{?is_opensuse}
-  # Use the sles12 images from the registry
-  %define _base_image registry.suse.com/caasp/v4
-%endif
-
-%if 0%{?is_opensuse} && 0%{?suse_version} > 1500
-  %define _base_image kubic
-%endif
-
 Name:           $NAME
 Version:        $VERSION
 Release:        0
@@ -59,28 +46,6 @@ Url:            https://github.com/kubic-project/caasp-container-manifests
 Group:          System/Management
 Source:         ${SAFE_BRANCH}.tar.gz
 
-# If it is not SLE15, require container-feeder
-# Otherwise, we are using the SUSE Registry
-%if 0%{?sle_version} < 150000
-Requires:       container-feeder
-
-# Require all the docker images
-Requires:       %{_base_image}-pause-image >= 2.0.0
-Requires:       %{_base_image}-mariadb-image >= 2.0.0
-Requires:       %{_base_image}-pv-recycler-node-image >= 2.0.0
-Requires:       %{_base_image}-salt-api-image >= 2.0.0
-Requires:       %{_base_image}-salt-master-image >= 2.0.0
-Requires:       %{_base_image}-salt-minion-image >= 2.0.0
-Requires:       %{_base_image}-velum-image >= 2.0.0
-Requires:       %{_base_image}-haproxy-image >= 2.0.0
-Requires:       %{_base_image}-flannel-image >= 2.0.0
-Requires:       %{_base_image}-dnsmasq-nanny-image >= 2.0.0
-Requires:       %{_base_image}-kubedns-image >= 2.0.0
-Requires:       %{_base_image}-sidecar-image >= 2.0.0
-Requires:       %{_base_image}-tiller-image >= 2.0.0
-Requires:       %{_base_image}-openldap-image >= 2.0.0
-Requires:       %{_base_image}-caasp-dex-image >= 2.0.0
-%endif
 # Require all  the things we mount from the host from the kubernetes-salt package
 Requires:       kubernetes-salt
 BuildArch:      noarch
@@ -96,22 +61,9 @@ and velum containers on a controller node.
 %build
 
 %install
-for file in manifests/*.yaml; do
-  install -D -m 0644 \$file %{buildroot}/%{_datadir}/%{name}/\$file
-  # fix image name
-  sed -e "s|image:[ ]*caasp\/v4/\(.*\):|image: %{_base_image}/\1:|g" -i %{buildroot}/%{_datadir}/%{name}/\$file
-done
 # Install registry-configuration file
-install -d %{buildroot}/%{_datadir}/%{name}/config/registry
-install -D -m 0644 config/registry/registry-config.yaml %{buildroot}/%{_datadir}/%{name}/config/registry/registry-config.yaml
 install -D -m 0644 config/haproxy/haproxy.cfg %{buildroot}/etc/caasp/haproxy/haproxy.cfg
 install -D -m 0755 activate.sh %{buildroot}/%{_datadir}/%{name}/activate.sh
-# fix image name in activate
-sed -e "s|caasp\/v4/pause|%{_base_image}/pause|g" -i %{buildroot}/%{_datadir}/%{name}/activate.sh
-%if 0%{?suse_version} >= 1500
-# adjust the use_registry variable
-sed -e "s|use_registry: false|use_registry: true|g" -i %{buildroot}/%{_datadir}/%{name}/config/registry/registry-config.yaml
-%endif
 install -D -m 0755 gen-certs.sh %{buildroot}/%{_datadir}/%{name}/gen-certs.sh
 for dir in salt/grains salt/minion.d-ca; do
   install -d %{buildroot}/%{_datadir}/%{name}/config/\$dir
