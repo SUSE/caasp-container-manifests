@@ -13,7 +13,6 @@ shopt -s extglob
 ENV=${ENV//@([^[:word:]])}
 shopt -u extglob
 
-
 if [ ! -f /infra-secrets/mariadb-velum-password ]; then
     head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/mariadb-velum-password
 fi
@@ -31,6 +30,11 @@ done
 
 velum_passwd=`cat /infra-secrets/mariadb-velum-password`
 salt_passwd=`cat /infra-secrets/mariadb-salt-password`
+
+if [[ -z "${velum_passwd}" || -z "${salt_passwd}" ]]; then
+    echo "Failed generating velum/salt passwords" >&2
+    exit 1
+fi
 
 mysql $mysql_flags -f <<EOF
   CREATE SCHEMA IF NOT EXISTS velum_$ENV;
