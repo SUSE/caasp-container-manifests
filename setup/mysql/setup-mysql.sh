@@ -8,6 +8,12 @@ done
 
 ENV=${ENV:-production}
 
+# only allow chars valid in MariaDB idenfiers (letters, numbers, underscore)
+shopt -s extglob
+ENV=${ENV//@([^[:word:]])}
+shopt -u extglob
+
+
 if [ ! -f /infra-secrets/mariadb-velum-password ]; then
     head -n 10 /dev/random | base64 | head -n 10 | tail -n 1 > /infra-secrets/mariadb-velum-password
 fi
