@@ -85,7 +85,6 @@ Requires:       %{_base_image}-caasp-dex-image >= 2.0.0
 Requires:       kubernetes-salt
 BuildArch:      noarch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-Patch0:         0001-patch-in-version-numbers-for-images.patch
 
 %description
 Manifest file templates will instruct kubelet service to bring up salt
@@ -93,15 +92,6 @@ and velum containers on a controller node.
 
 %prep
 %setup -q -n ${NAME}-${SAFE_BRANCH}
-
-%if 0%{?suse_version} >= 1500
-# Without container-feeder we don't have the tag information available on the admin node anymore
-# That is why hotpatching the tags in won't work anymore (admin-node-setup.sh).
-# Once there is another way to get the correct tags for each image this patch should be removed.
-# Until then it has to be kept up-to-date with versions of images currently available in the
-# internal registry.
-%patch0 -p1
-%endif
 
 %build
 
