@@ -12,7 +12,6 @@ fi
 # Update manifest files
 kube_dir=/etc/kubernetes/manifests
 manifest_dir=/usr/share/caasp-container-manifests/manifests
-images_dir=/usr/share/suse-docker-images/native
 
 if [ ! -d $kube_dir ]; then
     echo "$kube_dir does not exist" >&2
@@ -28,15 +27,6 @@ fi
 tmp_dir=$(mktemp -d)
 
 cp $manifest_dir/*.yaml $tmp_dir
-
-for i in $(ls $images_dir/sles*.tag $images_dir/kubic*.tag);do
-    metadata_file=$(basename $i .tag).metadata
-    image_name=$(cat $images_dir/$metadata_file | grep \"name\": | cut -d":" -f2 | cut -d\" -f2)
-    tag=$(cat $i)
-
-    echo "$0: Setting $image_name:$tag into manifests"
-    sed -i -e "s%$image_name:__TAG__%$image_name:$tag%g" $tmp_dir/*.yaml
-done
 
 # TODO: We also need to delete old manifest files, if/when
 #       we delete manifests. Something like this:

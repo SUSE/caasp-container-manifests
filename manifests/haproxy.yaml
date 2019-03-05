@@ -20,7 +20,7 @@ spec:
       operator: "Exists"
   containers:
     - name: haproxy
-      image: registry.suse.com/caasp/v4/haproxy:__TAG__
+      image: registry.suse.com/caasp/v4/haproxy:1.6.11
       resources:
         requests:
           memory: 128Mi
