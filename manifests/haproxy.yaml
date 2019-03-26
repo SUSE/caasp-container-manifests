@@ -38,6 +38,9 @@ spec:
         - name: kubernetes-proxy-bundle-certificate
           mountPath: /etc/pki/private/kube-apiserver-proxy-bundle.pem
           readOnly: True
+        - name: kubernetes-apiserver-haproxy-client-bundle
+          mountPath: /etc/pki/private/kube-apiserver-haproxy-bundle.pem
+          readOnly: True
         - name: etc-hosts
           mountPath: /etc/hosts
         - name: velum-bundle-certificate
@@ -61,6 +64,10 @@ spec:
     - name: kubernetes-proxy-bundle-certificate
       hostPath:
         path: /etc/pki/private/kube-apiserver-proxy-bundle.pem
+        type: FileOrCreate
+    - name: kubernetes-apiserver-haproxy-client-bundle
+      hostPath:
+        path: /etc/pki/private/kube-apiserver-haproxy-bundle.pem
         type: FileOrCreate
     - name: etc-hosts
       hostPath:
