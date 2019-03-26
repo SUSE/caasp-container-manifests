@@ -298,7 +298,7 @@ spec:
     - name: LDAP_BASE_DN
       value: dc=infra,dc=caasp,dc=local
     - name: LDAP_ADMIN_GROUP_DN
-      value: cn=Administrators,ou=Groups,dc=infra,dc=caasp,dc=local
+      value: cn=CaaSP-Administrators,ou=Groups,dc=infra,dc=caasp,dc=local
     - name: LDAP_TLS_METHOD
       value: start_tls
     - name: LDAP_MAIL_ATTRIBUTE
